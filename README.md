@@ -25,6 +25,16 @@ migration, and native mobile clients are not implemented yet. Their intended
 scope is documented in the
 [high-level product design](docs/high-level-product-design.md).
 
+## Local account topology
+
+One trusted local installation may contain multiple isolated accounts. Sharing
+an installation does not create household, guardian, helper, or data-sharing
+permissions between those accounts.
+
+The installation operator can access the SQLite database and backups on disk.
+The local pilot is therefore not a privacy boundary against that operator and
+must not be exposed as a public multi-tenant service.
+
 ## Quick start
 
 Requirements:
@@ -43,8 +53,9 @@ Open <http://127.0.0.1:5000>. Register a local account, then capture the first
 task.
 
 The SQLite database and generated session secret are stored under `instance/`,
-which is intentionally ignored by Git. Back up that directory if the pilot data
-matters.
+which is intentionally ignored by Git. An operator backup of that directory
+contains every registered local account; protect it accordingly if the pilot
+data matters.
 
 Optional local settings:
 

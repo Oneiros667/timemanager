@@ -6,10 +6,10 @@ Date: 2026-07-24
 
 ## Context
 
-The first working Timemanager version is a local development/pilot application.
-It needs simple registration, personal task persistence, an ADHD-friendly
-responsive experience, and an installable PWA shell. The approved delivery path
-later replaces the pilot with a hosted online PWA, followed by native mobile
+The Phase 1 Timemanager local pilot is a development application. It needs
+simple registration, personal task persistence, an ADHD-friendly responsive
+experience, and an installable PWA shell. The approved delivery path later
+replaces the pilot with the Phase 3 hosted release, followed by native mobile
 clients and an optional one-time local-data migration.
 
 The first slice should be easy to run and inspect without committing the hosted
@@ -26,7 +26,7 @@ Use:
 - Werkzeug password hashing and Flask's signed session cookie;
 - a per-session CSRF token for every state-changing form;
 - a versioned SQL schema with per-user foreign keys and stable integer IDs for
-  the local pilot;
+  the Phase 1 local pilot;
 - a web app manifest and root-scoped service worker;
 - network-only authenticated navigation, with caching limited to public static
   shell assets and a non-personal offline page.
@@ -35,13 +35,17 @@ The automatically generated local secret and SQLite database live under the
 ignored `instance/` directory. The service worker must not cache authenticated
 Today, Inbox, or task responses.
 
+The installation-level account and operator-access boundary is defined in
+[ADR 0002: Local account topology](0002-local-account-topology.md).
+
 ## Consequences
 
 Benefits:
 
 - one small Python runtime serves registration, persistence, and the PWA;
 - server rendering provides a useful experience before JavaScript loads;
-- SQLite is sufficient for a single-machine pilot and simple to back up;
+- SQLite is sufficient for the single-machine Phase 1 local pilot and simple to
+  back up;
 - the application factory and isolated test database make behavior testable;
 - minimal client JavaScript keeps the daily path fast and comprehensible.
 
@@ -50,15 +54,15 @@ Costs and boundaries:
 - Flask's development server is not a public deployment server;
 - SQLite and local signed-cookie authentication are not the final hosted
   multi-tenant architecture;
-- the hosted release still needs production database migrations, TLS-secure
-  cookie configuration, email verification/recovery, login throttling, tenant
-  controls, operational monitoring, and backup/restore;
+- the Phase 3 hosted release still needs production database migrations,
+  TLS-secure cookie configuration, email verification/recovery, login
+  throttling, tenant controls, operational monitoring, and backup/restore;
 - PWA installation on a separate home-network device requires a trusted HTTPS
   origin;
 - offline personal-data mutation is not supported by this service worker;
 - the one-time migration must explicitly translate local IDs to stable hosted
   identifiers and must not copy local secrets or provider credentials.
 
-These constraints are deliberate. They keep the local pilot working while
-leaving the hosted security and synchronization contracts visible rather than
-pretending they already exist.
+These constraints are deliberate. They keep the Phase 1 local pilot working
+while leaving the hosted security and synchronization contracts visible rather
+than pretending they already exist.

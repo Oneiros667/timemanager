@@ -18,9 +18,15 @@ This is planning support, not clinical care, family monitoring, school
 discipline, location tracking, behaviour scoring, or a mechanism to pressure a
 person into completing tasks. It must not claim to treat ADHD.
 
-Timemanager is a subscription product. It does not use advertising as a revenue
-source and must not use children's or adults' data for behavioural profiling,
-sale, sharing, or social discovery.
+Timemanager's hosted commercial model is a subscription per primary user,
+offered monthly or at a discounted annual price. It does not use advertising as
+a revenue source and must not use children's or adults' data for behavioural
+profiling, sale, sharing, or social discovery.
+
+A child's subscription includes one guardian companion seat; an adult's
+subscription includes one trusted-support companion seat. The seat grants only
+the permissions approved for that primary user and does not include a separate
+personal planning workspace for the companion.
 
 ## Non-negotiable data and monetisation boundaries
 
@@ -28,11 +34,11 @@ The product must not use advertising identifiers, targeted advertising,
 behavioural profiling, data sale/brokerage, or social discovery as a feature or
 revenue source. These are global exclusions, not optional settings.
 
-The local and first hosted pilots do not solicit, infer, categorise, or provide
-specialist functionality for ADHD diagnosis, treatment, medication, or other
-health information. Users may nevertheless enter sensitive information in a
-private free-text task, so all task content is treated as potentially sensitive
-and remains private by default.
+The Phase 1 local pilot and Phase 3 hosted release do not solicit, infer,
+categorise, or provide specialist functionality for ADHD diagnosis, treatment,
+medication, or other health information. Users may nevertheless enter sensitive
+information in a private free-text task, so all task content is treated as
+potentially sensitive and remains private by default.
 
 Assistance workspaces do not provide health-specific fields or workflows,
 precise location tracking, school-record storage, or voice-recording storage.
@@ -40,6 +46,10 @@ Items are shared individually through an explicit disclosure preview; there is
 no default or bulk disclosure of the account's task content. Timemanager must
 not claim that it can automatically detect every sensitive detail in arbitrary
 free text.
+
+Accounts registered on the same Phase 1 local installation remain independent.
+Co-residency does not establish a household, guardianship, trusted-person
+relationship, or permission to view or change another account's data.
 
 Tracked activities and execution histories, including private medication
 records, are not shared with assistance workspaces in the first implementation.
@@ -103,11 +113,11 @@ deadline, completion, deletion, or recurring reminder.
 
 ## Guardian-supported child workflow
 
-The first child-oriented pilot serves young people aged **13 and older**. It is
-a guardian-managed workspace with an optional simplified child view, not an
-independent child social account. Parent/guardian editing is the default inside
-that child workspace, subject to the visible history and privacy boundaries
-below.
+The first hosted child-oriented pilot serves young people aged **13 and
+older**. It is a guardian-managed workspace with an optional simplified child
+view, not an independent child social account. Parent/guardian editing is the
+default inside that child workspace, subject to the visible history and privacy
+boundaries below.
 
 1. A verified guardian creates or links a child workspace and selects the
    support purpose.
@@ -209,21 +219,52 @@ personal information. These sources are design inputs, not legal advice:
 - [FTC: Children's Online Privacy Protection Rule](https://www.ftc.gov/legal-library/browse/rules/childrens-online-privacy-protection-rule-coppa)
 - [South African Information Regulator: guidance on personal information of children](https://inforegulator.org.za/guidance-notes/)
 
-## First-pilot scope
+## Validation and release topology
 
-Build and test the smallest meaningful version:
+### Phase 2 prototype
 
-1. one parent/guardian-managed workspace for a child aged 13 or older, with
-   manual task, appointment, and reminder entry;
-2. an adult inviting one trusted planner with proposal-only access;
-3. a focus-companion session with intention and start/end check-ins;
-4. visible change history, immediate revoke, and no hidden tracking;
-5. no third-party helper discovery, social feed, school portal, medical data,
-   location tracking, automated assignment, or AI-mediated helper action.
+Build and test the smallest meaningful assisted-planning interactions using
+synthetic people, relationships, tasks, appointments, reminders, and messages:
 
-The local development pilot must not claim that an email invitation verifies a
-guardian relationship. Remote invitations, child accounts, and shared hosted
-workspaces require the hosted authorization and safety gates above.
+1. simulate a parent/guardian-managed workspace for a child aged 13 or older;
+2. simulate an adult owner and one proposal-only trusted planner;
+3. simulate a focus-companion session with intention and start/end check-ins;
+4. exercise visible change history, immediate revoke, and no hidden tracking;
+5. switch roles on the same trusted device rather than sending invitations; and
+6. reset the synthetic workspace after each session.
+
+The Phase 2 prototype creates no remote invitation, actual cross-account
+relationship, or persistent real child or assistance workspace. It does not
+connect external calendars, deliver real notifications, or collect real
+planning, school, health, location, or family data.
+
+### Supervised usability sessions
+
+Real adults, guardians, and young people may evaluate the prototype only under
+an approved research protocol. They interact with synthetic scenarios rather
+than entering their own personal data. Applicable participant consent,
+guardian consent, and young-person assent are recorded outside Timemanager.
+Research notes are minimised, de-identified, and stored separately from the
+prototype. Participation never creates a live child or assistance account.
+
+### Hosted adult support pilot
+
+Real adult trusted-support relationships require a hosted, server-authorized
+pilot with authenticated invitations, server-side permission checks,
+proposal-only defaults, explicit delegation, disclosure previews, audit
+history, expiry, immediate revocation, and abuse-reporting procedures. This
+adult gate is separate from the child-data launch gate.
+
+### Hosted child-workspace pilot
+
+Real parent-managed child workspaces require all hosted authorization and
+security controls plus country-specific legal/privacy approval, a child-data
+impact assessment, an unsafe-family and coercion threat model, appropriate
+guardian-authority verification, child-visible privacy and change history, and
+tested deletion, revocation, incident-response, and support procedures.
+
+Email, payment, local-account co-residency, and possession of an invitation
+never prove guardianship or authority.
 
 ## Evaluation
 
@@ -238,12 +279,14 @@ Test whether the feature improves practical support without adding pressure:
 - Do families report less lost information and less planning conflict, without
   more shame, surveillance, anxiety, or maintenance burden?
 
-## Confirmed pilot decisions
+## Confirmed assisted-planning decisions
 
-- The first guardian-supported child pilot serves young people aged 13 and
-  older.
-- The pilot uses a parent/guardian-managed child profile, not a separate child
-  sign-in.
+- Phase 2 uses synthetic data and same-device role simulation; it does not
+  create live shared relationships.
+- The first hosted guardian-supported child pilot serves young people aged 13
+  and older.
+- The hosted child pilot uses a parent/guardian-managed child profile, not a
+  separate child sign-in.
 - A guardian may edit the child workspace by default, while the child sees a
   clear, age-appropriate account of what is next and what changed.
 - Adult trusted helpers are proposal-only by default. An adult can grant a
@@ -277,11 +320,11 @@ each actual launch market.
 | South Africa | POPIA generally prohibits processing a child's personal information unless a section 35 exception applies; the ordinary product route is prior consent from a competent person. POPIA also imposes the general conditions for lawful processing. | Treat guardian authority and consent as a launch blocker, not merely an account setting. Record the competent person's consent and scope, minimise data, avoid diagnosis/health data by default, provide access/correction/deletion paths, secure data and suppliers, and prepare incident-response processes. Obtain South African advice before relying on any exception or processing special personal information. |
 | Australia | The Privacy Act and Australian Privacy Principles (APPs) protect personal information regardless of age. The OAIC says capacity to consent is assessed case by case; it is generally reasonable to assume capacity from age 15 unless there is doubt, otherwise seek parent/guardian consent. The Children's Online Privacy Code is currently an exposure draft, with registration planned for 10 December 2026. | Assess whether the service is an APP entity and use an age/capacity and parent-authority flow rather than assuming 13-year-olds can always consent. Meet APP notice, purpose, access/correction, security, and deletion obligations. Design now for the proposed Code's child-best-interests, clear notice, minimisation, and parent-consent transparency expectations, but do not describe the draft as current law. |
 
-The first 13+ parent-managed pilot can therefore be designed around a verified
-guardian, but it should be geographically limited until the country-specific
-matrix is reviewed. It must not collect an under-13 child's information through
-an independent child account or weaken the non-negotiable data and monetisation
-boundaries above.
+The first hosted 13+ parent-managed pilot can therefore be designed around a
+verified guardian, but it should be geographically limited until the
+country-specific matrix is reviewed. It must not collect an under-13 child's
+information through an independent child account or weaken the non-negotiable
+data and monetisation boundaries above.
 
 ### Product controls common to every launch
 
@@ -313,8 +356,10 @@ boundaries above.
 
 Guardian verification answers two different questions: whether an adult
 controls an account, and whether that adult has authority to make privacy
-decisions for the child. Email or payment verification supports the first; it
-must not alone be treated as proof of the second.
+decisions for the child. Email verification and account security support the
+first; they must not alone be treated as proof of the second. Subscription
+payment establishes only a billing relationship and is not evidence of
+identity, age, guardianship, consent, or authority.
 
 Use progressive assurance: collect only enough evidence for the risk of the
 requested action, and do not unlock a child workspace until the applicable
@@ -322,7 +367,7 @@ market's required level is met.
 
 | Assurance level | Suitable controls | Permitted outcome |
 | --- | --- | --- |
-| Account assurance | Verified email, MFA/passkey, confirmed subscription payment, device/session protection, and adult declaration of authority. | Start a pending workspace; no other guardian/helper invitations, external calendar connection, or child-created information. |
+| Account assurance | Verified email, MFA/passkey, device/session protection, and adult declaration of authority. | Start a pending workspace; no other guardian/helper invitations, external calendar connection, or child-created information. |
 | Standard guardian assurance | Versioned guardian declaration; child age band and country; direct guardian notice; independent-channel confirmation (for example, confirmation email plus delayed reconfirmation); fraud/duplicate-account checks; and an audit record of method and result. | Parent-managed planning workspace with the strictly limited data set, where permitted by the country launch policy. |
 | Strong guardian assurance | A specialist provider returns a minimal yes/no parental-authority attribute, or trained human review verifies an appropriate document or live video call. Delete raw documents, selfies, and video promptly after the check. | Add a second guardian, recover a disputed account, or resolve a high-risk/conflicting claim. |
 | Dispute handling | Pause access changes; perform a fresh strong check; use trained privacy/safety review; retain only the decision and minimum evidence; offer appeal. | No access expansion until resolved. Never adjudicate custody disputes in-product. |
@@ -351,7 +396,7 @@ Specific controls:
   needed for compliance/account security, and never reuse it for analytics,
   marketing, profiling, or age estimation.
 
-For the first parent-managed 13+ pilot, standard guardian assurance is a
+For the first hosted parent-managed 13+ pilot, standard guardian assurance is a
 reasonable starting point; reserve strong assurance for adding a second
 guardian, account recovery, disputes, or a jurisdiction that requires it.
 Launch counsel must confirm adequacy per market: a low-risk data set reduces

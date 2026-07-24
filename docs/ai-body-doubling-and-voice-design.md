@@ -85,6 +85,10 @@ Source: [OpenAI API data controls](https://platform.openai.com/docs/models/defau
 
 ## Architecture and rollout
 
+All AI deployment stages below are optional Phase 4 work in the main product
+roadmap. They are a technical progression within that milestone, not separate
+product phases or delivery commitments.
+
 ```text
 Web client / future native mobile client
              |
@@ -97,7 +101,7 @@ Timemanager backend ---- limited task/timer tools ---- Timemanager data store
 Voice AI provider (for example, OpenAI Realtime API)
 ```
 
-### Phase 1: local home-lab container
+### AI deployment stage A: local connector prototype
 
 - Ship the AI connector disabled by default.
 - Enable it through explicit server configuration, e.g. an `AI_PROVIDER`
@@ -106,7 +110,7 @@ Voice AI provider (for example, OpenAI Realtime API)
   unaffordable, or deliberately disabled.
 - Provide a non-AI focus timer / manual body-doubling screen as the fallback.
 
-### Phase 2: authenticated online service
+### AI deployment stage B: hosted opt-in service
 
 - Put all AI calls behind the same authenticated user boundary as tasks.
 - Enforce tenant isolation, rate limits, per-user usage limits, and cost
@@ -116,7 +120,7 @@ Voice AI provider (for example, OpenAI Realtime API)
 - Log operational metadata needed for debugging and billing without retaining
   sensitive voice content by default.
 
-### Phase 3: Android and iOS clients
+### AI deployment stage C: native-client access
 
 - Use the same authenticated backend and task identifiers as the web app.
 - Sync user-confirmed task changes and optional session summaries, not raw

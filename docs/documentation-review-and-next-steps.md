@@ -76,7 +76,8 @@ Priority: scope resolved; privacy/legal release gate remains
 
 The resolved boundary is:
 
-- the local and first hosted pilots do not solicit, infer, categorise, or
+- the Phase 1 local pilot and Phase 3 hosted release do not solicit, infer,
+  categorise, or
   provide specialist health, diagnosis, medication, or treatment
   functionality;
 - generic Last Done tracking intentionally supports private user-authored
@@ -110,90 +111,105 @@ are in
 
 ### D2: Milestone terminology and status
 
-Priority: blocking
+Priority: resolved in product design on 2026-07-24
 
-The documentation uses `first validation`, `first working version`, `local
-pilot`, `first pilot`, `first release`, and `hosted release`. The feature table
-also uses `Yes` for planned first-validation scope, which can be mistaken for
-implementation status.
+The canonical product milestones are:
 
-Define these milestones once and use them consistently. Add a
-`Implemented`/`Partial`/`Not started`/`Blocked` status to each current milestone
-capability. Record whether the Phase 0 interviews and prototype validation
-occurred; if they did, link the evidence. Otherwise keep Phase 0 unverified.
+- Phase 0 — Prototype validation;
+- Phase 1 — Local pilot;
+- Phase 2 — Integrated local pilot;
+- Phase 3 — Hosted release; and
+- Phase 4 — Later extensions.
 
-Completion evidence:
+Delivery uses `Implemented`, `Partial`, `Not started`, `Blocked`, and `Deferred`.
+User-research evidence is tracked separately as `Verified` or `Unverified`.
+This prevents implementation progress from being presented as evidence that a
+product hypothesis has been validated.
 
-- milestone terms have one meaning across the documentation;
-- every Phase 1 capability has a current status and exit criterion;
-- validation artifacts are linked or explicitly recorded as absent.
+The capability catalogue records a target milestone and current delivery status
+instead of using `Yes` or `No`. No Phase 0 interview, prototype, or usability
+artifact is currently recorded in the repository, so its evidence status is
+Unverified. The authoritative definitions and current capability statuses are
+in the
+[high-level product design](high-level-product-design.md#canonical-milestones-and-statuses).
 
 ### D3: Local account topology
 
-Priority: high
+Priority: resolved in product design on 2026-07-24
 
-The high-level design describes a single-user local application, while the
-implementation supports multiple registered accounts with per-user task
-isolation.
+One trusted Phase 1 local installation may contain multiple isolated accounts,
+matching the implemented registration and per-user ownership model.
 
-Choose and document either:
+- Every user-owned object, query, mutation, export, deletion, restore, and
+  hosted migration is scoped to one authenticated account.
+- Co-residency creates no household, guardian, helper, or sharing relationship.
+- Registration is not evidence of guardianship or trust.
+- The installation is limited to a trusted machine and local network; it is not
+  a public multi-tenant service.
+- The installation operator can access the database, generated secret, and
+  backups at the filesystem level.
+- An `instance/` backup contains every account, while user-facing export and
+  migration remain per-account.
 
-- one local installation with multiple isolated local accounts; or
-- a deliberately single-account pilot, with registration/isolation retained
-  only as preparation for hosted accounts.
-
-Completion evidence:
-
-- README, product design, test assumptions, backup scope, and migration scope
-  describe the same account model.
+The durable rationale and consequences are recorded in
+[ADR 0002: Local account topology](decisions/0002-local-account-topology.md).
 
 ### D4: Product and feature phase naming
 
-Priority: medium
+Priority: resolved in product design on 2026-07-24
 
-The main roadmap defers AI until product Phase 4, while the optional AI design
-uses `Phase 1`, `Phase 2`, and `Phase 3` for its own rollout. Rename the latter
-to `AI deployment stage` or state explicitly that all of its stages begin only
-after the main roadmap's AI release gate.
+The optional AI rollout uses `AI deployment stage A`, `B`, and `C`, all within
+product Phase 4. These stages no longer collide with the canonical product
+milestones and do not create separate delivery commitments.
 
-The assisted-planning note also calls Timemanager a subscription product. Move
-that assumption into the high-level product design as a resolved decision or
-label it as unconfirmed.
+The authoritative commercial structure is:
 
-Completion evidence:
+- subscription per primary user;
+- monthly billing or discounted annual billing with the same entitlements;
+- web and future native-mobile access in the base subscription;
+- one guardian companion seat for a child or one trusted-support companion seat
+  for an adult;
+- a companion seat provides scoped support access, not an independent personal
+  workspace; and
+- optional advanced or future capabilities may be transparent one-off
+  purchases, but core, accessibility, privacy, safety, export, deletion, and
+  companion access remain in the base subscription.
 
-- phase numbers cannot be confused across documents;
-- the business-model status has one authoritative location.
+Payment is never evidence of identity, age, guardianship, consent, or authority.
+Exact prices and other billing mechanics remain decisions for implementation.
+The authoritative detail is in the
+[high-level product design](high-level-product-design.md#commercial-model).
 
 ### D5: Assisted-planning pilot topology
 
-Priority: blocking before assisted-planning implementation
+Priority: resolved in product design on 2026-07-24
 
-The roadmap includes guardian and trusted-person support in the first pilot, but
-the safety design correctly prevents remote invitations and real shared child
-workspaces from bypassing hosted authorization, verification, and legal gates.
+The approved topology separates interface validation from live shared
+relationships:
 
-Define whether early validation uses:
+- Phase 2 uses synthetic family, relationship, and task data with same-device
+  role simulation. It creates no remote invitations or persistent real child
+  or assistance workspaces.
+- Supervised sessions may involve real participants under an approved protocol,
+  but use synthetic scenarios. Consented, minimised, de-identified research
+  notes remain outside Timemanager.
+- Real adult trusted-support relationships require a hosted, server-authorized
+  pilot after authentication, authorization, audit, expiry, revocation,
+  disclosure, and abuse-response gates pass.
+- Real child workspaces additionally require country-specific legal/privacy
+  approval, guardian-authority verification, a child-data impact assessment,
+  an unsafe-family/coercion threat model, child-visible privacy, and tested
+  deletion and incident-response procedures.
 
-- synthetic family and task data;
-- same-device role simulation;
-- supervised research sessions with an approved protocol; or
-- a hosted, server-authorized pilot after all release gates pass.
-
-An email invitation alone must never be treated as proof of guardianship.
-
-Completion evidence:
-
-- documented research topology and permitted data;
-- child-data impact/privacy assessment;
-- abuse and unsafe-family threat model;
-- jurisdiction and counsel gate for every market using real child data.
+Email, payment, local-account co-residency, and possession of an invitation
+never prove guardianship. The detailed topology and release evidence are in
+[Assisted planning and guardian support](assisted-planning-and-guardian-support.md#validation-and-release-topology).
 
 ## Ordered execution plan
 
-| Order | Work item | Initial status | Exit gate |
+| Order | Work item | Current status | Exit gate |
 | --- | --- | --- | --- |
-| 0.1 | Resolve D1-D5 and align the documentation | In progress: D1 resolved; D2-D5 open | No contradictory product boundaries; one milestone/status model |
+| 0.1 | Resolve D1-D5 and align the documentation | Completed 2026-07-24 | No contradictory product boundaries; one milestone/status model |
 | 0.2 | Add schema migrations and installation/public object provenance | Not started | Existing database upgrades without data loss; schema version is inspectable |
 | 0.3 | Add export, restore, and migration-fixture foundations | Not started | Export/import round trip is idempotent and tested; secrets are excluded |
 | 1.1 | Enforce a deliberately small active Today plan | Not started | One highlight plus the chosen optional-task limit; overflow remains recoverable |
@@ -206,7 +222,7 @@ Completion evidence:
 | 1.8 | Validate the complete non-AI day loop | Not started | Browser/accessibility tests plus recorded user-research evidence |
 | 2.1 | Implement the notification attention/privacy contract | Blocked by 1.8 | Independent importance/privacy; private default; Sensitive payload and device views contain no details |
 | 2.2 | Add Google Calendar behind explicit confirmation | Blocked by 1.8 | Provenance, timezone, recurrence scope, conflicts, provider failures, and external-notification privacy boundaries are visible |
-| 2.3 | Prototype assisted planning under the approved topology | Blocked by D5 | Server-side scope, proposals, audit, expiry, revocation, disclosure previews, and safety gates pass |
+| 2.3 | Prototype assisted planning under the approved topology | Blocked by 1.8 | Synthetic same-device roles, proposals, audit, expiry, revocation, disclosure previews, and safety gates pass |
 | 3 | Build hosted accounts and rehearse one-time migration | Blocked by phases 1-2 | Tenant isolation, production operations, and migration evidence pass |
 | 4 | Consider native clients and optional AI | Deferred | Separate validation and privacy/cost/safety approval |
 
@@ -219,6 +235,12 @@ each slice lands:
 - export/import idempotency, conflict, and secret-exclusion tests;
 - task ownership and assistance-permission tests for every new query or
   mutation;
+- assisted-prototype tests proving that Phase 2 uses synthetic same-device
+  roles, sends no remote invitation, calls no external provider, and can reset
+  the simulated workspace;
+- hosted assistance-gate tests proving that real adult relationships require
+  server authorization and that real child workspaces remain unavailable
+  without the applicable market and guardian-authority approval;
 - browser tests for capture, highlight limits, Low Capacity, focus boundaries,
   Reset, and offline navigation;
 - an assertion that authenticated task pages are never stored in the service

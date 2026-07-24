@@ -23,7 +23,10 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
   including permissions, proposals, privacy boundaries, and release gates.
 - [ADR 0001: Local PWA architecture](decisions/0001-local-pwa-architecture.md)
   records the accepted Flask, SQLite, server-rendered UI, authentication, and
-  service-worker boundaries for the development/pilot version.
+  service-worker boundaries for the Phase 1 local pilot.
+- [ADR 0002: Local account topology](decisions/0002-local-account-topology.md)
+  records the trusted multi-account installation model, account isolation,
+  operator-access boundary, and account-scoped export and migration rules.
 - [ADHD time-management domain research](adhd-time-management-domain-research.md)
   synthesises clinical guidance, cognitive and motivational theories, tested
   behavioural methods, common "life hacks", and their implications for a

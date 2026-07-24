@@ -6,14 +6,44 @@ Updated: 2026-07-24
 
 ## Implementation status
 
-The first basic local PWA now implements registration/login, local SQLite task
-persistence, Today and Inbox capture, one daily highlight, completion/restoring,
-deliberate dropping, a Low Capacity view, and a client-side focus timer.
+Timemanager is currently a **partial Phase 1 local pilot**. The application
+implements registration/login, local SQLite task persistence, Today and Inbox
+capture, one daily highlight, completion/restoring, deliberate dropping, a Low
+Capacity view, and a client-side focus timer.
 
-Google Calendar, assisted planning for guardians and trusted people, the hosted
-online PWA, one-time local-data migration, AI, and native mobile applications
-remain unimplemented. The phases below describe intended scope, not shipped
-behavior.
+Google Calendar, assisted planning for guardians and trusted people, the Phase
+3 hosted release, one-time local-data migration, AI, and native mobile
+applications remain unimplemented. The phases below describe intended scope,
+not shipped behavior.
+
+### Canonical milestones and statuses
+
+These milestone names are authoritative across the project:
+
+| Milestone | Meaning | Current state |
+| --- | --- | --- |
+| Phase 0 — Prototype validation | Interviews and clickable validation of the core day loop | Evidence unverified |
+| Phase 1 — Local pilot | Usable local PWA implementing and testing the non-integrated core | Partial |
+| Phase 2 — Integrated local pilot | Calendar, privacy-safe notifications, assisted-planning prototype, and complete-loop evaluation | Blocked by Phase 1 |
+| Phase 3 — Hosted release | Production hosted accounts, security, operations, migration, and authorised integrations | Blocked by Phases 1–2 |
+| Phase 4 — Later extensions | Native clients, optional AI, additional providers, and other deferred capabilities | Deferred |
+
+Delivery status and validation evidence are separate:
+
+- **Implemented:** present in code with proportionate automated verification.
+- **Partial:** a useful slice exists, but its milestone exit criterion is
+  incomplete.
+- **Not started:** no executable slice exists.
+- **Blocked:** work cannot pass its exit gate until a named dependency or
+  decision is resolved.
+- **Deferred:** deliberately outside the current delivery sequence.
+- **Verified evidence:** the required validation artifact exists and is linked.
+- **Unverified evidence:** the required validation artifact is absent or has
+  not been linked.
+
+An implementation status does not establish that a product hypothesis has been
+validated with users. No Phase 0 interview, prototype, or usability artifact is
+currently recorded in this repository, so Phase 0 evidence is Unverified.
 
 ## Purpose
 
@@ -50,23 +80,68 @@ Related research:
 
 The delivery direction is:
 
-1. build and validate the first working version as a single-user application in
-   a local home-lab environment;
+1. build and validate the Phase 1 local pilot as one trusted local installation
+   with multiple isolated accounts in a home-lab environment;
 2. use a responsive web/PWA interface from the beginning;
-3. release the product as a hosted online PWA with user accounts;
-4. add native mobile application clients after the online PWA;
+3. release the product as the Phase 3 hosted PWA with user accounts;
+4. add native mobile application clients after the Phase 3 hosted release;
 5. let a local user optionally perform a one-time migration of selected
    Timemanager data into an online account;
 6. integrate Google Calendar first, with explicitly confirmed event creation
    and editing, and add other calendar providers later;
-7. include assisted planning in the first pilot: guardian support for children
-   aged 13 and older, plus narrowly scoped trusted-person support for adults;
-8. exclude AI decomposition, voice, and AI body doubling from the first pilot.
+7. validate an assisted-planning prototype in the Phase 2 integrated local
+   pilot using synthetic data and same-device role simulation;
+8. exclude AI decomposition, voice, and AI body doubling through the Phase 3
+   hosted release.
 
-The local working version is a development/pilot stage, not a supported
-self-hosted edition or a permanent promise that the released product will be
-local-first or fully offline. The core product remains designed so that AI is
-never required.
+The Phase 1 local pilot is a development stage, not a supported self-hosted
+edition or a permanent promise that the released product will be local-first or
+fully offline. The core product remains designed so that AI is never required.
+
+## Commercial model
+
+The Phase 3 hosted product uses a simple subscription per **primary user
+profile**: the child or adult whose own plan and data Timemanager manages.
+
+- A monthly subscription and a discounted annual subscription provide the same
+  product entitlements; the annual option changes price and billing period, not
+  feature access.
+- The base subscription includes access to the web application and, when
+  released in Phase 4, the native mobile applications. A primary user is not
+  charged a separate platform subscription.
+- A child's primary-user subscription includes one guardian companion seat.
+- An adult's primary-user subscription includes one trusted-support companion
+  seat.
+- A companion seat grants only the approved guardian or trusted-support
+  permissions for that primary user. It does not include an independent
+  personal planning workspace; a companion who uses Timemanager for their own
+  plan needs their own primary-user subscription.
+- Phase 1 local-pilot use has no payment dependency.
+
+Future advanced capabilities may be offered as clearly identified, optional
+one-off purchases. Such purchases must be additive. Core capture and planning,
+web/mobile access, the included companion seat, accessibility, privacy and
+security controls, export, deletion, and safety functionality remain part of
+the base subscription. A one-off offer must state whether it depends on an
+active hosted subscription and must not imply perpetual third-party or compute
+service where that cannot be sustained.
+
+Exact prices, discount percentage, taxes, trials, refunds, regional billing,
+additional companion seats, and the first eligible one-off capabilities remain
+commercial decisions to make before billing launches.
+
+Payment establishes a billing relationship only. It is not proof of identity,
+age, guardianship, consent, or authority over another user. The product does
+not use advertising, behavioural profiling, data brokerage, or personal
+planning data as a revenue source.
+
+The subscription structure is a product decision, not evidence that users will
+find its eventual price fair or sustainable. Research signals include both
+willingness to pay for a useful tool and strong resistance to recurring or
+surprising charges. Before billing launches, validate pricing clarity and
+willingness to pay, show terms before data import, and make cancellation,
+account-scoped export, and deletion straightforward. See the
+[Reddit app-experience analysis](reddit-app-experience-analysis.md#14-price-and-trust-affect-retention).
 
 ## Product outcomes
 
@@ -335,7 +410,7 @@ to stop.
 
 ## Information architecture
 
-The first release has four primary destinations:
+The Phase 3 hosted release has four primary destinations:
 
 | Area | Purpose |
 |---|---|
@@ -350,23 +425,25 @@ separate dashboard. Search is a utility, not a fifth place the user must check.
 
 ## Feature catalogue and phasing
 
-| Capability | First validation | Later extension | Confidence |
-|---|---|---|---|
-| Universal text capture and inbox | Yes | Voice, widget, watch, share-sheet | Supported foundation |
-| Today timeline with fixed commitments | Yes | Multi-calendar reconciliation | Supported foundation |
-| Highlight plus small active plan | Yes | Learned capacity limit | Supported method; plausible interface |
-| Manual next action and definition of done | Yes | Suggested decomposition | Supported foundation |
-| Flexible focus session | Yes | Stronger blocking and AI body doubling | Supported elements; experiential options |
-| Assisted planning | First pilot | Richer household and support controls | Plausible/experiential; privacy-sensitive |
-| Transition and leave-by cues | Yes | Location/event-triggered cues | Plausible interface |
-| Recovery/reset without rollover | Yes | Personalised recovery suggestions | Plausible product design |
-| Estimate versus actual | Basic and optional | Reference-class duration ranges | Supported mechanism; plausible algorithm |
-| Last Done repeatable activity history | Generic manual tracking | Task/calendar links and natural-language retrieval | Plausible product design; privacy-sensitive |
-| Weekly review and one experiment | Yes | Longer-term pattern comparison | Supported components |
-| Low-capacity mode | Yes | User-defined low-capacity layouts | Plausible product design |
-| Google Calendar integration | Read plus confirmed create/edit | Other providers | Supported need; integration behavior to test |
-| AI voice/body doubling | No | Opt-in connector | Experiential/early research |
-| Goals, habits, journaling, social features | No | Only after core validation | Unproven for the core job |
+Statuses describe the current repository, not the intended milestone scope.
+
+| Capability | Target milestone | Current status | Later extension | Confidence |
+|---|---|---|---|---|
+| Universal text capture and inbox | Phase 1 | Implemented | Voice, widget, watch, share-sheet | Supported foundation |
+| Today timeline with fixed commitments | Phase 1 | Partial | Multi-calendar reconciliation | Supported foundation |
+| Highlight plus small active plan | Phase 1 | Partial | Learned capacity limit | Supported method; plausible interface |
+| Manual next action and definition of done | Phase 1 | Not started | Suggested decomposition | Supported foundation |
+| Flexible focus session | Phase 1 | Partial | Stronger blocking and AI body doubling | Supported elements; experiential options |
+| Assisted planning | Phase 2 | Blocked by Phase 1 | Richer household and support controls | Plausible/experiential; privacy-sensitive |
+| Transition and leave-by cues | Phase 1 | Not started | Location/event-triggered cues | Plausible interface |
+| Recovery/reset without rollover | Phase 1 | Not started | Personalised recovery suggestions | Plausible product design |
+| Estimate versus actual | Phase 1 | Not started | Reference-class duration ranges | Supported mechanism; plausible algorithm |
+| Last Done repeatable activity history | Phase 1 | Not started | Task/calendar links and natural-language retrieval | Plausible product design; privacy-sensitive |
+| Weekly review and one experiment | Phase 2 | Not started | Longer-term pattern comparison | Supported components |
+| Low-capacity mode | Phase 1 | Partial | User-defined low-capacity layouts | Plausible product design |
+| Google Calendar integration | Phase 2 | Blocked by Phase 1 | Other providers | Supported need; integration behavior to test |
+| AI voice/body doubling | Phase 4 | Deferred | Opt-in connector | Experiential/early research |
+| Goals, habits, journaling, social features | Deferred | Deferred | Only after core validation | Unproven for the core job |
 
 ## Core information model
 
@@ -442,7 +519,7 @@ external calendar writes are auditable user actions.
 - AI-generated content is marked as suggested until accepted.
 - The product does not solicit, infer, categorise, or provide specialist
   functionality for diagnosis, medication, treatment, or other health
-  information in the local or first hosted pilot.
+  information in the Phase 1 local pilot or Phase 3 hosted release.
 - Generic tracked activities intentionally allow private, user-authored labels
   and execution history, including medication as a supported record-keeping use
   case. This does not add dose, treatment, adherence, or missed-dose advice.
@@ -544,7 +621,7 @@ into the core task model.
 
 ### Assisted planning: guardians and trusted people
 
-Assisted planning is a first-pilot capability, not merely a body-doubling
+Assisted planning is a Phase 2 prototype capability, not merely a body-doubling
 session. It has two distinct modes:
 
 - **Guardian-supported child planning:** a parent or legal guardian helps
@@ -564,10 +641,17 @@ in [Assisted planning and guardian support](assisted-planning-and-guardian-suppo
 
 ### Local-to-online data transfer
 
-The local development/pilot version and hosted service should share versioned
-domain schemas and stable object identifiers from the start. When the hosted
-PWA is available, a pilot user may explicitly connect or sign in to an online
-account and preview the data to transfer.
+The Phase 1 local pilot and Phase 3 hosted service should share versioned domain
+schemas and stable object identifiers from the start. When the hosted PWA is
+available, a pilot user may explicitly connect or sign in to an online account
+and preview the data to transfer.
+
+The local installation may contain multiple isolated accounts. Export,
+deletion, restore, and migration initiated through the application are scoped
+to the authenticated account. A migration never selects another local
+account's data. An operator-level `instance/` backup is different: it contains
+the shared database, generated secret, and every account, and must be protected
+as a whole.
 
 Eligible data includes:
 
@@ -597,7 +681,7 @@ This is a one-way, resumable migration from local to online:
   ongoing synchronization link;
 - the local database is retained as a backup until the user deliberately
   archives or deletes it;
-- the local development/pilot application receives no supported self-hosted
+- the Phase 1 local pilot receives no supported self-hosted
   release lifecycle after the hosted cutover;
 - the product warns that edits made in the local instance after cutover will
   not appear online;
@@ -687,17 +771,17 @@ signals, not acceptable costs of higher task completion.
 
 ## Delivery sequence
 
-### Phase 0: validate the loop
+### Phase 0: prototype validation
 
 - clickable prototypes for Capture, Today, Launch, Focus, Transition, and Reset;
 - interviews and moment-by-moment walkthroughs of difficult days;
 - explicit testing with both minimalist and feature-rich-tool users;
-- no broad app implementation before the recovery and transition flows are
-  understandable.
+- record the required evidence before treating Phase 0 as complete or expanding
+  beyond the current implementation.
 
-### Phase 1: local working version
+### Phase 1: local pilot
 
-- single local user;
+- one trusted local installation with multiple isolated accounts;
 - responsive web/PWA client backed by the home-lab service;
 - text capture and inbox;
 - manually entered commitments;
@@ -709,16 +793,20 @@ signals, not acceptable costs of higher task completion.
 - generic Last Done tracked activities, schedules, manual executions, exact
   history retrieval, optional notes, shared reflection markers, user tags, and
   Sensitive-by-default privacy;
-- local backup/export;
+- protected operator backup and account-scoped export;
 - stable object identifiers and versioned schemas suitable for later transfer;
 - no AI features.
 
-### Phase 2: local pilot
+### Phase 2: integrated local pilot
 
 - authenticated Google Calendar read plus confirmed event creation/editing;
 - fixed-event sync, provenance, caching, and conflict visibility;
 - guardian-child and adult-trusted-person assisted-planning prototype,
-  including scoped proposals and start/end check-ins;
+  using synthetic data, same-device role simulation, scoped proposals, and
+  start/end check-ins;
+- supervised usability sessions may use real participants under an approved
+  protocol, but participants interact with synthetic scenarios and create no
+  persistent child or assistance workspace;
 - notification budget, independent importance/privacy controls, private
   previews, and staged leave-by cues;
 - short weekly review and one experiment;
@@ -726,21 +814,29 @@ signals, not acceptable costs of higher task completion.
 - transfer rehearsal using export/import fixtures without uploading pilot data
   to a production service.
 
-### Phase 3: hosted online PWA release
+### Phase 3: hosted release
 
 - authenticated hosted accounts and tenant isolation;
+- monthly and discounted annual billing per primary user, including the
+  applicable single companion seat;
 - production Google authorization, event reads, and explicitly confirmed event
   creation/editing;
 - authenticated, expiring guardian/trusted-person invitations and server-side
   permission enforcement;
+- stage real adult trusted-support relationships only after authorization,
+  audit, expiry, revocation, disclosure, and abuse-response gates pass;
+- stage real child workspaces only in approved countries after guardian-
+  authority, child-data, privacy, unsafe-family, deletion, and incident-response
+  gates pass;
 - optional, user-previewed one-time migration from the local version;
 - backup, export, deletion, rate limiting, and operational recovery;
 - online PWA deployment with clear connectivity state;
 - no dependency on AI.
 
-### Phase 4: mobile and later extensions
+### Phase 4: later extensions
 
-- native mobile applications using the hosted backend;
+- native mobile applications using the hosted backend and included in the
+  primary user's existing subscription;
 - push notifications and mobile capture surfaces;
 - an explicit mobile offline/synchronization contract;
 - additional calendar providers;
@@ -748,7 +844,7 @@ signals, not acceptable costs of higher task completion.
 - user-confirmed decomposition suggestions and opt-in AI body-doubling features
   only after separate validation.
 
-## Explicitly out of the first release
+## Explicitly out of the Phase 3 hosted release
 
 - a general notes or knowledge-management system;
 - complex project portfolios or goal trees;
@@ -761,20 +857,39 @@ signals, not acceptable costs of higher task completion.
 
 ## Resolved product decisions
 
-- The first working version runs locally in a home-lab environment.
-- The actual release is a hosted online PWA.
-- Native mobile applications follow the online PWA.
+- The Phase 1 local pilot runs in a local home-lab environment.
+- One trusted local installation may contain multiple isolated accounts.
+  Co-residency creates no sharing or assistance permission; the installation
+  operator remains able to access the local database and backups.
+- The Phase 3 hosted release is the first production release.
+- The hosted commercial model is a monthly subscription per primary user, with
+  a discounted annual option providing the same entitlements. It includes web
+  access, future native mobile access, and one applicable guardian or
+  trusted-support companion seat.
+- Optional advanced capabilities may later use transparent one-off purchases,
+  but core functionality, accessibility, privacy, safety, export, deletion, and
+  included companion access remain in the base subscription.
+- Native mobile applications follow the Phase 3 hosted release.
 - Local users have an optional one-time, resumable migration to the hosted
   account; the two installations do not remain synchronized.
 - Google Calendar is the first calendar provider and allows explicitly
   confirmed event creation/editing; other providers follow later.
-- Guardian-supported child planning and adult trusted-person support are
-  included in the first pilot.
-- The guardian-supported pilot uses a parent-managed profile for children aged
-  13 and older; guardian editing is the default within that child workspace.
+- Phase 2 assisted-planning validation uses synthetic data and same-device role
+  simulation. It creates no remote invitation or persistent real child or
+  assistance workspace.
+- Supervised Phase 2 sessions may involve real participants under an approved
+  protocol, but use synthetic scenarios and keep consented, de-identified
+  research notes outside Timemanager.
+- Real adult trusted-support relationships require a gated hosted pilot. Real
+  child workspaces additionally require country-specific guardian-authority,
+  child-data, privacy, and unsafe-family approval.
+- The first hosted guardian-supported child pilot uses a parent-managed profile
+  for children aged 13 and older; guardian editing is the default within that
+  child workspace.
 - Adult trusted helpers are proposal-only by default, with only explicit,
   narrow, time-limited delegation.
-- The local and first hosted pilots do not solicit, infer, categorise, or
+- The Phase 1 local pilot and Phase 3 hosted release do not solicit, infer,
+  categorise, or
   provide specialist functionality for diagnosis, medication, treatment, or
   other health information. Generic Last Done activity tracking intentionally
   supports private user-authored medication labels and execution history, but
@@ -791,9 +906,9 @@ signals, not acceptable costs of higher task completion.
   preview and a privacy-safe external-title choice.
 - Worldwide availability is the product objective, subject to a country/region
   child-data and privacy release gate before launch in each market.
-- AI decomposition, voice, and AI body doubling are not in the first pilot.
-- The local version is a development/pilot predecessor, not a supported
-  self-hosted edition after the hosted release.
+- AI decomposition, voice, and AI body doubling are deferred to Phase 4.
+- The Phase 1 local pilot is a development predecessor, not a supported
+  self-hosted edition after the Phase 3 hosted release.
 
 None of these choices changes the requirement that the daily loop remain usable
 without AI.

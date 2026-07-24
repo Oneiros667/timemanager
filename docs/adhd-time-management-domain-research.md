@@ -632,7 +632,7 @@ Test a deliberately narrow "day companion" before a full life operating system:
 - five-minute weekly review with one experiment.
 
 Leave goals, habit systems, journaling, complex project dashboards, extensive
-gamification, and social features out of the first validation round. They can
+gamification, and social features out of Phase 0 prototype validation. They can
 be added only if they improve the core day loop without increasing abandonment.
 
 ## Sources
