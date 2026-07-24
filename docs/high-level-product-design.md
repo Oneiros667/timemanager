@@ -10,9 +10,10 @@ The first basic local PWA now implements registration/login, local SQLite task
 persistence, Today and Inbox capture, one daily highlight, completion/restoring,
 deliberate dropping, a Low Capacity view, and a client-side focus timer.
 
-Google Calendar, trusted-person support sessions, the hosted online PWA,
-one-time local-data migration, AI, and native mobile applications remain
-unimplemented. The phases below describe intended scope, not shipped behavior.
+Google Calendar, assisted planning for guardians and trusted people, the hosted
+online PWA, one-time local-data migration, AI, and native mobile applications
+remain unimplemented. The phases below describe intended scope, not shipped
+behavior.
 
 ## Purpose
 
@@ -58,8 +59,8 @@ The delivery direction is:
    Timemanager data into an online account;
 6. integrate Google Calendar first, with explicitly confirmed event creation
    and editing, and add other calendar providers later;
-7. include narrowly scoped trusted-person sharing/body doubling in the first
-   pilot;
+7. include assisted planning in the first pilot: guardian support for children
+   aged 13 and older, plus narrowly scoped trusted-person support for adults;
 8. exclude AI decomposition, voice, and AI body doubling from the first pilot.
 
 The local working version is a development/pilot stage, not a supported
@@ -80,8 +81,10 @@ The product should help the user:
 - stop, switch, or continue deliberately;
 - recover after an interruption, changed day, or absence without backlog debt;
 - learn from estimated and actual duration without being surveilled or graded;
-- invite a trusted person into a deliberately limited support session without
-  exposing the whole plan;
+- let a guardian help a child record and orient around commitments without
+  turning the child into a monitored productivity project;
+- let an adult invite a partner, friend, or other trusted person to help with
+  selected tasks, appointments, reminders, and check-ins;
 - trust that the system reflects current commitments.
 
 Primary success is improved functioning and reduced planning burden. Task count,
@@ -354,7 +357,7 @@ separate dashboard. Search is a utility, not a fifth place the user must check.
 | Highlight plus small active plan | Yes | Learned capacity limit | Supported method; plausible interface |
 | Manual next action and definition of done | Yes | Suggested decomposition | Supported foundation |
 | Flexible focus session | Yes | Stronger blocking and AI body doubling | Supported elements; experiential options |
-| Trusted-person support session | First pilot | Additional sharing controls | Experiential/early research |
+| Assisted planning | First pilot | Richer household and support controls | Plausible/experiential; privacy-sensitive |
 | Transition and leave-by cues | Yes | Location/event-triggered cues | Plausible interface |
 | Recovery/reset without rollover | Yes | Personalised recovery suggestions | Plausible product design |
 | Estimate versus actual | Basic and optional | Reference-class duration ranges | Supported mechanism; plausible algorithm |
@@ -385,6 +388,11 @@ separate dashboard. Search is a utility, not a fifth place the user must check.
 - **Experiment:** one temporary behavior change and a review date.
 - **Support session:** explicit invitation, shared intention, presence/check-in
   state, expiry, revocation, and the minimum task/session fields disclosed.
+- **Assistance workspace:** the supported person or child profile, its approved
+  helpers, the relationship type, permission scope, and audit history.
+- **Assistance proposal:** a helper-created task, appointment, reminder, or
+  assignment suggestion with its proposer, recipient, status, and explicit
+  acceptance/rejection history.
 - **Installation/account provenance:** stable object identifiers, source
   installation/account, revision, and migration/import state used when local
   data is moved online.
@@ -414,8 +422,10 @@ external calendar writes are auditable user actions.
 - Flexible tasks do not automatically roll over.
 - Imported objects retain source and last-sync provenance.
 - Conflicting external changes are shown for user resolution.
-- Trusted-person access is session-scoped, expires, and reveals no calendar or
-  backlog data unless the user separately confirms it.
+- Assistance access is scoped, expires, is auditable, and can be revoked.
+  Adult helpers cannot silently complete, drop, reschedule, or broaden access
+  to another adult's plan. Guardian support for a child follows the dedicated
+  child-safety and consent design.
 - Recommendations expose the facts used and label inferred values.
 - AI-generated content is marked as suggested until accepted.
 - Missing duration or completion data remains unknown, not zero or failure.
@@ -467,27 +477,25 @@ Other calendar providers should implement the same internal commitment boundary
 after the Google integration is stable; provider-specific objects must not leak
 into the core task model.
 
-### Trusted-person support
+### Assisted planning: guardians and trusted people
 
-The first pilot includes human support without becoming a household or team
-planner.
+Assisted planning is a first-pilot capability, not merely a body-doubling
+session. It has two distinct modes:
 
-Minimum behavior:
+- **Guardian-supported child planning:** a parent or legal guardian helps
+  record tasks, appointments, reminders, and transitions for a child.
+- **Adult trusted-person support:** an adult invites a partner, friend, family
+  member, coach, or other chosen helper to assist with selected planning work.
 
-- the user explicitly starts a support session and chooses what to share;
-- the default disclosure is the session intention, agreed duration, and
-  start/end status—not the user's backlog, calendar, notes, or history;
-- the trusted person can acknowledge presence and participate in agreed start
-  and end check-ins;
-- either participant can leave, and the user can revoke access immediately;
-- invitations expire and cannot silently become permanent account access;
-- the user can see when the trusted person joined and what was disclosed;
-- task edits, completion, rescheduling, and broader sharing remain user actions.
+The product must distinguish these modes rather than assuming that a parent has
+the same authority over an adult's plan as a guardian may have in a child's
+workspace. The default adult helper action is a proposal for the adult to
+accept, adjust, or decline. Child support must be transparent, age-appropriate,
+and designed with guardian verification, data minimisation, and child privacy
+requirements before release.
 
-The local pilot may expose this only within the operator's chosen home-lab
-network or secure remote-access setup. The hosted PWA release must use
-authenticated, expiring invitations and enforce the disclosure boundary on the
-server.
+The detailed role, permission, workflow, privacy, and release-gate design is
+in [Assisted planning and guardian support](assisted-planning-and-guardian-support.md).
 
 ### Local-to-online data transfer
 
@@ -633,7 +641,8 @@ signals, not acceptable costs of higher task completion.
 
 - authenticated Google Calendar read plus confirmed event creation/editing;
 - fixed-event sync, provenance, caching, and conflict visibility;
-- session-scoped trusted-person presence and start/end check-ins;
+- guardian-child and adult-trusted-person assisted-planning prototype,
+  including scoped proposals and start/end check-ins;
 - notification budget and staged leave-by cues;
 - short weekly review and one experiment;
 - diary study and post-novelty retention evaluation;
@@ -645,7 +654,8 @@ signals, not acceptable costs of higher task completion.
 - authenticated hosted accounts and tenant isolation;
 - production Google authorization, event reads, and explicitly confirmed event
   creation/editing;
-- authenticated, expiring trusted-person invitations;
+- authenticated, expiring guardian/trusted-person invitations and server-side
+  permission enforcement;
 - optional, user-previewed one-time migration from the local version;
 - backup, export, deletion, rate limiting, and operational recovery;
 - online PWA deployment with clear connectivity state;
@@ -681,7 +691,14 @@ signals, not acceptable costs of higher task completion.
   account; the two installations do not remain synchronized.
 - Google Calendar is the first calendar provider and allows explicitly
   confirmed event creation/editing; other providers follow later.
-- Trusted-person sharing/body doubling is included in the first pilot.
+- Guardian-supported child planning and adult trusted-person support are
+  included in the first pilot.
+- The guardian-supported pilot uses a parent-managed profile for children aged
+  13 and older; guardian editing is the default within that child workspace.
+- Adult trusted helpers are proposal-only by default, with only explicit,
+  narrow, time-limited delegation.
+- Worldwide availability is the product objective, subject to a country/region
+  child-data and privacy release gate before launch in each market.
 - AI decomposition, voice, and AI body doubling are not in the first pilot.
 - The local version is a development/pilot predecessor, not a supported
   self-hosted edition after the hosted release.

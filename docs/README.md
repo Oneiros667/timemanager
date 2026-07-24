@@ -11,6 +11,9 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
 - [High-level product design](high-level-product-design.md) translates the
   research into the proposed user journey, feature set, functional rules,
   information model, confirmed deployment path, scope, and delivery phases.
+- [Assisted planning and guardian support](assisted-planning-and-guardian-support.md)
+  defines guardian-supported child planning and adult trusted-person support,
+  including permissions, proposals, privacy boundaries, and release gates.
 - [ADR 0001: Local PWA architecture](decisions/0001-local-pwa-architecture.md)
   records the accepted Flask, SQLite, server-rendered UI, authentication, and
   service-worker boundaries for the development/pilot version.
