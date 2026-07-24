@@ -3,9 +3,11 @@ from __future__ import annotations
 import re
 
 import pytest
+import sqlalchemy as sa
 
 from timemanager import create_app
-from timemanager.db import get_db
+from timemanager.db import get_db, local_installation_id, new_public_id
+from timemanager.models import users
 
 CSRF_PATTERN = re.compile(rb'name="_csrf_token" value="([^"]+)"')
 
@@ -63,12 +65,16 @@ def register(
 def create_user(app, name: str, email: str, password_hash: str) -> int:
     with app.app_context():
         database = get_db()
-        cursor = database.execute(
-            """
-            INSERT INTO users (display_name, email, password_hash)
-            VALUES (?, ?, ?)
-            """,
-            (name, email, password_hash),
-        )
+        user_id = database.execute(
+            sa.insert(users)
+            .values(
+                public_id=new_public_id(),
+                origin_installation_id=local_installation_id(database),
+                display_name=name,
+                email=email,
+                password_hash=password_hash,
+            )
+            .returning(users.c.id)
+        ).scalar_one()
         database.commit()
-        return cursor.lastrowid
+        return int(user_id)

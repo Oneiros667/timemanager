@@ -21,12 +21,12 @@ data-model boundaries that can evolve safely.
 Use:
 
 - Flask 3.1 with an application factory and focused blueprints;
-- Python's SQLite support for local users and tasks;
+- SQLAlchemy Core over SQLite for local users and tasks;
 - server-rendered Jinja templates with progressive client-side JavaScript;
 - Werkzeug password hashing and Flask's signed session cookie;
 - a per-session CSRF token for every state-changing form;
-- a versioned SQL schema with per-user foreign keys and stable integer IDs for
-  the Phase 1 local pilot;
+- ordered Alembic revisions with per-user foreign keys, internal integer IDs,
+  stable public UUIDs, installation origin, and object revisions;
 - a web app manifest and root-scoped service worker;
 - network-only authenticated navigation, with caching limited to public static
   shell assets and a non-personal offline page.
@@ -46,6 +46,8 @@ Benefits:
 - server rendering provides a useful experience before JavaScript loads;
 - SQLite is sufficient for the single-machine Phase 1 local pilot and simple to
   back up;
+- exact legacy databases upgrade automatically, with a pre-migration SQLite
+  snapshot retained and restored if the upgrade fails;
 - the application factory and isolated test database make behavior testable;
 - minimal client JavaScript keeps the daily path fast and comprehensible.
 
@@ -53,8 +55,8 @@ Costs and boundaries:
 
 - Flask's development server is not a public deployment server;
 - SQLite and local signed-cookie authentication are not the final hosted
-  multi-tenant architecture;
-- the Phase 3 hosted release still needs production database migrations,
+  multi-tenant architecture; PostgreSQL is the hosted database target;
+- the Phase 3 hosted release still needs PostgreSQL migration validation,
   TLS-secure cookie configuration, email verification/recovery, login
   throttling, tenant controls, operational monitoring, and backup/restore;
 - PWA installation on a separate home-network device requires a trusted HTTPS

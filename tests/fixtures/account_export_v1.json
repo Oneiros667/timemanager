@@ -1,0 +1,29 @@
+{
+  "account": {
+    "created_at": "2026-07-20 08:00:00",
+    "display_name": "Source account",
+    "email": "source@example.com",
+    "origin_installation_public_id": "11111111-1111-4111-8111-111111111111",
+    "public_id": "22222222-2222-4222-8222-222222222222",
+    "revision": 1
+  },
+  "exported_at": "2026-07-24T10:00:00Z",
+  "format": "timemanager.account-export",
+  "format_version": 1,
+  "source_schema_revision": "0002",
+  "tasks": [
+    {
+      "completed_at": null,
+      "created_at": "2026-07-20 08:10:00",
+      "is_highlight": false,
+      "notes": "Remember the reusable bags",
+      "origin_installation_public_id": "11111111-1111-4111-8111-111111111111",
+      "planned_date": "2026-07-24",
+      "public_id": "33333333-3333-4333-8333-333333333333",
+      "revision": 1,
+      "state": "ready",
+      "title": "Buy groceries",
+      "updated_at": "2026-07-20 08:10:00"
+    }
+  ]
+}

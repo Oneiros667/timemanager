@@ -12,6 +12,10 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
 - local user registration, sign-in, and sign-out;
 - password hashing, signed session cookies, and CSRF-protected forms;
 - per-user SQLite task persistence;
+- SQLAlchemy Core persistence with ordered Alembic schema upgrades;
+- stable public UUIDs, installation provenance, and object revisions;
+- versioned, account-scoped JSON task export/import through operator CLI
+  commands;
 - quick capture to Today or Inbox;
 - one changeable daily highlight;
 - complete, restore, deliberately drop, and move-to-Today actions;
@@ -20,10 +24,10 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
 - responsive desktop/mobile presentation;
 - installable PWA manifest, icons, service worker, and offline shell.
 
-Google Calendar, trusted-person sessions, hosted accounts, local-to-online
-migration, and native mobile clients are not implemented yet. Their intended
-scope is documented in the
-[high-level product design](docs/high-level-product-design.md).
+Self-service account restore, credential recovery, Google Calendar,
+trusted-person sessions, hosted PostgreSQL accounts, local-to-online migration,
+and native mobile clients are not implemented yet. Their intended scope is
+documented in the [high-level product design](docs/high-level-product-design.md).
 
 ## Local account topology
 
@@ -57,6 +61,68 @@ which is intentionally ignored by Git. An operator backup of that directory
 contains every registered local account; protect it accordingly if the pilot
 data matters.
 
+## Database upgrades
+
+Application startup automatically applies pending Alembic revisions. An exact
+database from the earlier users/tasks schema is recognized, recorded as
+revision `0001`, and upgraded without changing its internal IDs or existing
+values. An unknown unversioned schema or unknown newer revision stops startup
+instead of being guessed.
+
+Inspect or apply the current schema explicitly:
+
+```bash
+uv run flask --app timemanager schema-version
+uv run flask --app timemanager init-db
+```
+
+Before changing an existing file-backed SQLite database, Timemanager writes a
+timestamped `*.pre-migration-*.bak` snapshot beside it. A failed upgrade
+restores that snapshot automatically. A successful upgrade retains it until
+the operator has verified the application and incorporated the new database
+into the normal protected backup process.
+
+SQLite remains the supported Phase 1 database. PostgreSQL is the Phase 3 hosted
+target but is not configured or supported by the local pilot yet. Future
+SQLite-to-PostgreSQL data movement will use account-scoped export/import rather
+than direct database-file conversion.
+
+## Account export and import foundation
+
+An installation operator can export the portable profile and tasks for exactly
+one local account:
+
+```bash
+uv run flask --app timemanager export-account \
+  --email alex@example.com \
+  --output ./alex-timemanager.json
+```
+
+The command creates a new mode-`0600` file and refuses to overwrite an existing
+path. The versioned JSON contains user-authored profile and task content, so it
+may be sensitive. It excludes password hashes, session/application secrets,
+internal database IDs, and every other local account.
+
+Import currently targets an existing local account whose credentials are
+managed separately:
+
+```bash
+uv run flask --app timemanager import-account \
+  --input ./alex-timemanager.json \
+  --into-email destination@example.com
+```
+
+The import is atomic and retry-safe. Stable task IDs insert once; a higher
+incoming revision updates that task, a lower revision leaves newer local data
+unchanged, and differing content at the same revision fails closed. Imported
+tasks retain their source-installation provenance. The source profile is
+informational and does not replace the destination account's name, email, or
+password.
+
+This is tested migration and recovery plumbing, not yet a self-service restore
+experience, full-database backup, deletion mirror, credential transfer, or
+hosted migration. Keep normal protected backups of `instance/`.
+
 Optional local settings:
 
 ```bash
@@ -73,7 +139,7 @@ origin.
 ```bash
 uv run pytest
 uv run pytest --cov=timemanager --cov-report=term-missing
-uv run python -m compileall -q main.py timemanager tests
+uv run python -m compileall -q main.py timemanager tests migrations
 git diff --check
 ```
 

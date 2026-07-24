@@ -27,6 +27,12 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
 - [ADR 0002: Local account topology](decisions/0002-local-account-topology.md)
   records the trusted multi-account installation model, account isolation,
   operator-access boundary, and account-scoped export and migration rules.
+- [ADR 0003: Database migrations and hosted database target](decisions/0003-database-migrations-and-hosted-target.md)
+  records the SQLite/SQLAlchemy local architecture, Alembic upgrade and recovery
+  contract, stable provenance, and PostgreSQL hosted target.
+- [ADR 0004: Account export and import contract](decisions/0004-account-export-import-contract.md)
+  records the implemented versioned JSON boundary, account scope, credential
+  exclusions, idempotency rules, conflict policy, and current recovery limits.
 - [ADHD time-management domain research](adhd-time-management-domain-research.md)
   synthesises clinical guidance, cognitive and motivational theories, tested
   behavioural methods, common "life hacks", and their implications for a

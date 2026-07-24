@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     display_name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS tasks (
+CREATE TABLE tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     title TEXT NOT NULL,
@@ -21,9 +21,9 @@ CREATE TABLE IF NOT EXISTS tasks (
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS tasks_user_state
+CREATE INDEX tasks_user_state
     ON tasks (user_id, state, planned_date);
 
-CREATE UNIQUE INDEX IF NOT EXISTS tasks_one_active_highlight
+CREATE UNIQUE INDEX tasks_one_active_highlight
     ON tasks (user_id, planned_date)
     WHERE is_highlight = 1 AND state NOT IN ('done', 'dropped');

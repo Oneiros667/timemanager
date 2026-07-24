@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import re
-import sqlite3
 from functools import wraps
 from typing import Any, Callable, TypeVar, cast
 
+import sqlalchemy as sa
 from flask import (
     Blueprint,
     flash,
@@ -15,9 +15,11 @@ from flask import (
     session,
     url_for,
 )
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from .db import get_db
+from .db import get_db, local_installation_id, new_public_id
+from .models import users
 
 blueprint = Blueprint("auth", __name__)
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -31,10 +33,16 @@ def load_logged_in_user() -> None:
         g.user = None
         return
 
-    g.user = get_db().execute(
-        "SELECT id, display_name, email FROM users WHERE id = ?",
-        (user_id,),
-    ).fetchone()
+    g.user = (
+        get_db()
+        .execute(
+            sa.select(users.c.id, users.c.display_name, users.c.email).where(
+                users.c.id == user_id
+            )
+        )
+        .mappings()
+        .one_or_none()
+    )
     if g.user is None:
         session.clear()
 
@@ -66,19 +74,24 @@ def register():
         if error is None:
             try:
                 database = get_db()
-                cursor = database.execute(
-                    """
-                    INSERT INTO users (display_name, email, password_hash)
-                    VALUES (?, ?, ?)
-                    """,
-                    (display_name, email, generate_password_hash(password)),
-                )
+                user_id = database.execute(
+                    sa.insert(users)
+                    .values(
+                        public_id=new_public_id(),
+                        origin_installation_id=local_installation_id(database),
+                        display_name=display_name,
+                        email=email,
+                        password_hash=generate_password_hash(password),
+                    )
+                    .returning(users.c.id)
+                ).scalar_one()
                 database.commit()
-            except sqlite3.IntegrityError:
+            except IntegrityError:
+                database.rollback()
                 error = "An account with that email already exists."
             else:
                 session.clear()
-                session["user_id"] = cursor.lastrowid
+                session["user_id"] = user_id
                 flash("Your calm space is ready.", "success")
                 return redirect(url_for("tasks.today"))
 
@@ -113,10 +126,12 @@ def login():
     if request.method == "POST":
         email = request.form.get("email", "").strip().casefold()
         password = request.form.get("password", "")
-        user = get_db().execute(
-            "SELECT * FROM users WHERE email = ?",
-            (email,),
-        ).fetchone()
+        user = (
+            get_db()
+            .execute(sa.select(users).where(users.c.email == email))
+            .mappings()
+            .one_or_none()
+        )
 
         if user is None or not check_password_hash(user["password_hash"], password):
             flash("That email and password combination was not found.", "error")

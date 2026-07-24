@@ -8,10 +8,11 @@ These instructions apply to the whole repository. More specific guidance in
 Timemanager is implementing the local development/pilot PWA described in the
 product design. The current application includes local account registration,
 session login, SQLite task persistence, Today and Inbox views, a Low Capacity
-view, and a client-side focus timer. Calendar integration, trusted-person
-sessions, hosted accounts, migration, and mobile applications remain proposed.
-Keep proposed and implemented behaviour clearly separated in code,
-documentation, and status reports.
+view, a client-side focus timer, schema migrations, and operator-level
+account/task export-import. Calendar integration, self-service account restore,
+trusted-person sessions, hosted accounts, local-to-online data migration, and
+mobile applications remain proposed. Keep proposed and implemented behaviour
+clearly separated in code, documentation, and status reports.
 
 ## Start here
 
@@ -29,8 +30,13 @@ documentation, and status reports.
 ## Repository map
 
 - `main.py`: development entry point.
-- `timemanager/`: Flask application, SQLite schema, templates, and PWA assets.
-- `tests/`: authentication, task-isolation, state-flow, and PWA tests.
+- `timemanager/`: Flask application, SQLAlchemy Core tables, templates, and PWA
+  assets.
+- `migrations/`: ordered Alembic revisions for fresh and existing databases.
+- `timemanager/account_transfer.py`: versioned account/task export-import
+  contract and operator CLI commands.
+- `tests/`: authentication, ownership, migration, transfer, state-flow, and PWA
+  tests.
 - `pyproject.toml`: package metadata, runtime dependencies, and test config.
 - `uv.lock`: reproducible `uv` environment.
 - `docs/README.md`: research index and evidence-label definitions.
@@ -54,7 +60,10 @@ with:
 ```bash
 uv run pytest
 uv run pytest --cov=timemanager --cov-report=term-missing
-uv run python -m compileall -q main.py timemanager tests
+uv run python -m compileall -q main.py timemanager tests migrations
+uv run flask --app timemanager schema-version
+uv run flask --app timemanager export-account --help
+uv run flask --app timemanager import-account --help
 ```
 
 There is no production deployment configuration yet. Flask's development

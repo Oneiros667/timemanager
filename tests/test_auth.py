@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+from uuid import UUID
+
+import sqlalchemy as sa
 from werkzeug.security import check_password_hash
 
 from timemanager.db import get_db
+from timemanager.models import users
 
 from .conftest import csrf_token, register
 
@@ -30,10 +34,13 @@ def test_registration_creates_a_signed_in_user_with_hashed_password(app, client)
     assert b"Your calm space is ready." in response.data
 
     with app.app_context():
-        user = get_db().execute("SELECT * FROM users").fetchone()
+        user = get_db().execute(sa.select(users)).mappings().one()
         assert user["email"] == "alex@example.com"
         assert user["password_hash"] != "something memorable"
         assert check_password_hash(user["password_hash"], "something memorable")
+        UUID(user["public_id"])
+        assert user["origin_installation_id"] is not None
+        assert user["revision"] == 1
 
     with client.session_transaction() as session:
         assert session["user_id"] == user["id"]

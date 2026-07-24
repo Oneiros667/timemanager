@@ -36,6 +36,10 @@ One Phase 1 local installation may contain multiple isolated local accounts.
 - User-facing export, deletion, restore, and hosted migration are scoped to the
   authenticated account. Migrating one account never selects or transfers
   another local account.
+- The implemented Phase 1 export/import foundation is an installation-operator
+  CLI, not a user-facing account session. Its ability to select an account is
+  part of the operator-access boundary above; each package still contains only
+  the selected account.
 
 ## Consequences
 

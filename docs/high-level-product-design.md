@@ -9,12 +9,16 @@ Updated: 2026-07-24
 Timemanager is currently a **partial Phase 1 local pilot**. The application
 implements registration/login, local SQLite task persistence, Today and Inbox
 capture, one daily highlight, completion/restoring, deliberate dropping, a Low
-Capacity view, and a client-side focus timer.
+Capacity view, and a client-side focus timer. Persistence now uses SQLAlchemy
+Core and ordered Alembic revisions with stable public identifiers, installation
+provenance, and pre-migration SQLite recovery. A versioned operator CLI can
+export one account's current profile/task data and import its tasks into an
+explicit existing local account with idempotent revision handling.
 
-Google Calendar, assisted planning for guardians and trusted people, the Phase
-3 hosted release, one-time local-data migration, AI, and native mobile
-applications remain unimplemented. The phases below describe intended scope,
-not shipped behavior.
+Self-service restore and credential recovery, Google Calendar, assisted
+planning for guardians and trusted people, the Phase 3 hosted release,
+local-to-online migration, AI, and native mobile applications remain
+unimplemented. The phases below describe intended scope, not shipped behavior.
 
 ### Canonical milestones and statuses
 
@@ -441,6 +445,7 @@ Statuses describe the current repository, not the intended milestone scope.
 | Last Done repeatable activity history | Phase 1 | Not started | Task/calendar links and natural-language retrieval | Plausible product design; privacy-sensitive |
 | Weekly review and one experiment | Phase 2 | Not started | Longer-term pattern comparison | Supported components |
 | Low-capacity mode | Phase 1 | Partial | User-defined low-capacity layouts | Plausible product design |
+| Account data portability | Phase 1 | Partial | Authenticated self-service restore and hosted adapter | Required trust and migration foundation |
 | Google Calendar integration | Phase 2 | Blocked by Phase 1 | Other providers | Supported need; integration behavior to test |
 | AI voice/body doubling | Phase 4 | Deferred | Opt-in connector | Experiential/early research |
 | Goals, habits, journaling, social features | Deferred | Deferred | Only after core validation | Unproven for the core job |
@@ -546,8 +551,13 @@ external calendar writes are auditable user actions.
 - The active day remains readable during temporary network or provider failure.
 - Local and hosted records use stable identifiers and schema versions so a
   migration can be retried safely.
-- Users can export and delete their data; optional AI memories and transcripts
-  have separate controls.
+- The current local operator CLI can export one account's implemented
+  profile/task model without credential material and retry an import into an
+  explicit existing local account. Authenticated self-service export, deletion,
+  credential recovery, complete future-object coverage, and hosted migration
+  remain required.
+- The eventual user-facing product must support export and deletion; optional
+  AI memories and transcripts have separate controls.
 
 ## Notifications and attention budget
 
@@ -793,7 +803,8 @@ signals, not acceptable costs of higher task completion.
 - generic Last Done tracked activities, schedules, manual executions, exact
   history retrieval, optional notes, shared reflection markers, user tags, and
   Sensitive-by-default privacy;
-- protected operator backup and account-scoped export;
+- protected operator backup and versioned account-scoped export/import
+  foundation;
 - stable object identifiers and versioned schemas suitable for later transfer;
 - no AI features.
 
@@ -811,12 +822,14 @@ signals, not acceptable costs of higher task completion.
   previews, and staged leave-by cues;
 - short weekly review and one experiment;
 - diary study and post-novelty retention evaluation;
-- transfer rehearsal using export/import fixtures without uploading pilot data
-  to a production service.
+- extend the current export/import fixture rehearsal through a staged hosted
+  adapter without uploading pilot data to a production service.
 
 ### Phase 3: hosted release
 
 - authenticated hosted accounts and tenant isolation;
+- PostgreSQL persistence with production migration, backup, restore, monitoring,
+  and recovery evidence;
 - monthly and discounted annual billing per primary user, including the
   applicable single companion seat;
 - production Google authorization, event reads, and explicitly confirmed event
@@ -858,6 +871,9 @@ signals, not acceptable costs of higher task completion.
 ## Resolved product decisions
 
 - The Phase 1 local pilot runs in a local home-lab environment.
+- SQLite remains the Phase 1 database behind SQLAlchemy Core and Alembic.
+  PostgreSQL is the Phase 3 hosted target; SQLite-to-PostgreSQL transfer uses
+  account-scoped export/import rather than direct file conversion.
 - One trusted local installation may contain multiple isolated accounts.
   Co-residency creates no sharing or assistance permission; the installation
   operator remains able to access the local database and backups.

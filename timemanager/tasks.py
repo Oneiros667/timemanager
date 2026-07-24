@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
+import sqlalchemy as sa
 from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
 
 from .auth import login_required
-from .db import get_db
+from .db import get_db, local_installation_id, new_public_id
+from .models import tasks as task_table
 
 blueprint = Blueprint("tasks", __name__)
 
@@ -15,10 +17,17 @@ def _today() -> str:
 
 
 def _owned_task(task_id: int):
-    task = get_db().execute(
-        "SELECT * FROM tasks WHERE id = ? AND user_id = ?",
-        (task_id, g.user["id"]),
-    ).fetchone()
+    task = (
+        get_db()
+        .execute(
+            sa.select(task_table).where(
+                task_table.c.id == task_id,
+                task_table.c.user_id == g.user["id"],
+            )
+        )
+        .mappings()
+        .one_or_none()
+    )
     if task is None:
         abort(404)
     return task
@@ -29,31 +38,43 @@ def _owned_task(task_id: int):
 def today():
     database = get_db()
     today_value = _today()
-    tasks = database.execute(
-        """
-        SELECT * FROM tasks
-        WHERE user_id = ?
-          AND planned_date = ?
-          AND state NOT IN ('done', 'dropped')
-        ORDER BY is_highlight DESC, created_at ASC
-        """,
-        (g.user["id"], today_value),
-    ).fetchall()
-    completed = database.execute(
-        """
-        SELECT * FROM tasks
-        WHERE user_id = ? AND planned_date = ? AND state = 'done'
-        ORDER BY completed_at DESC
-        LIMIT 5
-        """,
-        (g.user["id"], today_value),
-    ).fetchall()
+    task_rows = (
+        database.execute(
+            sa.select(task_table)
+            .where(
+                task_table.c.user_id == g.user["id"],
+                task_table.c.planned_date == today_value,
+                task_table.c.state.not_in(("done", "dropped")),
+            )
+            .order_by(task_table.c.is_highlight.desc(), task_table.c.created_at)
+        )
+        .mappings()
+        .all()
+    )
+    completed = (
+        database.execute(
+            sa.select(task_table)
+            .where(
+                task_table.c.user_id == g.user["id"],
+                task_table.c.planned_date == today_value,
+                task_table.c.state == "done",
+            )
+            .order_by(task_table.c.completed_at.desc())
+            .limit(5)
+        )
+        .mappings()
+        .all()
+    )
     inbox_count = database.execute(
-        "SELECT COUNT(*) FROM tasks WHERE user_id = ? AND state = 'inbox'",
-        (g.user["id"],),
-    ).fetchone()[0]
-    highlight = next((task for task in tasks if task["is_highlight"]), None)
-    optional_tasks = [task for task in tasks if not task["is_highlight"]]
+        sa.select(sa.func.count())
+        .select_from(task_table)
+        .where(
+            task_table.c.user_id == g.user["id"],
+            task_table.c.state == "inbox",
+        )
+    ).scalar_one()
+    highlight = next((task for task in task_rows if task["is_highlight"]), None)
+    optional_tasks = [task for task in task_rows if not task["is_highlight"]]
 
     return render_template(
         "today.html",
@@ -68,15 +89,20 @@ def today():
 @blueprint.get("/inbox")
 @login_required
 def inbox():
-    tasks = get_db().execute(
-        """
-        SELECT * FROM tasks
-        WHERE user_id = ? AND state = 'inbox'
-        ORDER BY created_at DESC
-        """,
-        (g.user["id"],),
-    ).fetchall()
-    return render_template("inbox.html", tasks=tasks)
+    task_rows = (
+        get_db()
+        .execute(
+            sa.select(task_table)
+            .where(
+                task_table.c.user_id == g.user["id"],
+                task_table.c.state == "inbox",
+            )
+            .order_by(task_table.c.created_at.desc())
+        )
+        .mappings()
+        .all()
+    )
+    return render_template("inbox.html", tasks=task_rows)
 
 
 @blueprint.post("/tasks")
@@ -97,11 +123,14 @@ def create_task():
     planned_date = None if placement == "inbox" else _today()
     database = get_db()
     database.execute(
-        """
-        INSERT INTO tasks (user_id, title, state, planned_date)
-        VALUES (?, ?, ?, ?)
-        """,
-        (g.user["id"], title, state, planned_date),
+        sa.insert(task_table).values(
+            public_id=new_public_id(),
+            origin_installation_id=local_installation_id(database),
+            user_id=g.user["id"],
+            title=title,
+            state=state,
+            planned_date=planned_date,
+        )
     )
     database.commit()
     flash("Captured. You can keep moving.", "success")
@@ -114,12 +143,17 @@ def move_to_today(task_id: int):
     _owned_task(task_id)
     database = get_db()
     database.execute(
-        """
-        UPDATE tasks
-        SET state = 'ready', planned_date = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ? AND user_id = ?
-        """,
-        (_today(), task_id, g.user["id"]),
+        sa.update(task_table)
+        .where(
+            task_table.c.id == task_id,
+            task_table.c.user_id == g.user["id"],
+        )
+        .values(
+            state="ready",
+            planned_date=_today(),
+            updated_at=sa.func.current_timestamp(),
+            revision=task_table.c.revision + 1,
+        )
     )
     database.commit()
     flash("Added to today.", "success")
@@ -135,18 +169,30 @@ def choose_highlight(task_id: int):
 
     database = get_db()
     database.execute(
-        """
-        UPDATE tasks SET is_highlight = 0, updated_at = CURRENT_TIMESTAMP
-        WHERE user_id = ? AND planned_date = ?
-        """,
-        (g.user["id"], _today()),
+        sa.update(task_table)
+        .where(
+            task_table.c.user_id == g.user["id"],
+            task_table.c.planned_date == _today(),
+            task_table.c.is_highlight.is_(True),
+            task_table.c.id != task_id,
+        )
+        .values(
+            is_highlight=False,
+            updated_at=sa.func.current_timestamp(),
+            revision=task_table.c.revision + 1,
+        )
     )
     database.execute(
-        """
-        UPDATE tasks SET is_highlight = 1, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ? AND user_id = ?
-        """,
-        (task_id, g.user["id"]),
+        sa.update(task_table)
+        .where(
+            task_table.c.id == task_id,
+            task_table.c.user_id == g.user["id"],
+        )
+        .values(
+            is_highlight=True,
+            updated_at=sa.func.current_timestamp(),
+            revision=task_table.c.revision + 1,
+        )
     )
     database.commit()
     flash("Highlight chosen. One meaningful win is enough.", "success")
@@ -160,23 +206,33 @@ def toggle_task(task_id: int):
     database = get_db()
     if task["state"] == "done":
         database.execute(
-            """
-            UPDATE tasks
-            SET state = 'ready', completed_at = NULL, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ? AND user_id = ?
-            """,
-            (task_id, g.user["id"]),
+            sa.update(task_table)
+            .where(
+                task_table.c.id == task_id,
+                task_table.c.user_id == g.user["id"],
+            )
+            .values(
+                state="ready",
+                completed_at=None,
+                updated_at=sa.func.current_timestamp(),
+                revision=task_table.c.revision + 1,
+            )
         )
         flash("Restored to today.", "success")
     elif task["state"] not in ("dropped", "inbox"):
         database.execute(
-            """
-            UPDATE tasks
-            SET state = 'done', is_highlight = 0,
-                completed_at = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ? AND user_id = ?
-            """,
-            (datetime.now().isoformat(timespec="seconds"), task_id, g.user["id"]),
+            sa.update(task_table)
+            .where(
+                task_table.c.id == task_id,
+                task_table.c.user_id == g.user["id"],
+            )
+            .values(
+                state="done",
+                is_highlight=False,
+                completed_at=datetime.now().isoformat(timespec="seconds"),
+                updated_at=sa.func.current_timestamp(),
+                revision=task_table.c.revision + 1,
+            )
         )
         flash("Done. Take a breath before the next thing.", "success")
     else:
@@ -191,12 +247,17 @@ def drop_task(task_id: int):
     task = _owned_task(task_id)
     database = get_db()
     database.execute(
-        """
-        UPDATE tasks
-        SET state = 'dropped', is_highlight = 0, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ? AND user_id = ?
-        """,
-        (task_id, g.user["id"]),
+        sa.update(task_table)
+        .where(
+            task_table.c.id == task_id,
+            task_table.c.user_id == g.user["id"],
+        )
+        .values(
+            state="dropped",
+            is_highlight=False,
+            updated_at=sa.func.current_timestamp(),
+            revision=task_table.c.revision + 1,
+        )
     )
     database.commit()
     flash(f"Dropped “{task['title']}”. Letting go is a valid decision.", "success")

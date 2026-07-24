@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from datetime import date
 
+import sqlalchemy as sa
 from werkzeug.security import generate_password_hash
 
-from timemanager.db import get_db
+from timemanager.db import get_db, local_installation_id, new_public_id
+from timemanager.models import tasks
 
 from .conftest import create_user, csrf_token, register
 
@@ -35,9 +37,16 @@ def test_capture_to_today_and_inbox(app, client):
     assert b"Waiting for a decision" in response.data
 
     with app.app_context():
-        rows = get_db().execute(
-            "SELECT title, state, planned_date FROM tasks ORDER BY id"
-        ).fetchall()
+        rows = (
+            get_db()
+            .execute(
+                sa.select(tasks.c.title, tasks.c.state, tasks.c.planned_date).order_by(
+                    tasks.c.id
+                )
+            )
+            .mappings()
+            .all()
+        )
         assert dict(rows[0]) == {
             "title": "Open the project brief",
             "state": "ready",
@@ -67,7 +76,10 @@ def test_empty_and_overlong_capture_are_rejected(app, client):
     assert b"Keep the capture under 180 characters" in response.data
 
     with app.app_context():
-        assert get_db().execute("SELECT COUNT(*) FROM tasks").fetchone()[0] == 0
+        assert (
+            get_db().execute(sa.select(sa.func.count()).select_from(tasks)).scalar_one()
+            == 0
+        )
 
 
 def test_move_to_today_choose_one_highlight_complete_and_restore(app, client):
@@ -84,7 +96,12 @@ def test_move_to_today_choose_one_highlight_complete_and_restore(app, client):
     )
 
     with app.app_context():
-        rows = get_db().execute("SELECT id, title FROM tasks ORDER BY id").fetchall()
+        rows = (
+            get_db()
+            .execute(sa.select(tasks.c.id, tasks.c.title).order_by(tasks.c.id))
+            .mappings()
+            .all()
+        )
         first_id, second_id = rows[0]["id"], rows[1]["id"]
 
     response = _post_with_csrf(
@@ -100,9 +117,12 @@ def test_move_to_today_choose_one_highlight_complete_and_restore(app, client):
     assert b"Your chosen focus" in response.data
 
     with app.app_context():
-        highlights = get_db().execute(
-            "SELECT id FROM tasks WHERE is_highlight = 1"
-        ).fetchall()
+        highlights = (
+            get_db()
+            .execute(sa.select(tasks.c.id).where(tasks.c.is_highlight.is_(True)))
+            .mappings()
+            .all()
+        )
         assert [row["id"] for row in highlights] == [second_id]
 
     response = _post_with_csrf(client, f"/tasks/{second_id}/toggle")
@@ -122,15 +142,21 @@ def test_drop_is_deliberate_and_removes_task_from_active_view(app, client):
         {"title": "An optional task", "placement": "today"},
     )
     with app.app_context():
-        task_id = get_db().execute("SELECT id FROM tasks").fetchone()["id"]
+        task_id = get_db().execute(sa.select(tasks.c.id)).scalar_one()
 
     response = _post_with_csrf(client, f"/tasks/{task_id}/drop")
     assert b"Letting go is a valid decision." in response.data
     assert b'data-focus-task="An optional task"' not in response.data
 
     with app.app_context():
-        task = get_db().execute("SELECT state FROM tasks").fetchone()
+        task = (
+            get_db()
+            .execute(sa.select(tasks.c.state, tasks.c.revision))
+            .mappings()
+            .one()
+        )
         assert task["state"] == "dropped"
+        assert task["revision"] == 2
 
 
 def test_users_cannot_read_or_mutate_another_users_tasks(app, client):
@@ -143,15 +169,19 @@ def test_users_cannot_read_or_mutate_another_users_tasks(app, client):
     )
     with app.app_context():
         database = get_db()
-        cursor = database.execute(
-            """
-            INSERT INTO tasks (user_id, title, state, planned_date)
-            VALUES (?, 'Private task', 'ready', ?)
-            """,
-            (other_id, date.today().isoformat()),
-        )
+        private_task_id = database.execute(
+            sa.insert(tasks)
+            .values(
+                public_id=new_public_id(),
+                origin_installation_id=local_installation_id(database),
+                user_id=other_id,
+                title="Private task",
+                state="ready",
+                planned_date=date.today().isoformat(),
+            )
+            .returning(tasks.c.id)
+        ).scalar_one()
         database.commit()
-        private_task_id = cursor.lastrowid
 
     today = client.get("/today")
     assert b"Private task" not in today.data
@@ -159,8 +189,10 @@ def test_users_cannot_read_or_mutate_another_users_tasks(app, client):
     response = _post_with_csrf(client, f"/tasks/{private_task_id}/drop")
     assert response.status_code == 404
     with app.app_context():
-        task = get_db().execute(
-            "SELECT state FROM tasks WHERE id = ?",
-            (private_task_id,),
-        ).fetchone()
+        task = (
+            get_db()
+            .execute(sa.select(tasks.c.state).where(tasks.c.id == private_task_id))
+            .mappings()
+            .one()
+        )
         assert task["state"] == "ready"

@@ -34,6 +34,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             "TIMEMANAGER_DATABASE",
             str(Path(app.instance_path) / "timemanager.sqlite3"),
         ),
+        DATABASE_URL=os.environ.get("TIMEMANAGER_DATABASE_URL"),
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
         SESSION_COOKIE_SECURE=False,
@@ -45,9 +46,10 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     else:
         app.config.update(test_config)
 
-    from . import auth, db, tasks
+    from . import account_transfer, auth, db, tasks
 
     db.init_app(app)
+    account_transfer.init_app(app)
     app.register_blueprint(auth.blueprint)
     app.register_blueprint(tasks.blueprint)
 

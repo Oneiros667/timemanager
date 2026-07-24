@@ -18,16 +18,17 @@ intent.
 ## Review outcome
 
 The research and product documentation have a strong evidence model, clear
-safety language, useful source provenance, and a generally accurate distinction
-between the local application and later product phases. The main gap is
-execution clarity: the documents do not yet provide one operational view of
-what is shipped, what is partial, what decision blocks further work, and what
-evidence completes each phase.
+safety language, useful source provenance, and an explicit distinction between
+the local application and later product phases. The original review identified
+execution clarity as the main gap; this tracking note now provides the
+operational view of what is implemented, partial, blocked, and gated by further
+evidence.
 
 No broken local Markdown links, anchors, or reference definitions were found in
-the review. The existing test suite passed, but it does not exercise the
-client-side timer, Low Capacity behavior, or service-worker behavior in a real
-browser.
+the review. The automated suite now covers server-side account isolation,
+schema upgrades, migration recovery, and export/import behavior, but it does
+not exercise the client-side timer, Low Capacity behavior, or service-worker
+behavior in a real browser.
 
 ## Confirmed implementation baseline
 
@@ -36,6 +37,14 @@ The following behavior is implemented:
 - local account registration, login, and logout;
 - password hashing, signed sessions, and CSRF-protected state-changing forms;
 - per-user SQLite task isolation;
+- SQLAlchemy Core persistence and ordered Alembic schema revisions;
+- automatic upgrade of the exact legacy users/tasks database with
+  pre-migration snapshot recovery;
+- stable public UUIDs, installation origin, and positive revisions for users
+  and tasks;
+- versioned account-scoped JSON export/import for the current profile and task
+  model, with operator CLI commands, secret exclusion, provenance retention,
+  and fail-closed revision conflicts;
 - capture to Today or Inbox;
 - one changeable daily highlight;
 - task completion, restoration, deliberate dropping, and move-to-Today;
@@ -51,8 +60,8 @@ The following product-design capabilities are not implemented:
 - a Review destination or recovery/reset flow;
 - transition or leave-by protection;
 - persisted focus sessions or estimate-versus-actual learning;
-- export/import, an application-managed backup flow, or schema migrations;
-- stable installation/public object identifiers for hosted transfer;
+- authenticated self-service export/restore, credential recovery, or an
+  application-managed general backup/restore flow;
 - Last Done tracked activities, schedules, occurrences, or execution history;
 - Google Calendar integration;
 - guardian or trusted-person assistance;
@@ -66,7 +75,7 @@ capability:
 | Small Today plan | Today and a single highlight exist | No limit or explicit overflow/triage for optional tasks |
 | Low Capacity | CSS hides secondary Today content and stores a browser preference | No per-account state, current-time/commitment view, critical-item routing, smallest-action selection, or Reset |
 | Focus | A non-persisted countdown can start, pause, continue, and reset | No session intention record, distraction capture, transition protection, next commitment, or actual-time history |
-| Backup | The README tells an operator to back up `instance/` | No export format, restore rehearsal, completion report, or migration-safe provenance |
+| Backup and portability | Operator `instance/` backup, automatic pre-migration recovery, and versioned account/task CLI export/import | No self-service flow, credential recovery, full-account-type coverage, full operational restore rehearsal, or hosted adapter |
 
 ## Findings that require decisions
 
@@ -210,8 +219,8 @@ never prove guardianship. The detailed topology and release evidence are in
 | Order | Work item | Current status | Exit gate |
 | --- | --- | --- | --- |
 | 0.1 | Resolve D1-D5 and align the documentation | Completed 2026-07-24 | No contradictory product boundaries; one milestone/status model |
-| 0.2 | Add schema migrations and installation/public object provenance | Not started | Existing database upgrades without data loss; schema version is inspectable |
-| 0.3 | Add export, restore, and migration-fixture foundations | Not started | Export/import round trip is idempotent and tested; secrets are excluded |
+| 0.2 | Add schema migrations and installation/public object provenance | Completed 2026-07-24 | Existing database upgrades without data loss; schema revision is inspectable |
+| 0.3 | Add export, restore, and migration-fixture foundations | Completed 2026-07-24 | Export/import round trip is idempotent and tested; secrets are excluded |
 | 1.1 | Enforce a deliberately small active Today plan | Not started | One highlight plus the chosen optional-task limit; overflow remains recoverable |
 | 1.2 | Add task detail, next action, and definition of done | Not started | Capture remains title-only; added structure is optional and editable |
 | 1.3 | Add Review and consequence-aware Reset/recovery | Not started | No silent rollover; stale items can be kept, renegotiated, delegated, replaced, or dropped |
