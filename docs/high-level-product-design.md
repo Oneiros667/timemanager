@@ -312,7 +312,7 @@ Uses the same data and retains only:
 
 - current time;
 - next fixed commitment and leave-by time;
-- safety-, health-, and consequence-critical items;
+- user-designated essential and consequence-critical items;
 - one highlight or stabilising action;
 - one smallest next action;
 - capture and Reset.
@@ -381,8 +381,8 @@ separate dashboard. Search is a utility, not a fifth place the user must check.
   user choices. It references tasks rather than copying them.
 - **Focus session:** intention, planned range, elapsed/focused time, pauses,
   outcome, and optional interruption labels.
-- **Cue:** trigger, importance, channel, status, snooze choices, and linked
-  intention.
+- **Cue:** trigger, importance, privacy classification, channel, status, snooze
+  choices, generic-preview policy, and linked intention.
 - **Review decision:** keep, schedule, renegotiate, delegate, replace, or drop,
   with an optional reason.
 - **Experiment:** one temporary behavior change and a review date.
@@ -428,8 +428,16 @@ external calendar writes are auditable user actions.
   child-safety and consent design.
 - Recommendations expose the facts used and label inferred values.
 - AI-generated content is marked as suggested until accepted.
+- The product does not solicit, infer, categorise, or provide specialist
+  functionality for diagnosis, medication, treatment, or other health
+  information in the local or first hosted pilot.
+- Users may enter sensitive information in private free-text tasks. All task
+  content is therefore treated as potentially sensitive and remains private by
+  default.
 - Missing duration or completion data remains unknown, not zero or failure.
 - Notification delivery and intention resolution are separate states.
+- Notification importance and notification privacy are independent. A
+  high-consequence cue can still suppress all details on the device.
 - Time calculations preserve timezone and daylight-saving semantics.
 - The active day remains readable during temporary network or provider failure.
 - Local and hosted records use stable identifiers and schema versions so a
@@ -439,14 +447,37 @@ external calendar writes are auditable user actions.
 
 ## Notifications and attention budget
 
-Notifications are allocated by consequence rather than independently requested
-by every feature.
+Notifications have two independent classifications: **importance**, which
+controls interruption and persistence, and **privacy**, which controls what may
+leave the authenticated application.
 
-- **Protected:** selected appointments, medication/health reminders, travel, or
-  real deadlines; may use staged interruptive cues.
+Importance is allocated by consequence rather than independently requested by
+every feature:
+
+- **Protected:** user-designated essential reminders, selected appointments,
+  travel, or real deadlines; may use staged interruptive cues.
 - **Actionable:** starts, transitions, and review prompts; grouped and limited.
 - **Ambient:** inbox counts, suggestions, and weekly patterns; visible in-app,
   not interruptive by default.
+
+Privacy is selected separately:
+
+- **Standard:** the account's notification-preview preference applies.
+- **Sensitive:** the device notification contains only the Timemanager
+  identity, generic wording such as "Private reminder," and an opaque cue
+  identifier. It contains no task title, notes, health details, people,
+  location, calendar details, or revealing action labels.
+
+`Hide notification details` is enabled by default at account level. A user may
+opt out and allow details for standard notifications. The account setting never
+overrides a cue marked Sensitive; the user must deliberately remove the
+Sensitive classification before details can appear.
+
+Sensitive content is not placed in a push payload and is retrieved only after
+the user opens the authenticated application. Generic snooze or open actions
+may be offered only when they reveal no task information. This contract applies
+to Timemanager-generated notifications, notification history, and mirrored
+notifications such as a connected watch.
 
 The product shows the user when a day has become cue-heavy and suggests
 consolidation. Muting a channel is respected; the related intention remains
@@ -472,6 +503,13 @@ Initial behavior:
 Timemanager must never silently reschedule an event. Calendar deletion and
 attendee-management workflows are outside the initial integration unless
 separately designed and approved.
+
+Timemanager can enforce its privacy classification only for notifications it
+generates. Google Calendar or another connected client may independently show
+an event title, location, attendee, or description. Before a sensitive item is
+written to an external calendar, the confirmation view must disclose that
+boundary and let the user choose a privacy-safe external title and notification
+configuration, or cancel the write.
 
 Other calendar providers should implement the same internal commitment boundary
 after the Google integration is stable; provider-specific objects must not leak
@@ -571,6 +609,10 @@ independent task stores.
 - Let the user control animation, sound, haptics, cue density, and default
   session intensity.
 - Minimise collected data and make sync/AI boundaries visible.
+- Treat task and commitment text as potentially sensitive even when the product
+  does not request sensitive categories.
+- Keep private notification details out of push payloads. Require
+  authentication before displaying a Sensitive cue's content.
 - Keep credentials server-side and out of clients and source control.
 - Provide data export, deletion, backup, and restore before relying on the
   system as the only trusted store.
@@ -643,7 +685,8 @@ signals, not acceptable costs of higher task completion.
 - fixed-event sync, provenance, caching, and conflict visibility;
 - guardian-child and adult-trusted-person assisted-planning prototype,
   including scoped proposals and start/end check-ins;
-- notification budget and staged leave-by cues;
+- notification budget, independent importance/privacy controls, private
+  previews, and staged leave-by cues;
 - short weekly review and one experiment;
 - diary study and post-novelty retention evaluation;
 - transfer rehearsal using export/import fixtures without uploading pilot data
@@ -697,6 +740,17 @@ signals, not acceptable costs of higher task completion.
   13 and older; guardian editing is the default within that child workspace.
 - Adult trusted helpers are proposal-only by default, with only explicit,
   narrow, time-limited delegation.
+- The local and first hosted pilots do not solicit, infer, categorise, or
+  provide specialist functionality for diagnosis, medication, treatment, or
+  other health information. Private free-text tasks may contain sensitive
+  information, so all task content is treated as potentially sensitive.
+- Notification importance and privacy are separate. Account-wide notification
+  details are hidden by default and may be enabled for Standard cues; a cue
+  marked Sensitive always uses a generic, detail-free notification until the
+  user deliberately removes that classification.
+- Timemanager does not promise privacy for notifications generated by an
+  external calendar provider. Sensitive calendar writes require a disclosure
+  preview and a privacy-safe external-title choice.
 - Worldwide availability is the product objective, subject to a country/region
   child-data and privacy release gate before launch in each market.
 - AI decomposition, voice, and AI body doubling are not in the first pilot.

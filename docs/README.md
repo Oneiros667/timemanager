@@ -11,6 +11,9 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
 - [High-level product design](high-level-product-design.md) translates the
   research into the proposed user journey, feature set, functional rules,
   information model, confirmed deployment path, scope, and delivery phases.
+- [Documentation review and next steps](documentation-review-and-next-steps.md)
+  records the current implementation gaps, decisions, ordered execution plan,
+  and evidence gates used for project tracking.
 - [Assisted planning and guardian support](assisted-planning-and-guardian-support.md)
   defines guardian-supported child planning and adult trusted-person support,
   including permissions, proposals, privacy boundaries, and release gates.

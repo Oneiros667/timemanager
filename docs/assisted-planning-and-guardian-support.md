@@ -24,12 +24,25 @@ sale, sharing, or social discovery.
 
 ## Non-negotiable data and monetisation boundaries
 
-The product must not collect, infer, sell, share, or enable the following as a
-feature or revenue source: advertising identifiers or targeted advertising;
-behavioural profiling; social discovery; ADHD diagnosis or treatment data;
-health information; precise location; school records; or voice recordings.
-These are exclusions, not optional settings. A future proposal to add any of
-them requires a separate product decision, privacy/legal assessment, and an
+The product must not use advertising identifiers, targeted advertising,
+behavioural profiling, data sale/brokerage, or social discovery as a feature or
+revenue source. These are global exclusions, not optional settings.
+
+The local and first hosted pilots do not solicit, infer, categorise, or provide
+specialist functionality for ADHD diagnosis, treatment, medication, or other
+health information. Users may nevertheless enter sensitive information in a
+private free-text task, so all task content is treated as potentially sensitive
+and remains private by default.
+
+Assistance workspaces do not provide health-specific fields or workflows,
+precise location tracking, school-record storage, or voice-recording storage.
+Items are shared individually through an explicit disclosure preview; there is
+no default or bulk disclosure of the account's task content. Timemanager must
+not claim that it can automatically detect every sensitive detail in arbitrary
+free text.
+
+Intentionally adding health-specific functionality or any excluded assistance
+category requires a separate product decision, privacy/legal assessment, and an
 explicit revision of this document before implementation.
 
 ## Two support modes
@@ -136,6 +149,13 @@ detail appear only when a person needs to understand or review a shared item.
 - The system shows who will receive each reminder and how often before saving.
 - A child or adult should not receive duplicate alerts from every helper.
 - Dismissing a reminder does not silently report failure to a helper.
+- Assistance-workspace notifications use generic, detail-free previews by
+  default. A reminder marked Sensitive never includes its title, notes, people,
+  location, calendar details, or revealing action labels in a device or push
+  notification.
+- Notification importance and privacy are separate: an essential reminder may
+  still be Sensitive. Relaxing the account-wide preview setting never exposes a
+  reminder that remains marked Sensitive.
 
 ### Appointments
 
@@ -165,9 +185,10 @@ following:
   assessment and guardian-verification approach;
 - age-appropriate notice, consent/assent design, and a way to withdraw or
   change access where applicable;
-- data minimisation: the prohibited categories in the non-negotiable boundary
-  above are not collected or inferred; basic planning needs no diagnosis,
-  medication, school, location, voice, or health data;
+- data minimisation: no health-specific, school-record, precise-location, or
+  voice-recording fields or workflows; basic planning needs none of these
+  categories; private free text is treated as potentially sensitive and every
+  shared item receives a disclosure preview;
 - authenticated, expiring invitations; scoped server-side authorization; audit
   history; revocation; export; deletion; and breach-response procedures;
 - an abuse/threat model covering coercive helpers, unsafe household dynamics,
