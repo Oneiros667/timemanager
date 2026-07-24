@@ -29,7 +29,7 @@ def test_service_worker_controls_the_app_shell(client):
     assert response.mimetype == "application/javascript"
     assert response.headers["Service-Worker-Allowed"] == "/"
     assert b"/offline" in response.data
-    assert b"timemanager-shell-v2" in response.data
+    assert b"timemanager-shell-v3" in response.data
 
     offline = client.get("/offline")
     assert offline.status_code == 200

@@ -88,7 +88,7 @@ def test_export_is_account_scoped_versioned_and_excludes_secrets(app, client):
 
     assert document["format"] == "timemanager.account-export"
     assert document["format_version"] == 1
-    assert document["source_schema_revision"] == "0002"
+    assert document["source_schema_revision"] == "0003"
     assert document["exported_at"] == "2026-07-24T10:00:00Z"
     assert set(document["account"]) == ACCOUNT_FIELDS
     assert [task["title"] for task in document["tasks"]] == ["Mine"]
@@ -121,7 +121,7 @@ def test_export_is_account_scoped_versioned_and_excludes_secrets(app, client):
     assert "other@example.com" not in serialized
 
 
-def test_fixture_import_round_trip_is_idempotent_and_preserves_provenance(tmp_path):
+def test_revision_0002_fixture_import_is_adapted_idempotently(tmp_path):
     destination = _new_app(tmp_path / "destination.sqlite3")
     destination_password_hash = generate_password_hash("destination-password")
     target_id = create_user(
@@ -164,7 +164,9 @@ def test_fixture_import_round_trip_is_idempotent_and_preserves_provenance(tmp_pa
 
     assert first.inserted == 1
     assert second.unchanged == 1
-    assert round_trip["tasks"] == document["tasks"]
+    expected_tasks = deepcopy(document["tasks"])
+    expected_tasks[0]["state"] = "active"
+    assert round_trip["tasks"] == expected_tasks
     assert round_trip["account"]["email"] == "destination@example.com"
     assert imported["user_id"] == target_id
     assert imported["origin_public_id"] == (
@@ -201,6 +203,35 @@ def test_import_applies_newer_revision_and_keeps_newer_local_record(tmp_path):
     assert updated.updated == 1
     assert kept.kept_newer == 1
     assert dict(task) == {"title": "Buy groceries and fruit", "revision": 2}
+
+
+def test_revision_0002_import_adapts_only_first_three_options_per_date(tmp_path):
+    destination = _new_app(tmp_path / "legacy-transfer.sqlite3")
+    target_id = create_user(
+        destination,
+        "Destination",
+        "destination@example.com",
+        generate_password_hash("destination-password"),
+    )
+    document = _fixture_document()
+    base_task = document["tasks"][0]
+    document["tasks"] = []
+    for index in range(4):
+        task = deepcopy(base_task)
+        task["public_id"] = f"66666666-6666-4666-8666-{index:012d}"
+        task["title"] = f"Legacy option {index}"
+        document["tasks"].append(task)
+
+    with destination.app_context():
+        database = get_db()
+        result = import_account(database, target_id, document)
+        database.commit()
+        states = database.execute(
+            sa.select(tasks.c.state).order_by(tasks.c.public_id)
+        ).scalars().all()
+
+    assert result.inserted == 4
+    assert states == ["active", "active", "active", "ready"]
 
 
 def test_same_revision_divergence_fails_without_partial_import(tmp_path):
@@ -297,6 +328,33 @@ def test_constraint_conflict_rolls_back_tasks_and_imported_provenance(tmp_path):
                 installations.c.public_id
                 == document["tasks"][0]["origin_installation_public_id"]
             )
+        ).scalar_one() == 0
+
+
+def test_import_cannot_overfill_the_active_today_plan(tmp_path):
+    destination = _new_app(tmp_path / "capacity.sqlite3")
+    target_id = create_user(
+        destination,
+        "Destination",
+        "destination@example.com",
+        generate_password_hash("destination-password"),
+    )
+    document = _fixture_document()
+    base_task = document["tasks"][0]
+    document["tasks"] = []
+    for index in range(4):
+        task = deepcopy(base_task)
+        task["public_id"] = f"55555555-5555-4555-8555-{index:012d}"
+        task["state"] = "active"
+        document["tasks"].append(task)
+
+    with destination.app_context():
+        database = get_db()
+        with pytest.raises(AccountImportConflictError, match="active option limit"):
+            import_account(database, target_id, document)
+        database.commit()
+        assert database.execute(
+            sa.select(sa.func.count()).select_from(tasks)
         ).scalar_one() == 0
 
 

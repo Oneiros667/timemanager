@@ -7,12 +7,13 @@ These instructions apply to the whole repository. More specific guidance in
 
 Timemanager is implementing the local development/pilot PWA described in the
 product design. The current application includes local account registration,
-session login, SQLite task persistence, Today and Inbox views, a Low Capacity
-view, a client-side focus timer, schema migrations, and operator-level
-account/task export-import. Calendar integration, self-service account restore,
-trusted-person sessions, hosted accounts, local-to-online data migration, and
-mobile applications remain proposed. Keep proposed and implemented behaviour
-clearly separated in code, documentation, and status reports.
+session login, SQLite task persistence, a bounded Today plan with recoverable
+overflow, Inbox and Low Capacity views, a client-side focus timer, schema
+migrations, and operator-level account/task export-import. Calendar integration,
+self-service account restore, trusted-person sessions, hosted accounts,
+local-to-online data migration, and mobile applications remain proposed. Keep
+proposed and implemented behaviour clearly separated in code, documentation,
+and status reports.
 
 ## Start here
 

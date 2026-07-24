@@ -33,6 +33,9 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
 - [ADR 0004: Account export and import contract](decisions/0004-account-export-import-contract.md)
   records the implemented versioned JSON boundary, account scope, credential
   exclusions, idempotency rules, conflict policy, and current recovery limits.
+- [ADR 0005: Small active Today plan](decisions/0005-small-active-today-plan.md)
+  records the highlight-plus-three capacity, active/overflow state semantics,
+  explicit recovery actions, migration behavior, and import boundary.
 - [ADHD time-management domain research](adhd-time-management-domain-research.md)
   synthesises clinical guidance, cognitive and motivational theories, tested
   behavioural methods, common "life hacks", and their implications for a

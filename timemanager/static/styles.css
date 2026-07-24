@@ -446,9 +446,17 @@ a {
   z-index: 1;
 }
 
-.highlight-card > .primary-button {
+.highlight-actions {
   position: relative;
   z-index: 1;
+}
+
+.highlight-actions,
+.highlight-actions form {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  margin: 0;
 }
 
 .highlight-copy > span {
@@ -482,7 +490,8 @@ a {
 }
 
 .task-row,
-.inbox-row {
+.inbox-row,
+.overflow-row {
   display: grid;
   align-items: center;
   border: 1px solid transparent;
@@ -498,7 +507,8 @@ a {
 }
 
 .task-row:hover,
-.inbox-row:hover {
+.inbox-row:hover,
+.overflow-row:hover {
   border-color: var(--line);
   background: var(--surface);
 }
@@ -529,6 +539,7 @@ a {
 
 .task-copy p,
 .inbox-row p,
+.overflow-row p,
 .completed-row p {
   margin: 0;
   font-weight: 680;
@@ -536,7 +547,8 @@ a {
 }
 
 .task-copy > span,
-.inbox-row > div > span {
+.inbox-row > div > span,
+.overflow-row > div > span {
   color: var(--ink-soft);
   font-size: 0.75rem;
 }
@@ -544,6 +556,7 @@ a {
 .task-actions {
   position: relative;
   z-index: 2;
+  flex-wrap: wrap;
 }
 
 .task-actions form {
@@ -655,6 +668,40 @@ a {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: rgb(255 254 250 / 60%);
+}
+
+.overflow-section {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px dashed #bdc6c1;
+  border-radius: var(--radius-sm);
+  background: rgb(255 254 250 / 60%);
+}
+
+.overflow-section summary {
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.overflow-section > p {
+  margin: 0.65rem 0;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.overflow-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.overflow-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  min-height: 70px;
+  padding: 0.75rem;
 }
 
 .completed-section summary {
@@ -1109,8 +1156,12 @@ body.low-capacity .capture-card {
     grid-template-columns: auto 1fr;
   }
 
-  .highlight-card > .primary-button {
+  .highlight-actions {
     grid-column: 1 / -1;
+    flex-wrap: wrap;
+  }
+
+  .highlight-actions > .primary-button {
     width: 100%;
   }
 
@@ -1124,6 +1175,10 @@ body.low-capacity .capture-card {
   }
 
   .inbox-row {
+    grid-template-columns: 1fr;
+  }
+
+  .overflow-row {
     grid-template-columns: 1fr;
   }
 

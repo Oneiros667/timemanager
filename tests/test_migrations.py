@@ -32,7 +32,7 @@ def test_fresh_database_upgrades_to_head_and_is_idempotent(tmp_path):
     engine = _engine(tmp_path / "fresh.sqlite3")
 
     upgrade_database(engine)
-    assert current_revision(engine) == head_revision() == "0002"
+    assert current_revision(engine) == head_revision() == "0003"
 
     with engine.connect() as connection:
         installation = connection.execute(sa.select(installations)).mappings().one()
@@ -80,7 +80,7 @@ def test_exact_legacy_database_is_stamped_upgraded_and_preserved(tmp_path):
     engine = _engine(database_path)
     upgrade_database(engine)
 
-    assert current_revision(engine) == "0002"
+    assert current_revision(engine) == "0003"
     backups = list(tmp_path.glob("legacy.sqlite3.pre-migration-unversioned-*.bak"))
     assert len(backups) == 1
     backup = sqlite3.connect(backups[0])
@@ -150,6 +150,63 @@ def test_exact_legacy_database_with_empty_version_table_is_upgraded(tmp_path):
 
     assert current_revision(engine) == head_revision()
     assert sa.inspect(engine).has_table("installations")
+
+
+def test_revision_0003_limits_existing_active_today_options(tmp_path):
+    engine = _engine(tmp_path / "small-today.sqlite3")
+    upgrade_database(engine, "0002")
+    today = "2026-07-24"
+    with engine.begin() as connection:
+        installation_id = connection.execute(
+            sa.select(installations.c.id)
+        ).scalar_one()
+        user_id = connection.execute(
+            sa.insert(users)
+            .values(
+                public_id="11111111-1111-4111-8111-111111111111",
+                origin_installation_id=installation_id,
+                display_name="Alex",
+                email="alex@example.com",
+                password_hash="hash",
+            )
+            .returning(users.c.id)
+        ).scalar_one()
+        connection.execute(
+            sa.insert(tasks),
+            [
+                {
+                    "public_id": f"22222222-2222-4222-8222-{index:012d}",
+                    "origin_installation_id": installation_id,
+                    "user_id": user_id,
+                    "title": f"Task {index}",
+                    "state": "active" if index == 5 else "ready",
+                    "planned_date": today,
+                    "is_highlight": index == 1,
+                }
+                for index in range(1, 6)
+            ],
+        )
+
+    upgrade_database(engine)
+
+    with engine.connect() as connection:
+        rows = (
+            connection.execute(
+                sa.select(tasks.c.title, tasks.c.state, tasks.c.is_highlight).order_by(
+                    tasks.c.id
+                )
+            )
+            .mappings()
+            .all()
+        )
+    assert rows[0]["state"] == "active"
+    assert rows[0]["is_highlight"] is True
+    assert [row["state"] for row in rows[1:]] == [
+        "active",
+        "active",
+        "active",
+        "ready",
+    ]
 
 
 def test_unrecognized_unversioned_database_fails_closed(tmp_path):
@@ -276,4 +333,4 @@ def test_schema_version_command_reports_current_and_latest(runner):
     result = runner.invoke(args=["schema-version"])
 
     assert result.exit_code == 0
-    assert result.output.strip() == "0002 (latest: 0002)"
+    assert result.output.strip() == "0003 (latest: 0003)"

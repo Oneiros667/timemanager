@@ -18,6 +18,7 @@ from sqlalchemy.exc import IntegrityError
 from .database_migrations import current_revision
 from .db import get_engine
 from .models import installations, tasks, users
+from .planning import TODAY_OPTION_LIMIT
 
 
 EXPORT_FORMAT = "timemanager.account-export"
@@ -218,6 +219,7 @@ def import_account(
     document: dict[str, Any],
 ) -> ImportResult:
     validate_account_export(document)
+    task_rows = _normalized_tasks_for_import(document)
     target_exists = connection.execute(
         sa.select(users.c.id).where(users.c.id == target_user_id)
     ).scalar_one_or_none()
@@ -226,7 +228,7 @@ def import_account(
 
     existing_tasks = _existing_tasks(
         connection,
-        [task["public_id"] for task in document["tasks"]],
+        [task["public_id"] for task in task_rows],
     )
 
     inserted = updated = unchanged = kept_newer = 0
@@ -234,10 +236,10 @@ def import_account(
         with connection.begin_nested():
             origins = {
                 task["origin_installation_public_id"]
-                for task in document["tasks"]
+                for task in task_rows
             }
             origin_ids = _installation_ids(connection, origins)
-            for task in document["tasks"]:
+            for task in task_rows:
                 existing = existing_tasks.get(task["public_id"])
                 values = _task_values(task, target_user_id, origin_ids)
                 if existing is None:
@@ -265,6 +267,7 @@ def import_account(
                     .values(**values)
                 )
                 updated += 1
+            _assert_today_capacity(connection, target_user_id)
     except IntegrityError as error:
         raise AccountImportConflictError(
             "The import conflicts with destination task constraints."
@@ -276,6 +279,46 @@ def import_account(
         unchanged=unchanged,
         kept_newer=kept_newer,
     )
+
+
+def _normalized_tasks_for_import(document: dict[str, Any]) -> list[dict[str, Any]]:
+    task_rows = [dict(task) for task in document["tasks"]]
+    if document["source_schema_revision"] != "0002":
+        return task_rows
+
+    ready_by_date: dict[str, list[dict[str, Any]]] = {}
+    for task in task_rows:
+        if task["planned_date"] is None or task["state"] != "ready":
+            continue
+        if task["is_highlight"]:
+            task["state"] = "active"
+            continue
+        ready_by_date.setdefault(task["planned_date"], []).append(task)
+
+    for planned_tasks in ready_by_date.values():
+        planned_tasks.sort(key=lambda task: (task["created_at"], task["public_id"]))
+        for task in planned_tasks[:TODAY_OPTION_LIMIT]:
+            task["state"] = "active"
+    return task_rows
+
+
+def _assert_today_capacity(connection: Connection, user_id: int) -> None:
+    overfilled_date = connection.execute(
+        sa.select(tasks.c.planned_date)
+        .where(
+            tasks.c.user_id == user_id,
+            tasks.c.planned_date.is_not(None),
+            tasks.c.state == "active",
+            tasks.c.is_highlight.is_(False),
+        )
+        .group_by(tasks.c.planned_date)
+        .having(sa.func.count() > TODAY_OPTION_LIMIT)
+        .limit(1)
+    ).scalar_one_or_none()
+    if overfilled_date is not None:
+        raise AccountImportConflictError(
+            f"The import would exceed the active option limit on {overfilled_date}."
+        )
 
 
 def _installation_ids(

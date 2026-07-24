@@ -17,7 +17,8 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
 - versioned, account-scoped JSON task export/import through operator CLI
   commands;
 - quick capture to Today or Inbox;
-- one changeable daily highlight;
+- one changeable daily highlight plus at most three optional active actions;
+- explicit, recoverable Today overflow with activate and save-for-later choices;
 - complete, restore, deliberately drop, and move-to-Today actions;
 - Low Capacity display mode;
 - a 5/15/25-minute client-side focus timer;
@@ -122,6 +123,14 @@ password.
 This is tested migration and recovery plumbing, not yet a self-service restore
 experience, full-database backup, deletion mirror, credential transfer, or
 hosted migration. Keep normal protected backups of `instance/`.
+
+## Small Today plan
+
+Today separates one highlight from at most three optional active actions.
+Additional tasks captured or moved to Today remain in a visible overflow rather
+than expanding the active plan or being discarded. Overflow tasks are never
+promoted silently: make space by saving an active item for later, then activate
+the chosen overflow item, or make an overflow item the new highlight.
 
 Optional local settings:
 

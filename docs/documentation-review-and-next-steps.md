@@ -46,7 +46,10 @@ The following behavior is implemented:
   model, with operator CLI commands, secret exclusion, provenance retention,
   and fail-closed revision conflicts;
 - capture to Today or Inbox;
-- one changeable daily highlight;
+- one changeable daily highlight and at most three optional active Today
+  actions;
+- explicit recoverable Today overflow with user-controlled activation,
+  highlight replacement, and save-for-later actions;
 - task completion, restoration, deliberate dropping, and move-to-Today;
 - a browser-local Low Capacity display toggle;
 - a 5/15/25-minute client-side focus timer;
@@ -72,7 +75,6 @@ capability:
 
 | Capability | Implemented slice | Missing contract |
 | --- | --- | --- |
-| Small Today plan | Today and a single highlight exist | No limit or explicit overflow/triage for optional tasks |
 | Low Capacity | CSS hides secondary Today content and stores a browser preference | No per-account state, current-time/commitment view, critical-item routing, smallest-action selection, or Reset |
 | Focus | A non-persisted countdown can start, pause, continue, and reset | No session intention record, distraction capture, transition protection, next commitment, or actual-time history |
 | Backup and portability | Operator `instance/` backup, automatic pre-migration recovery, and versioned account/task CLI export/import | No self-service flow, credential recovery, full-account-type coverage, full operational restore rehearsal, or hosted adapter |
@@ -221,7 +223,7 @@ never prove guardianship. The detailed topology and release evidence are in
 | 0.1 | Resolve D1-D5 and align the documentation | Completed 2026-07-24 | No contradictory product boundaries; one milestone/status model |
 | 0.2 | Add schema migrations and installation/public object provenance | Completed 2026-07-24 | Existing database upgrades without data loss; schema revision is inspectable |
 | 0.3 | Add export, restore, and migration-fixture foundations | Completed 2026-07-24 | Export/import round trip is idempotent and tested; secrets are excluded |
-| 1.1 | Enforce a deliberately small active Today plan | Not started | One highlight plus the chosen optional-task limit; overflow remains recoverable |
+| 1.1 | Enforce a deliberately small active Today plan | Completed 2026-07-24 | One highlight plus the chosen optional-task limit; overflow remains recoverable |
 | 1.2 | Add task detail, next action, and definition of done | Not started | Capture remains title-only; added structure is optional and editable |
 | 1.3 | Add Review and consequence-aware Reset/recovery | Not started | No silent rollover; stale items can be kept, renegotiated, delegated, replaced, or dropped |
 | 1.4 | Add manually entered fixed commitments and transition boundaries | Not started | Fixed and flexible objects remain distinct; next commitment stays visible |

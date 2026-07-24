@@ -43,6 +43,8 @@ to preserve the accepted boundary that co-resident accounts do not share data.
   - a public ID already owned by another local account fails closed.
 - Apply each import atomically. Constraint or conflict failure must not leave a
   partial set of imported tasks.
+- Reject an import that would leave any date above the implemented limit of
+  three active non-highlight actions.
 - Reject malformed documents, duplicate JSON fields, unknown fields, and
   unsupported format versions rather than guessing.
 - Preserve a static version-1 fixture and automated round-trip, idempotency,

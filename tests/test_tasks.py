@@ -49,7 +49,7 @@ def test_capture_to_today_and_inbox(app, client):
         )
         assert dict(rows[0]) == {
             "title": "Open the project brief",
-            "state": "ready",
+            "state": "active",
             "planned_date": date.today().isoformat(),
         }
         assert dict(rows[1]) == {
@@ -134,6 +134,232 @@ def test_move_to_today_choose_one_highlight_complete_and_restore(app, client):
     assert b"Second action" in response.data
 
 
+def test_today_caps_active_options_and_keeps_explicit_overflow(app, client):
+    register(client)
+    for title in ("One", "Two", "Three", "Four"):
+        response = _post_with_csrf(
+            client,
+            "/tasks",
+            {"title": title, "placement": "today"},
+        )
+
+    assert b"Captured in Today overflow" in response.data
+    assert b"3 of 3 options" in response.data
+    assert b"extra" in response.data
+    assert b"waiting for a decision" in response.data
+    assert b"Four" in response.data
+
+    with app.app_context():
+        rows = (
+            get_db()
+            .execute(sa.select(tasks.c.title, tasks.c.state).order_by(tasks.c.id))
+            .mappings()
+            .all()
+        )
+    assert [row["state"] for row in rows] == [
+        "active",
+        "active",
+        "active",
+        "ready",
+    ]
+
+
+def test_overflow_requires_space_and_can_move_back_to_inbox(app, client):
+    register(client)
+    for title in ("One", "Two", "Three", "Four"):
+        _post_with_csrf(
+            client,
+            "/tasks",
+            {"title": title, "placement": "today"},
+        )
+    with app.app_context():
+        rows = (
+            get_db()
+            .execute(sa.select(tasks.c.id, tasks.c.title).order_by(tasks.c.id))
+            .mappings()
+            .all()
+        )
+        first_id = rows[0]["id"]
+        overflow_id = rows[3]["id"]
+
+    response = _post_with_csrf(client, f"/tasks/{overflow_id}/activate")
+    assert b"Save one for later first" in response.data
+
+    response = _post_with_csrf(client, f"/tasks/{first_id}/inbox")
+    assert b"Saved" in response.data
+    with app.app_context():
+        assert get_db().execute(
+            sa.select(tasks.c.state).where(tasks.c.id == overflow_id)
+        ).scalar_one() == "ready"
+    response = _post_with_csrf(client, f"/tasks/{overflow_id}/activate")
+    assert b"Moved into your active Today plan" in response.data
+
+    with app.app_context():
+        rows = (
+            get_db()
+            .execute(
+                sa.select(tasks.c.id, tasks.c.state, tasks.c.planned_date).where(
+                    tasks.c.id.in_((first_id, overflow_id))
+                )
+            )
+            .mappings()
+            .all()
+        )
+    by_id = {row["id"]: row for row in rows}
+    assert by_id[first_id]["state"] == "inbox"
+    assert by_id[first_id]["planned_date"] is None
+    assert by_id[overflow_id]["state"] == "active"
+
+
+def test_move_from_inbox_uses_overflow_when_today_is_full(app, client):
+    register(client)
+    for title in ("One", "Two", "Three"):
+        _post_with_csrf(
+            client,
+            "/tasks",
+            {"title": title, "placement": "today"},
+        )
+    _post_with_csrf(
+        client,
+        "/tasks",
+        {"title": "Inbox task", "placement": "inbox"},
+    )
+    with app.app_context():
+        inbox_id = get_db().execute(
+            sa.select(tasks.c.id).where(tasks.c.state == "inbox")
+        ).scalar_one()
+
+    response = _post_with_csrf(
+        client,
+        f"/tasks/{inbox_id}/today",
+        page="/inbox",
+    )
+
+    assert b"Added to Today overflow" in response.data
+    with app.app_context():
+        row = (
+            get_db()
+            .execute(
+                sa.select(tasks.c.state, tasks.c.planned_date).where(
+                    tasks.c.id == inbox_id
+                )
+            )
+            .mappings()
+            .one()
+        )
+    assert row["state"] == "ready"
+    assert row["planned_date"] == date.today().isoformat()
+
+
+def test_highlight_is_separate_from_three_optional_actions(app, client):
+    register(client)
+    for title in ("Highlight", "Two", "Three", "Four"):
+        _post_with_csrf(
+            client,
+            "/tasks",
+            {"title": title, "placement": "today"},
+        )
+    with app.app_context():
+        rows = (
+            get_db()
+            .execute(sa.select(tasks.c.id).order_by(tasks.c.id))
+            .scalars()
+            .all()
+        )
+
+    _post_with_csrf(client, f"/tasks/{rows[0]}/highlight")
+    response = _post_with_csrf(client, f"/tasks/{rows[3]}/activate")
+
+    assert b"3 of 3 options" in response.data
+    with app.app_context():
+        database = get_db()
+        assert database.execute(
+            sa.select(sa.func.count())
+            .select_from(tasks)
+            .where(tasks.c.is_highlight.is_(True))
+        ).scalar_one() == 1
+        assert database.execute(
+            sa.select(sa.func.count())
+            .select_from(tasks)
+            .where(
+                tasks.c.state == "active",
+                tasks.c.is_highlight.is_(False),
+            )
+        ).scalar_one() == 3
+
+
+def test_overflow_can_replace_the_highlight_without_expanding_options(app, client):
+    register(client)
+    for title in ("Old highlight", "Two", "Three", "Four", "New highlight"):
+        _post_with_csrf(
+            client,
+            "/tasks",
+            {"title": title, "placement": "today"},
+        )
+    with app.app_context():
+        rows = (
+            get_db()
+            .execute(sa.select(tasks.c.id, tasks.c.title).order_by(tasks.c.id))
+            .mappings()
+            .all()
+        )
+    old_id = rows[0]["id"]
+    fourth_id = rows[3]["id"]
+    new_id = rows[4]["id"]
+
+    _post_with_csrf(client, f"/tasks/{old_id}/highlight")
+    _post_with_csrf(client, f"/tasks/{fourth_id}/activate")
+    response = _post_with_csrf(client, f"/tasks/{new_id}/highlight")
+
+    assert b"New highlight" in response.data
+    with app.app_context():
+        database = get_db()
+        states = {
+            row["id"]: row
+            for row in database.execute(
+                sa.select(tasks.c.id, tasks.c.state, tasks.c.is_highlight)
+            )
+            .mappings()
+            .all()
+        }
+        assert states[new_id]["state"] == "active"
+        assert states[new_id]["is_highlight"] is True
+        assert states[old_id]["state"] == "ready"
+        assert states[old_id]["is_highlight"] is False
+        assert sum(
+            row["state"] == "active" and not row["is_highlight"]
+            for row in states.values()
+        ) == 3
+
+
+def test_restoring_when_today_is_full_uses_overflow(app, client):
+    register(client)
+    for title in ("One", "Two", "Three"):
+        _post_with_csrf(
+            client,
+            "/tasks",
+            {"title": title, "placement": "today"},
+        )
+    with app.app_context():
+        first_id = get_db().execute(
+            sa.select(tasks.c.id).order_by(tasks.c.id)
+        ).scalars().first()
+    _post_with_csrf(client, f"/tasks/{first_id}/toggle")
+    _post_with_csrf(
+        client,
+        "/tasks",
+        {"title": "Replacement", "placement": "today"},
+    )
+
+    response = _post_with_csrf(client, f"/tasks/{first_id}/toggle")
+
+    assert b"Restored to Today overflow" in response.data
+    with app.app_context():
+        assert get_db().execute(
+            sa.select(tasks.c.state).where(tasks.c.id == first_id)
+        ).scalar_one() == "ready"
+
+
 def test_drop_is_deliberate_and_removes_task_from_active_view(app, client):
     register(client)
     _post_with_csrf(
@@ -187,6 +413,10 @@ def test_users_cannot_read_or_mutate_another_users_tasks(app, client):
     assert b"Private task" not in today.data
 
     response = _post_with_csrf(client, f"/tasks/{private_task_id}/drop")
+    assert response.status_code == 404
+    response = _post_with_csrf(client, f"/tasks/{private_task_id}/activate")
+    assert response.status_code == 404
+    response = _post_with_csrf(client, f"/tasks/{private_task_id}/inbox")
     assert response.status_code == 404
     with app.app_context():
         task = (

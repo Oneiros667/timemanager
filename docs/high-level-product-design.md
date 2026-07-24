@@ -13,7 +13,9 @@ Capacity view, and a client-side focus timer. Persistence now uses SQLAlchemy
 Core and ordered Alembic revisions with stable public identifiers, installation
 provenance, and pre-migration SQLite recovery. A versioned operator CLI can
 export one account's current profile/task data and import its tasks into an
-explicit existing local account with idempotent revision handling.
+explicit existing local account with idempotent revision handling. Today now
+enforces one highlight plus at most three optional active actions, with excess
+assigned tasks retained as explicit, user-controlled overflow.
 
 Self-service restore and credential recovery, Google Calendar, assisted
 planning for guardians and trusted people, the Phase 3 hosted release,
@@ -435,7 +437,7 @@ Statuses describe the current repository, not the intended milestone scope.
 |---|---|---|---|---|
 | Universal text capture and inbox | Phase 1 | Implemented | Voice, widget, watch, share-sheet | Supported foundation |
 | Today timeline with fixed commitments | Phase 1 | Partial | Multi-calendar reconciliation | Supported foundation |
-| Highlight plus small active plan | Phase 1 | Partial | Learned capacity limit | Supported method; plausible interface |
+| Highlight plus small active plan | Phase 1 | Implemented | Learned capacity limit | Supported method; plausible interface |
 | Manual next action and definition of done | Phase 1 | Not started | Suggested decomposition | Supported foundation |
 | Flexible focus session | Phase 1 | Partial | Stronger blocking and AI body doubling | Supported elements; experiential options |
 | Assisted planning | Phase 2 | Blocked by Phase 1 | Richer household and support controls | Plausible/experiential; privacy-sensitive |
