@@ -20,6 +20,9 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
   recurring needs, adoption failures, and conflicting preferences from the
   three supplied r/ADHD discussions. These are lived-experience signals rather
   than efficacy evidence.
+- [Optional AI body-doubling and voice design](ai-body-doubling-and-voice-design.md)
+  specifies a privacy-controlled AI companion, its safety boundaries, and a
+  local-container-to-mobile rollout architecture.
 
 ## Reading the evidence labels
 
