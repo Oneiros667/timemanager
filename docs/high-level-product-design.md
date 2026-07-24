@@ -361,6 +361,7 @@ separate dashboard. Search is a utility, not a fifth place the user must check.
 | Transition and leave-by cues | Yes | Location/event-triggered cues | Plausible interface |
 | Recovery/reset without rollover | Yes | Personalised recovery suggestions | Plausible product design |
 | Estimate versus actual | Basic and optional | Reference-class duration ranges | Supported mechanism; plausible algorithm |
+| Last Done repeatable activity history | Generic manual tracking | Task/calendar links and natural-language retrieval | Plausible product design; privacy-sensitive |
 | Weekly review and one experiment | Yes | Longer-term pattern comparison | Supported components |
 | Low-capacity mode | Yes | User-defined low-capacity layouts | Plausible product design |
 | Google Calendar integration | Read plus confirmed create/edit | Other providers | Supported need; integration behavior to test |
@@ -381,6 +382,17 @@ separate dashboard. Search is a utility, not a fifth place the user must check.
   user choices. It references tasks rather than copying them.
 - **Focus session:** intention, planned range, elapsed/focused time, pauses,
   outcome, and optional interruption labels.
+- **Tracked activity:** a user-owned repeatable action with optional schedules,
+  privacy classification, and Last Done retrieval.
+- **Scheduled occurrence:** a date-specific expectation for a tracked activity;
+  it is not evidence that the activity happened.
+- **Activity execution:** an explicit user record of when an activity happened,
+  when it was logged, optional notes, reflection markers, user tags, and source
+  provenance.
+- **Experience annotation:** zero or more optional selections from a compact,
+  system-defined reflection-marker vocabulary attached to a user-confirmed
+  outcome such as an activity execution, task completion, or focus-session
+  outcome.
 - **Cue:** trigger, importance, privacy classification, channel, status, snooze
   choices, generic-preview policy, and linked intention.
 - **Review decision:** keep, schedule, renegotiate, delegate, replace, or drop,
@@ -431,9 +443,24 @@ external calendar writes are auditable user actions.
 - The product does not solicit, infer, categorise, or provide specialist
   functionality for diagnosis, medication, treatment, or other health
   information in the local or first hosted pilot.
-- Users may enter sensitive information in private free-text tasks. All task
-  content is therefore treated as potentially sensitive and remains private by
-  default.
+- Generic tracked activities intentionally allow private, user-authored labels
+  and execution history, including medication as a supported record-keeping use
+  case. This does not add dose, treatment, adherence, or missed-dose advice.
+- Users may enter sensitive information in private free-text tasks and tracked
+  activities. All such content is treated as potentially sensitive and remains
+  private by default.
+- A scheduled occurrence or missing execution is not proof that an activity did
+  or did not happen. Positive answers cite explicit executions; missing history
+  is reported as unknown.
+- Task completion and calendar presence do not create an activity execution
+  without explicit user confirmation.
+- Reflection markers use the same stable meanings across supported outcome
+  types. The primary flow shows no more than four context-relevant choices,
+  never preselects or infers one, and keeps notes and user-owned organisational
+  tags separate.
+- Reflection markers are optional private annotations, not scores or evidence
+  for diagnosis, automatic prioritisation, helper disclosure, or performance
+  judgment.
 - Missing duration or completion data remains unknown, not zero or failure.
 - Notification delivery and intention resolution are separate states.
 - Notification importance and notification privacy are independent. A
@@ -635,7 +662,9 @@ Test whether a user can:
 5. notice and act on a transition boundary;
 6. recover from 20 stale items after a week away;
 7. use Low Capacity mode without losing trust in hidden information;
-8. complete a session with all nonessential notifications disabled.
+8. complete a session with all nonessential notifications disabled;
+9. create and log a repeatable activity quickly, then distinguish "no log" from
+   "did not happen" when retrieving its history.
 
 ### Pilot measures
 
@@ -648,6 +677,8 @@ Test whether a user can:
 - planning effort, overwhelm, and perceived control;
 - inbox age and maintenance time;
 - notification dismissal/muting;
+- repeatable-activity logging effort, answer accuracy, corrections, and
+  duplicate-warning rate;
 - trust that current commitments are represented.
 
 Measure abandonment and return after the novelty period. Qualitative reports of
@@ -675,6 +706,9 @@ signals, not acceptable costs of higher task completion.
 - local focus session and transition protection;
 - Low Capacity and Reset;
 - basic optional estimate-versus-actual recording;
+- generic Last Done tracked activities, schedules, manual executions, exact
+  history retrieval, optional notes, shared reflection markers, user tags, and
+  Sensitive-by-default privacy;
 - local backup/export;
 - stable object identifiers and versioned schemas suitable for later transfer;
 - no AI features.
@@ -742,8 +776,12 @@ signals, not acceptable costs of higher task completion.
   narrow, time-limited delegation.
 - The local and first hosted pilots do not solicit, infer, categorise, or
   provide specialist functionality for diagnosis, medication, treatment, or
-  other health information. Private free-text tasks may contain sensitive
-  information, so all task content is treated as potentially sensitive.
+  other health information. Generic Last Done activity tracking intentionally
+  supports private user-authored medication labels and execution history, but
+  provides no dose, adherence, treatment, or missed-dose advice.
+- The detailed Last Done behavior, information model, task/calendar
+  integration, privacy contract, and medication-safety gates are defined in
+  [Repeatable activity and execution-history requirements](repeatable-activity-history-requirements.md).
 - Notification importance and privacy are separate. Account-wide notification
   details are hidden by default and may be enabled for Standard cues; a cue
   marked Sensitive always uses a generic, detail-free notification until the

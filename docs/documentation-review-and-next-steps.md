@@ -53,6 +53,7 @@ The following product-design capabilities are not implemented:
 - persisted focus sessions or estimate-versus-actual learning;
 - export/import, an application-managed backup flow, or schema migrations;
 - stable installation/public object identifiers for hosted transfer;
+- Last Done tracked activities, schedules, occurrences, or execution history;
 - Google Calendar integration;
 - guardian or trusted-person assistance;
 - hosted accounts, local-to-online migration, native applications, or AI.
@@ -71,15 +72,22 @@ capability:
 
 ### D1: Health-data boundary
 
-Priority: resolved in product design on 2026-07-24
+Priority: scope resolved; privacy/legal release gate remains
 
 The resolved boundary is:
 
 - the local and first hosted pilots do not solicit, infer, categorise, or
   provide specialist health, diagnosis, medication, or treatment
   functionality;
-- users may enter sensitive information in private free-text tasks, so all task
-  content is treated as potentially sensitive and private by default;
+- generic Last Done tracking intentionally supports private user-authored
+  medication labels and execution history, but provides no dose, adherence,
+  treatment, or missed-dose advice;
+- medication-labelled histories are intentional health-data processing and
+  require an applicable lawful basis/condition, privacy assessment, security
+  controls, and jurisdiction review before hosted release;
+- users may enter sensitive information in private free-text tasks and tracked
+  activities, so all such content is treated as potentially sensitive and
+  private by default;
 - assistance workspaces do not provide health-specific fields or workflows and
   do not bulk-share private task content;
 - every shared item receives an explicit disclosure preview; automatic
@@ -94,8 +102,11 @@ The resolved boundary is:
   sensitive calendar write requires a boundary disclosure and a privacy-safe
   external-title choice.
 
-The design decision is complete. Implementation and release evidence remain
-required before notification delivery or assistance features can ship.
+The product scope is resolved. Implementation, privacy/legal, medication-safety,
+and release evidence remain required before hosted activity tracking,
+notification delivery, or assistance features can ship. Detailed requirements
+are in
+[Repeatable activity and execution-history requirements](repeatable-activity-history-requirements.md).
 
 ### D2: Milestone terminology and status
 
@@ -191,9 +202,10 @@ Completion evidence:
 | 1.4 | Add manually entered fixed commitments and transition boundaries | Not started | Fixed and flexible objects remain distinct; next commitment stays visible |
 | 1.5 | Complete Low Capacity semantics | Not started | Same underlying data; critical commitments, one action, capture, and Reset remain available |
 | 1.6 | Extend focus into an optional bounded session record | Not started | Intention, boundary, interruption-tolerant actuals, and next-step outcome are user-controlled |
-| 1.7 | Validate the complete non-AI day loop | Not started | Browser/accessibility tests plus recorded user-research evidence |
-| 2.1 | Implement the notification attention/privacy contract | Blocked by 1.7 | Independent importance/privacy; private default; Sensitive payload and device views contain no details |
-| 2.2 | Add Google Calendar behind explicit confirmation | Blocked by 1.7 | Provenance, timezone, recurrence scope, conflicts, provider failures, and external-notification privacy boundaries are visible |
+| 1.7 | Add generic Last Done activities and execution history | Not started | Manual create/log/query/correct/export passes exactness, privacy, time, and medication-safety criteria |
+| 1.8 | Validate the complete non-AI day loop | Not started | Browser/accessibility tests plus recorded user-research evidence |
+| 2.1 | Implement the notification attention/privacy contract | Blocked by 1.8 | Independent importance/privacy; private default; Sensitive payload and device views contain no details |
+| 2.2 | Add Google Calendar behind explicit confirmation | Blocked by 1.8 | Provenance, timezone, recurrence scope, conflicts, provider failures, and external-notification privacy boundaries are visible |
 | 2.3 | Prototype assisted planning under the approved topology | Blocked by D5 | Server-side scope, proposals, audit, expiry, revocation, disclosure previews, and safety gates pass |
 | 3 | Build hosted accounts and rehearse one-time migration | Blocked by phases 1-2 | Tenant isolation, production operations, and migration evidence pass |
 | 4 | Consider native clients and optional AI | Deferred | Separate validation and privacy/cost/safety approval |
@@ -218,6 +230,15 @@ each slice lands:
   only Standard cues and cannot override a Sensitive cue;
 - external-calendar tests proving that a sensitive write requires the provider
   boundary disclosure and a privacy-safe external-title decision;
+- repeatable-activity tests proving explicit execution provenance, exact
+  day/time-slot answers, no-log-as-unknown semantics, duplicate warnings,
+  backdating, timezone behavior, correction, export, and deletion;
+- reflection-marker tests proving stable meanings across activity executions
+  and task completions, no more than four quick choices, per-dimension
+  exclusivity, the event selection limit, accessible text labels, no automatic
+  selection, and Sensitive-default privacy;
+- medication-safety tests proving that missing logs never become claims of a
+  missed dose and never produce dose advice;
 - keyboard, focus-order, screen-reader, reduced-motion, and contrast checks;
 - timezone and daylight-saving tests before calendar integration;
 - explicit-preview and failure-state tests for every external calendar write.

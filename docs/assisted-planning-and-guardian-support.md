@@ -41,6 +41,11 @@ no default or bulk disclosure of the account's task content. Timemanager must
 not claim that it can automatically detect every sensitive detail in arbitrary
 free text.
 
+Tracked activities and execution histories, including private medication
+records, are not shared with assistance workspaces in the first implementation.
+Any later activity-history sharing requires a separate scope, disclosure,
+expiry, revocation, child-data, and unsafe-family review.
+
 Intentionally adding health-specific functionality or any excluded assistance
 category requires a separate product decision, privacy/legal assessment, and an
 explicit revision of this document before implementation.
