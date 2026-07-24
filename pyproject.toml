@@ -1,7 +1,29 @@
 [project]
 name = "timemanager"
 version = "0.1.0"
-description = "Add your description here"
+description = "An ADHD-friendly day companion"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "flask>=3.1,<4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3,<9",
+    "pytest-cov>=6,<7",
+]
+
+[project.scripts]
+timemanager = "timemanager.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["timemanager"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

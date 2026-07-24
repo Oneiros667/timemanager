@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome back · Timemanager{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block main_class %}auth-shell{% endblock %}
+
+{% block content %}
+  <section class="auth-intro" aria-labelledby="welcome-title">
+    <a class="brand auth-brand" href="{{ url_for('index') }}">
+      <span class="brand-mark" aria-hidden="true">t</span>
+      <span>Timemanager</span>
+    </a>
+    <div>
+      <p class="eyebrow">Return without catching up</p>
+      <h1 id="welcome-title">Begin from where you are.</h1>
+      <p class="lede">
+        No broken streaks. No pile of overdue guilt. Just today and the next
+        useful action.
+      </p>
+    </div>
+    <p class="privacy-note">
+      <span aria-hidden="true">⌂</span>
+      This pilot stores your account and tasks on this machine.
+    </p>
+  </section>
+
+  <section class="auth-card" aria-labelledby="login-title">
+    <div class="auth-card-heading">
+      <p class="eyebrow">Welcome back</p>
+      <h2 id="login-title">Sign in</h2>
+      <p>Your day is waiting, not judging.</p>
+    </div>
+
+    <form class="stacked-form" method="post" novalidate>
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+      <label>
+        <span>Email</span>
+        <input
+          type="email"
+          name="email"
+          autocomplete="email"
+          value="{{ email }}"
+          maxlength="254"
+          required
+          autofocus
+        >
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input
+          type="password"
+          name="password"
+          autocomplete="current-password"
+          required
+        >
+      </label>
+
+      <button class="primary-button full-width" type="submit">Sign in</button>
+    </form>
+
+    <p class="auth-switch">
+      New here?
+      <a href="{{ url_for('auth.register') }}">Create an account</a>
+    </p>
+  </section>
+{% endblock %}

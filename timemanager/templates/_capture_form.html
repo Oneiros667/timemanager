@@ -1,0 +1,22 @@
+<form class="capture-form" action="{{ url_for('tasks.create_task') }}" method="post">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+  <label for="capture-title">
+    <span class="sr-only">What do you need to remember?</span>
+    <input
+      id="capture-title"
+      name="title"
+      maxlength="180"
+      placeholder="What do you need to remember?"
+      autocomplete="off"
+      required
+    >
+  </label>
+  <div class="capture-actions">
+    <button class="primary-button" type="submit" name="placement" value="today">
+      Add to today
+    </button>
+    <button class="secondary-button" type="submit" name="placement" value="inbox">
+      Save for later
+    </button>
+  </div>
+</form>

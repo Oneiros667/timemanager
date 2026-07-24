@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Today · Timemanager{% endblock %}
+
+{% block content %}
+  <section class="day-heading">
+    <div>
+      <p class="eyebrow">{{ today_label }}</p>
+      <h1>Good to see you, {{ g.user.display_name }}.</h1>
+      <p>You do not need to finish everything. Choose what matters now.</p>
+    </div>
+    <a class="inbox-link" href="{{ url_for('tasks.inbox') }}">
+      <span>Inbox</span>
+      <strong>{{ inbox_count }}</strong>
+    </a>
+  </section>
+
+  <section class="capture-card" aria-labelledby="capture-heading">
+    <div class="section-intro">
+      <div>
+        <p class="eyebrow">Quick capture</p>
+        <h2 id="capture-heading">Get it out of your head</h2>
+      </div>
+      <span class="keyboard-hint" aria-hidden="true">Press Q</span>
+    </div>
+    {% include "_capture_form.html" %}
+  </section>
+
+  <div class="day-grid">
+    <section class="main-column">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">One meaningful win</p>
+          <h2>Today’s highlight</h2>
+        </div>
+      </div>
+
+      {% if highlight %}
+        <article class="highlight-card">
+          <div class="highlight-icon" aria-hidden="true">◇</div>
+          <div class="highlight-copy">
+            <span>Your chosen focus</span>
+            <h3>{{ highlight.title }}</h3>
+            <p>Starting counts. A small first step is enough.</p>
+          </div>
+          <button
+            class="focus-button primary-button"
+            type="button"
+            data-focus-task="{{ highlight.title }}"
+          >
+            Start focus
+          </button>
+        </article>
+      {% else %}
+        <div class="empty-card">
+          <div class="empty-symbol" aria-hidden="true">◇</div>
+          <div>
+            <h3>Choose one task to make today count</h3>
+            <p>Use the diamond beside any task. You can change it later.</p>
+          </div>
+        </div>
+      {% endif %}
+
+      <section class="task-section low-capacity-secondary" aria-labelledby="next-actions-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Keep the list small</p>
+            <h2 id="next-actions-heading">Next actions</h2>
+          </div>
+          <span>{{ optional_tasks|length }} today</span>
+        </div>
+
+        {% if optional_tasks %}
+          <div class="task-list">
+            {% for task in optional_tasks %}
+              {% include "_task_row.html" %}
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-card compact-empty">
+            <div class="empty-symbol" aria-hidden="true">+</div>
+            <div>
+              <h3>Your Today list has room</h3>
+              <p>Capture something above only when it is genuinely useful.</p>
+            </div>
+          </div>
+        {% endif %}
+      </section>
+
+      {% if completed %}
+        <details class="completed-section low-capacity-secondary">
+          <summary>{{ completed|length }} completed today</summary>
+          <div class="completed-list">
+            {% for task in completed %}
+              <div class="completed-row">
+                <span aria-hidden="true">✓</span>
+                <p>{{ task.title }}</p>
+                <form action="{{ url_for('tasks.toggle_task', task_id=task.id) }}" method="post">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                  <button class="text-button" type="submit">Restore</button>
+                </form>
+              </div>
+            {% endfor %}
+          </div>
+        </details>
+      {% endif %}
+    </section>
+
+    <aside class="now-card" aria-labelledby="now-heading">
+      <p class="eyebrow">Right now</p>
+      <h2 id="now-heading">Make the start smaller</h2>
+      {% if highlight %}
+        <p class="now-task">{{ highlight.title }}</p>
+        <ol class="starter-list">
+          <li>Open what you need.</li>
+          <li>Work for just five minutes.</li>
+          <li>Decide whether to continue.</li>
+        </ol>
+        <button
+          class="focus-button secondary-button full-width"
+          type="button"
+          data-focus-task="{{ highlight.title }}"
+        >
+          Try five minutes
+        </button>
+      {% else %}
+        <p class="now-task">Choose a highlight first.</p>
+        <p class="muted-copy">
+          One task will appear here with a gentle way across the start line.
+        </p>
+      {% endif %}
+    </aside>
+  </div>
+
+  <dialog class="focus-dialog" id="focus-dialog" aria-labelledby="focus-title">
+    <div class="focus-dialog-inner">
+      <button class="dialog-close" type="button" data-focus-close aria-label="Close focus timer">×</button>
+      <p class="eyebrow">One thing at a time</p>
+      <h2 id="focus-title" data-focus-title>Focus session</h2>
+      <p class="focus-intention">For now, this is the only task that matters.</p>
+      <div class="timer-display" data-timer-display aria-live="polite">05:00</div>
+      <div class="duration-options" aria-label="Focus duration">
+        <button type="button" data-duration="5" aria-pressed="true">5 min</button>
+        <button type="button" data-duration="15" aria-pressed="false">15 min</button>
+        <button type="button" data-duration="25" aria-pressed="false">25 min</button>
+      </div>
+      <div class="focus-controls">
+        <button class="primary-button" type="button" data-timer-toggle>Start</button>
+        <button class="secondary-button" type="button" data-timer-reset>Reset</button>
+      </div>
+      <p class="timer-note" data-timer-note>Starting is the win.</p>
+    </div>
+  </dialog>
+{% endblock %}

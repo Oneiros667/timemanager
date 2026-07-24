@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#173f3a">
+    <meta name="description" content="A calm, ADHD-friendly day companion.">
+    <meta name="color-scheme" content="light">
+    <link rel="manifest" href="{{ url_for('manifest') }}">
+    <link rel="icon" href="{{ url_for('static', filename='icons/icon.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>{% block title %}Timemanager{% endblock %}</title>
+  </head>
+  <body class="{% block body_class %}{% endblock %}">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    {% if g.user %}
+      <header class="app-header">
+        <a class="brand" href="{{ url_for('tasks.today') }}" aria-label="Timemanager home">
+          <span class="brand-mark" aria-hidden="true">t</span>
+          <span>Timemanager</span>
+        </a>
+        <div class="header-actions">
+          <button
+            class="quiet-button mode-toggle"
+            type="button"
+            aria-pressed="false"
+            data-mode-toggle
+          >
+            <span aria-hidden="true">◐</span>
+            <span data-mode-label>Low capacity</span>
+          </button>
+          <form action="{{ url_for('auth.logout') }}" method="post">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <button class="quiet-button" type="submit">Sign out</button>
+          </form>
+        </div>
+      </header>
+    {% endif %}
+
+    <div class="flash-region" aria-live="polite" aria-atomic="true">
+      {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="flash flash-{{ category }}" role="status">
+          <span>{{ message }}</span>
+          <button type="button" aria-label="Dismiss message" data-dismiss-flash>×</button>
+        </div>
+      {% endfor %}
+    </div>
+
+    <main id="main-content" class="{% block main_class %}page-shell{% endblock %}">
+      {% block content %}{% endblock %}
+    </main>
+
+    {% if g.user %}
+      <nav class="mobile-nav" aria-label="Main navigation">
+        <a
+          href="{{ url_for('tasks.today') }}"
+          {% if request.endpoint == 'tasks.today' %}aria-current="page"{% endif %}
+        >
+          <span aria-hidden="true">☀</span>
+          Today
+        </a>
+        <a
+          href="{{ url_for('tasks.inbox') }}"
+          {% if request.endpoint == 'tasks.inbox' %}aria-current="page"{% endif %}
+        >
+          <span aria-hidden="true">↓</span>
+          Inbox
+        </a>
+      </nav>
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+  </body>
+</html>

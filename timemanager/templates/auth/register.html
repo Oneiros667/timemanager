@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Create your account · Timemanager{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block main_class %}auth-shell{% endblock %}
+
+{% block content %}
+  <section class="auth-intro" aria-labelledby="welcome-title">
+    <a class="brand auth-brand" href="{{ url_for('index') }}">
+      <span class="brand-mark" aria-hidden="true">t</span>
+      <span>Timemanager</span>
+    </a>
+    <div>
+      <p class="eyebrow">A calmer way through the day</p>
+      <h1 id="welcome-title">Start with one clear next step.</h1>
+      <p class="lede">
+        Capture what matters, keep today small, and reset without carrying
+        yesterday as a debt.
+      </p>
+    </div>
+    <ul class="benefit-list" aria-label="What Timemanager offers">
+      <li><span aria-hidden="true">✓</span> One trusted place to capture</li>
+      <li><span aria-hidden="true">✓</span> A deliberately small Today view</li>
+      <li><span aria-hidden="true">✓</span> Local data for this pilot</li>
+    </ul>
+  </section>
+
+  <section class="auth-card" aria-labelledby="register-title">
+    <div class="auth-card-heading">
+      <p class="eyebrow">Your local account</p>
+      <h2 id="register-title">Create your calm space</h2>
+      <p>No setup maze. You can capture your first thought right away.</p>
+    </div>
+
+    <form class="stacked-form" method="post" novalidate>
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+      <label>
+        <span>What should we call you?</span>
+        <input
+          name="display_name"
+          autocomplete="name"
+          maxlength="40"
+          value="{{ values.display_name }}"
+          required
+          autofocus
+        >
+      </label>
+
+      <label>
+        <span>Email</span>
+        <input
+          type="email"
+          name="email"
+          autocomplete="email"
+          maxlength="254"
+          value="{{ values.email }}"
+          required
+        >
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input
+          type="password"
+          name="password"
+          autocomplete="new-password"
+          minlength="10"
+          aria-describedby="password-help"
+          required
+        >
+        <small id="password-help">At least 10 characters.</small>
+      </label>
+
+      <label>
+        <span>Confirm password</span>
+        <input
+          type="password"
+          name="confirm_password"
+          autocomplete="new-password"
+          minlength="10"
+          required
+        >
+      </label>
+
+      <button class="primary-button full-width" type="submit">Create account</button>
+    </form>
+
+    <p class="auth-switch">
+      Already have an account?
+      <a href="{{ url_for('auth.login') }}">Sign in</a>
+    </p>
+  </section>
+{% endblock %}

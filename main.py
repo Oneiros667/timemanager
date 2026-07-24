@@ -1,6 +1,5 @@
-def main():
-    print("Hello from timemanager!")
+from timemanager import create_app
 
 
 if __name__ == "__main__":
-    main()
+    create_app().run(host="127.0.0.1", port=5000, debug=True)

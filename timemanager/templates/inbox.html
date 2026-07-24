@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Inbox · Timemanager{% endblock %}
+
+{% block content %}
+  <section class="day-heading">
+    <div>
+      <p class="eyebrow">Capture first, decide later</p>
+      <h1>Inbox</h1>
+      <p>A holding place, not another list you need to finish.</p>
+    </div>
+    <a class="secondary-button" href="{{ url_for('tasks.today') }}">Back to today</a>
+  </section>
+
+  <section class="capture-card" aria-labelledby="capture-heading">
+    <div class="section-intro">
+      <div>
+        <p class="eyebrow">Quick capture</p>
+        <h2 id="capture-heading">Save it for later</h2>
+      </div>
+    </div>
+    {% include "_capture_form.html" %}
+  </section>
+
+  <section class="task-section inbox-section" aria-labelledby="inbox-list-heading">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">A bounded queue</p>
+        <h2 id="inbox-list-heading">Waiting for a decision</h2>
+      </div>
+      <span>{{ tasks|length }} captured</span>
+    </div>
+
+    {% if tasks %}
+      <div class="inbox-list">
+        {% for task in tasks %}
+          <article class="inbox-row">
+            <div>
+              <p>{{ task.title }}</p>
+              <span>Captured {{ task.created_at }}</span>
+            </div>
+            <div class="task-actions">
+              <form action="{{ url_for('tasks.move_to_today', task_id=task.id) }}" method="post">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <button class="primary-button compact-button" type="submit">Add to today</button>
+              </form>
+              <form action="{{ url_for('tasks.drop_task', task_id=task.id) }}" method="post">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <button class="quiet-button" type="submit">Drop</button>
+              </form>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-card">
+        <div class="empty-symbol" aria-hidden="true">✓</div>
+        <div>
+          <h3>Your inbox is clear</h3>
+          <p>Nothing else needs a decision right now.</p>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

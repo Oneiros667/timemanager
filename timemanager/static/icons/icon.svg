@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Timemanager</title>
+  <rect width="512" height="512" rx="116" fill="#173f3a"/>
+  <circle cx="256" cy="256" r="146" fill="#d9eee7"/>
+  <path d="M256 154v111l74 44" fill="none" stroke="#173f3a" stroke-linecap="round" stroke-linejoin="round" stroke-width="34"/>
+  <circle cx="256" cy="256" r="19" fill="#e87b59"/>
+  <path d="M191 107h130" fill="none" stroke="#f5f4ef" stroke-linecap="round" stroke-width="24"/>
+</svg>

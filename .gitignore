@@ -8,3 +8,11 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Local Timemanager data and secrets
+instance/
+
+# Test and coverage output
+.pytest_cache/
+.coverage
+htmlcov/
