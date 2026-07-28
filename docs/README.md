@@ -8,6 +8,9 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
 
 ## Documents
 
+- [Timemanager Kids documentation](../docs_kids/README.md) is the specification
+  root for a proposed, separate guardian-operated application intended solely
+  for ages 8–17. It does not describe implemented real child-data behavior.
 - [High-level product design](high-level-product-design.md) translates the
   research into the proposed user journey, feature set, functional rules,
   information model, confirmed deployment path, scope, and delivery phases.

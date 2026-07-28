@@ -228,6 +228,10 @@ evidence, plausible product hypotheses, lived-experience signals, and
 commercial claims. Proposed features and architectures must not be described as
 implemented.
 
+The proposed, separate application for children aged 8–17 is documented under
+[Timemanager Kids](docs_kids/README.md). No real child application or child-data
+workflow is implemented by those documents.
+
 ## Working with Codex
 
 Launch Codex from the repository (or a subdirectory) so it discovers the root
