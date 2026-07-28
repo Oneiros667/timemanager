@@ -31,8 +31,8 @@ from .planning import TODAY_OPTION_LIMIT
 
 
 EXPORT_FORMAT = "timemanager.account-export"
-EXPORT_FORMAT_VERSION = 4
-SUPPORTED_EXPORT_VERSIONS = {1, 2, 3, 4}
+EXPORT_FORMAT_VERSION = 5
+SUPPORTED_EXPORT_VERSIONS = {1, 2, 3, 4, 5}
 TASK_STATES = {"inbox", "ready", "active", "done", "dropped"}
 WORKFLOW_STATUSES = {"inbox", "open", "waiting", "done", "dropped"}
 TODAY_PLACEMENTS = {"unplanned", "active", "overflow"}
@@ -59,13 +59,14 @@ TASK_V1_FIELDS = {
     "completed_at",
 }
 TASK_V2_FIELDS = TASK_V1_FIELDS | {"next_action", "definition_of_done"}
-TASK_FIELDS = TASK_V2_FIELDS | {
+TASK_V3_FIELDS = TASK_V2_FIELDS | {
     "project_public_id",
     "project_position",
     "workflow_status",
     "today_placement",
     "dependency_override",
 }
+TASK_FIELDS = TASK_V3_FIELDS | {"dropped_at"}
 PROJECT_FIELDS = {
     "public_id",
     "origin_installation_public_id",
@@ -125,6 +126,7 @@ TOP_LEVEL_V3_FIELDS = TOP_LEVEL_V2_FIELDS | {
     "waits",
 }
 TOP_LEVEL_V4_FIELDS = TOP_LEVEL_V3_FIELDS | {"remember_items"}
+TOP_LEVEL_V5_FIELDS = TOP_LEVEL_V4_FIELDS
 
 
 class AccountTransferError(ValueError):
@@ -191,6 +193,7 @@ def export_account(
                 tasks.c.created_at,
                 tasks.c.updated_at,
                 tasks.c.completed_at,
+                tasks.c.dropped_at,
                 task_project.c.public_id.label("project_public_id"),
                 tasks.c.project_position,
                 tasks.c.workflow_status,
@@ -387,6 +390,7 @@ def validate_account_export(document: Any) -> None:
         2: TOP_LEVEL_V2_FIELDS,
         3: TOP_LEVEL_V3_FIELDS,
         4: TOP_LEVEL_V4_FIELDS,
+        5: TOP_LEVEL_V5_FIELDS,
     }[version]
     _require_exact_fields(document, expected_top, "export")
     _require_string(document["exported_at"], "exported_at")
@@ -408,8 +412,9 @@ def validate_account_export(document: Any) -> None:
     task_fields = {
         1: TASK_V1_FIELDS,
         2: TASK_V2_FIELDS,
-        3: TASK_FIELDS,
-        4: TASK_FIELDS,
+        3: TASK_V3_FIELDS,
+        4: TASK_V3_FIELDS,
+        5: TASK_FIELDS,
     }[version]
     task_rows = _require_list(document["tasks"], "tasks")
     seen_public_ids: set[str] = set()
@@ -463,6 +468,23 @@ def validate_account_export(document: Any) -> None:
             if not isinstance(task["dependency_override"], bool):
                 raise InvalidAccountExportError(
                     f"{path}.dependency_override must be boolean."
+                )
+        if version >= 5:
+            if task["dropped_at"] is not None:
+                _require_string(task["dropped_at"], f"{path}.dropped_at")
+            if (
+                task["workflow_status"] == "dropped"
+                and task["dropped_at"] is None
+            ):
+                raise InvalidAccountExportError(
+                    f"{path}.dropped_at is required for a dropped task."
+                )
+            if (
+                task["workflow_status"] != "dropped"
+                and task["dropped_at"] is not None
+            ):
+                raise InvalidAccountExportError(
+                    f"{path}.dropped_at is only valid for a dropped task."
                 )
 
     if version >= 2:
@@ -817,6 +839,12 @@ def _normalized_tasks_for_import(document: dict[str, Any]) -> list[dict[str, Any
             task["project_public_id"] = None
             task["project_position"] = None
             task["dependency_override"] = False
+        if version < 5:
+            task["dropped_at"] = (
+                task["updated_at"]
+                if task["workflow_status"] == "dropped"
+                else None
+            )
     if document["source_schema_revision"] != "0002":
         return task_rows
 
@@ -1267,6 +1295,7 @@ def _task_values(
         "created_at": task["created_at"],
         "updated_at": task["updated_at"],
         "completed_at": task["completed_at"],
+        "dropped_at": task["dropped_at"],
         "project_id": (
             project_ids[project_public_id]
             if project_public_id is not None

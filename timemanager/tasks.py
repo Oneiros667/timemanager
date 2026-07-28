@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 import sqlalchemy as sa
 from flask import (
@@ -170,6 +170,12 @@ def _later_view_clause():
     )
 
 
+def _safe_return_path(value: str | None, fallback: str) -> str:
+    if value and value.startswith("/") and not value.startswith("//"):
+        return value
+    return fallback
+
+
 def _owned_project(project_id: int):
     project = (
         get_db()
@@ -305,6 +311,59 @@ def later():
         ready_or_waiting_tasks=[
             task for task in task_views if task["workflow_status"] != "inbox"
         ],
+    )
+
+
+@blueprint.get("/recently-dropped")
+@login_required
+def recently_dropped():
+    database = get_db()
+    just_dropped_id = request.args.get("dropped", type=int)
+    rows = (
+        database.execute(
+            sa.select(task_table)
+            .where(
+                task_table.c.user_id == g.user["id"],
+                task_table.c.workflow_status == "dropped",
+                task_table.c.dropped_at.is_not(None),
+            )
+            .order_by(
+                task_table.c.dropped_at.desc(),
+                task_table.c.id.desc(),
+            )
+            .limit(10)
+        )
+        .mappings()
+        .all()
+    )
+    task_views = []
+    for row in rows:
+        task = _task_view(database, row)
+        task["can_restore_to_today"] = task["blocker_summary"] is None
+        task_views.append(task)
+    just_dropped = next(
+        (task for task in task_views if task["id"] == just_dropped_id),
+        None,
+    )
+    if just_dropped_id is not None and just_dropped is None:
+        just_dropped_row = (
+            database.execute(
+                sa.select(task_table).where(
+                    task_table.c.id == just_dropped_id,
+                    task_table.c.user_id == g.user["id"],
+                    task_table.c.workflow_status == "dropped",
+                    task_table.c.dropped_at.is_not(None),
+                )
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if just_dropped_row is not None:
+            just_dropped = _task_view(database, just_dropped_row)
+    return render_template(
+        "recently_dropped.html",
+        dropped_tasks=task_views,
+        just_dropped=just_dropped,
     )
 
 
@@ -590,10 +649,43 @@ def toggle_task(task_id: int):
     return redirect(url_for("tasks.today"))
 
 
-@blueprint.post("/tasks/<int:task_id>/drop")
+@blueprint.route("/tasks/<int:task_id>/drop", methods=("GET", "POST"))
 @login_required
 def drop_task(task_id: int):
     task = _owned_task(task_id)
+    fallback = (
+        url_for("tasks.today")
+        if task["planned_date"] == _today()
+        and task["today_placement"] in ("active", "overflow")
+        else url_for("tasks.later")
+    )
+    return_to = _safe_return_path(
+        request.values.get("return_to"),
+        fallback,
+    )
+    if task["workflow_status"] == "dropped":
+        flash(f"“{task['title']}” is already in Recently dropped.", "success")
+        return redirect(url_for("tasks.recently_dropped"))
+    if request.method == "GET":
+        return render_template(
+            "drop_task.html",
+            task=task,
+            return_to=return_to,
+            confirmation_error=None,
+        )
+
+    _require_current_revision(task)
+    if request.form.get("confirm_title", "").strip() != task["title"]:
+        return (
+            render_template(
+                "drop_task.html",
+                task=task,
+                return_to=return_to,
+                confirmation_error="Type the task title exactly to confirm.",
+            ),
+            400,
+        )
+
     database = get_db()
     database.execute(
         sa.update(task_table)
@@ -604,19 +696,76 @@ def drop_task(task_id: int):
         .values(
             **_task_state_values("dropped", task["today_placement"]),
             is_highlight=False,
+            dropped_at=(
+                datetime.now(timezone.utc)
+                .isoformat(timespec="seconds")
+                .replace("+00:00", "Z")
+            ),
             updated_at=sa.func.current_timestamp(),
             revision=task_table.c.revision + 1,
         )
     )
     database.commit()
-    flash(f"Dropped “{task['title']}”. Letting go is a valid decision.", "success")
-    destination = (
-        "tasks.today"
-        if task["planned_date"] == _today()
-        and task["today_placement"] in ("active", "overflow")
-        else "tasks.later"
+    flash(
+        f"Moved “{task['title']}” to Recently dropped. You can undo below.",
+        "success",
     )
-    return redirect(url_for(destination))
+    return redirect(
+        url_for(
+            "tasks.recently_dropped",
+            dropped=task_id,
+        )
+    )
+
+
+@blueprint.post("/tasks/<int:task_id>/restore")
+@login_required
+def restore_dropped_task(task_id: int):
+    task = _owned_task(task_id)
+    if task["workflow_status"] != "dropped":
+        abort(400)
+    _require_current_revision(task)
+    destination = request.form.get("destination", "later")
+    if destination not in ("later", "today"):
+        abort(400)
+
+    database = get_db()
+    if destination == "today" and _blocker_summary(database, task) is not None:
+        abort(400)
+    placement = (
+        _today_placement(database, g.user["id"])
+        if destination == "today"
+        else "unplanned"
+    )
+    planned_date = _today() if destination == "today" else None
+    database.execute(
+        sa.update(task_table)
+        .where(
+            task_table.c.id == task_id,
+            task_table.c.user_id == g.user["id"],
+        )
+        .values(
+            **_task_state_values("open", placement),
+            planned_date=planned_date,
+            is_highlight=False,
+            completed_at=None,
+            dropped_at=None,
+            updated_at=sa.func.current_timestamp(),
+            revision=task_table.c.revision + 1,
+        )
+    )
+    database.commit()
+    if destination == "today":
+        if placement == "overflow":
+            flash(
+                f"Restored “{task['title']}” to Today overflow.",
+                "success",
+            )
+        else:
+            flash(f"Restored “{task['title']}” to Today.", "success")
+        return redirect(url_for("tasks.today"))
+    flash(f"Restored “{task['title']}” to Later.", "success")
+    return redirect(url_for("tasks.later"))
 
 
 def _wants_json() -> bool:

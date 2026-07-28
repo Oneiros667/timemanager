@@ -27,15 +27,16 @@ evidence.
 No broken local Markdown links, anchors, or reference definitions were found in
 the review. A current-source revalidation at commit `47000ad` passed all 72
 automated tests on 2026-07-28. The interrupted-draft implementation added eight
-browser tests; the current implementation passes all 80 automated
-tests. The suite covers server-side account isolation, schema upgrades,
-migration recovery, export/import behavior, representative real-browser
-complex-work flows, and Chromium interruption recovery. This closes UX-001's
-automated implementation finding, but not its manual cross-browser,
-screen-reader, keyboard-focus, or participant-usability gates. The
-JavaScript-disabled Drop, contrast, assistive-technology timer, and complete
-mobile focus-order P0 findings remain open. Complete timer and service-worker
-behavior still need broader browser coverage.
+browser tests, and the Drop-recovery implementation added seven more tests; the
+current implementation passes all 87 automated tests. The suite covers
+server-side account isolation, schema upgrades, migration recovery,
+export/import behavior, representative real-browser complex-work flows,
+Chromium interruption recovery, and JavaScript-disabled Drop recovery. This
+closes UX-001 and UX-002's automated implementation findings, but not their
+manual accessibility, broader-browser, real-device, or participant-usability
+gates. Contrast, assistive-technology timer, and complete mobile focus-order P0
+findings remain open. Complete timer and service-worker behavior still need
+broader browser coverage.
 
 ## Confirmed implementation baseline
 
@@ -58,7 +59,8 @@ The following behavior is implemented:
   actions;
 - explicit recoverable Today overflow with user-controlled activation,
   highlight replacement, and save-for-later actions;
-- task completion, restoration, deliberate dropping, and move-to-Today;
+- task completion, restoration, move-to-Today, server-confirmed named Drop,
+  immediate Drop Undo, and newest-ten account-scoped recovery;
 - inline task editing and task workspaces with next action, definition of done,
   notes, and ordered components;
 - account-, object-, form-, revision-, and tab-scoped browser-local task and
@@ -69,8 +71,8 @@ The following behavior is implemented:
 - explicit task-to-project conversion that preserves the task’s details,
   relationships, and Today placement as the first project task;
 - workflow/readiness state kept separate from active/overflow Today placement;
-- v4 account transfer with v1/v2/v3 import compatibility, Remember items, and
-  atomic relationship validation;
+- v5 account transfer with v1/v2/v3/v4 import compatibility, dropped-task
+  timestamps, Remember items, and atomic relationship validation;
 - a browser-local Low Capacity display toggle;
 - a 5/15/25-minute client-side focus timer;
 - responsive server-rendered pages;
@@ -137,10 +139,10 @@ The [UI/UX friction audit](ui-ux-friction-audit-and-requirements.md) was
 originally run against commit `3cea2d1`. UX-001's interrupted-draft
 implementation and automated Chromium gate are now complete in the current
 source. Its manual accessibility, broader-browser, and participant-usability
-evidence remains open. Four P0 implementation findings remain open:
+evidence remains open. UX-002's Drop recovery implementation and automated
+no-JavaScript gate are also complete. Three P0 implementation findings remain
+open:
 
-- Drop relies on client-side confirmation and has no ordinary end-user recovery
-  surface;
 - functional control, placeholder, and focus-indicator contrast remains below
   the documented thresholds;
 - the focus countdown remains an every-second polite live region; and
@@ -155,7 +157,7 @@ touch checks, and the complete Phase 1 day-loop gate remain unverified.
 | Rank | Status | Slice | Why now | Smallest coherent exit gate |
 | --- | --- | --- | --- | --- |
 | 1 | Implemented; manual validation remains | Preserve interrupted task and project drafts | P0 data-loss risk in the exact interruption scenario the product is intended to support | Automated Chromium coverage passes for reload, Back, page close/reopen, failed and delayed saves, expiry, sign-out, and stale and concurrent-tab revisions; manual cross-browser, accessibility, and participant gates remain |
-| 2 | Blocked by the retention decision below | Make Drop server-confirmed and recoverable | Current P0 destructive action can remove work from every ordinary view without a usable no-JavaScript confirmation or recovery path | Named server confirmation, dropped timestamp, newest-ten account-scoped recovery, restore-to-Later default, separate Add-to-Today, CSRF/ownership enforcement, and migration/transfer coverage |
+| 2 | Implemented; manual validation remains | Make Drop server-confirmed and recoverable | P0 destructive-action and recovery risk | Named server confirmation, dropped timestamp, newest-ten account-scoped recovery, restore-to-Later default, separate Add-to-Today, CSRF/ownership enforcement, and migration/transfer coverage pass automated tests; manual touch, keyboard, and participant gates remain |
 | 3 | Not started | Close the remaining P0 accessibility blockers | Contrast, timer announcements, and mobile focus order can prevent predictable operation and would invalidate later participant evidence | Applicable contrast thresholds pass; timer announces meaningful transitions rather than every second; visual and sequential focus order agree at supported breakpoints; manual assistive-technology evidence is recorded |
 | 4 | Not started | Complete minimum safe Low Capacity behavior | The current partial mode can hide every route to a startable task | Show the highlight or, without mutation, the first active Today task; retain compact Remember/Capture, hidden count, and Show full Today; no hidden work changes |
 | 5 | Not started | Close milestone 1.2 discovery and validation | This is the remaining functional contract in the ordered plan once the safety interlock is clear | Later exposes a lightweight project collection and archive; assignment and creation are distinct; return context, ownership, CSRF, revision, browser/accessibility, and participant gates pass |
@@ -203,10 +205,29 @@ save-state announcements, Firefox/WebKit behavior, Cache Storage inspection,
 and participant usability. Those are verification and validation gaps, not
 missing implementation behavior.
 
+### Implemented second slice: server-confirmed Drop recovery
+
+Drop now uses a server-rendered confirmation that requires the exact task title
+and current revision. A successful Drop records `dropped_at`, redirects to an
+account-scoped Recently dropped surface, and offers immediate Undo to Later.
+The recovery surface shows the newest ten dropped tasks, restores to Later by
+default, and presents Add to Today as a separate action for unblocked tasks.
+
+The approved retention rule keeps older soft-deleted tasks in protected
+database storage and account export without adding a deeper user-facing archive
+or automatic purge. Export format v5 carries `dropped_at`; v1 through v4 imports
+remain supported, with older dropped records receiving their saved
+`updated_at` as the recovery timestamp.
+
+Automated verification covers named confirmation, CSRF, ownership,
+JavaScript-disabled operation, immediate Undo, repeated submission, stale
+revisions, newest-ten ordering, the eleventh retained in export, Later and
+Today restoration, migration backfill, and current and v4 transfer round trips.
+Manual touch, full keyboard, broader-browser, and participant-usability checks
+remain open.
+
 ### Work held behind the interlock
 
-- Server-confirmed Drop recovery may proceed after the product owner resolves
-  the older-than-ten retention question below.
 - Review/Reset remains after P0 closure and milestone 1.2's functional gate.
   Validate stale-plan and recovery choices with synthetic scenarios before
   committing to the persistent interaction.
@@ -217,14 +238,12 @@ missing implementation behavior.
   milestone and release gates. Documentation recency is not authority to change
   that order.
 
-### Remaining product-owner decision
+### Resolved dropped-task retention decision
 
-The newest ten dropped tasks must be available in the ordinary account-scoped
-recovery surface. Before implementing that slice, decide whether older
-soft-deleted records remain available through a deeper archive, remain only in
-export/retention storage, or are removed under a separately approved retention
-rule. Until that decision, retain older records and do not introduce irreversible
-purging by assumption.
+The ordinary account-scoped recovery surface exposes the newest ten dropped
+tasks. Older soft-deleted records remain in protected database storage and
+account export. No deeper user-facing archive or irreversible purge is included
+in this slice; either requires a separate evidence-backed retention decision.
 
 ## Findings that require decisions
 

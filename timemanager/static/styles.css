@@ -194,6 +194,7 @@ a {
   color: var(--ink-soft);
   font-size: 0.9rem;
   font-weight: 650;
+  text-decoration: none;
 }
 
 .quiet-button:hover {
@@ -608,6 +609,7 @@ a {
   border-radius: 9px;
   color: var(--ink-soft);
   font-size: 1.1rem;
+  text-decoration: none;
 }
 
 .icon-button:hover {
@@ -1536,6 +1538,12 @@ body.low-capacity .capture-card {
 
 .workspace-card[open] > summary {
   margin-bottom: 1rem;
+}
+
+.error-copy {
+  margin: 0;
+  color: var(--error);
+  font-weight: 700;
 }
 
 .project-conversion-preview {

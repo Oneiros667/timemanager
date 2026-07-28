@@ -32,7 +32,7 @@ def test_fresh_database_upgrades_to_head_and_is_idempotent(tmp_path):
     engine = _engine(tmp_path / "fresh.sqlite3")
 
     upgrade_database(engine)
-    assert current_revision(engine) == head_revision() == "0006"
+    assert current_revision(engine) == head_revision() == "0007"
 
     with engine.connect() as connection:
         installation = connection.execute(sa.select(installations)).mappings().one()
@@ -50,7 +50,7 @@ def test_fresh_database_upgrades_to_head_and_is_idempotent(tmp_path):
 
 @pytest.mark.parametrize(
     "starting_revision",
-    ["0001", "0002", "0003", "0004", "0005"],
+    ["0001", "0002", "0003", "0004", "0005", "0006"],
 )
 def test_every_supported_revision_upgrades_to_head(tmp_path, starting_revision):
     engine = _engine(tmp_path / f"from-{starting_revision}.sqlite3")
@@ -59,7 +59,7 @@ def test_every_supported_revision_upgrades_to_head(tmp_path, starting_revision):
 
     upgrade_database(engine)
 
-    assert current_revision(engine) == "0006"
+    assert current_revision(engine) == "0007"
     assert sa.inspect(engine).has_table(remember_items.name)
 
 
@@ -95,7 +95,7 @@ def test_exact_legacy_database_is_stamped_upgraded_and_preserved(tmp_path):
     engine = _engine(database_path)
     upgrade_database(engine)
 
-    assert current_revision(engine) == "0006"
+    assert current_revision(engine) == "0007"
     backups = list(tmp_path.glob("legacy.sqlite3.pre-migration-unversioned-*.bak"))
     assert len(backups) == 1
     backup = sqlite3.connect(backups[0])
@@ -427,8 +427,50 @@ def test_model_metadata_matches_the_latest_migration(tmp_path):
         command.check(database_migrations.migration_config(connection))
 
 
+def test_revision_0007_backfills_existing_dropped_task_timestamp(tmp_path):
+    engine = _engine(tmp_path / "dropped-recovery.sqlite3")
+    upgrade_database(engine, "0006")
+    with engine.begin() as connection:
+        installation_id = connection.execute(
+            sa.select(installations.c.id)
+        ).scalar_one()
+        user_id = connection.execute(
+            sa.insert(users)
+            .values(
+                public_id="11111111-1111-4111-8111-111111111117",
+                origin_installation_id=installation_id,
+                display_name="Alex",
+                email="alex@example.com",
+                password_hash="hash",
+            )
+            .returning(users.c.id)
+        ).scalar_one()
+        connection.execute(
+            sa.insert(tasks).values(
+                public_id="22222222-2222-4222-8222-222222222227",
+                origin_installation_id=installation_id,
+                user_id=user_id,
+                title="Previously dropped",
+                state="dropped",
+                workflow_status="dropped",
+                updated_at="2026-07-27 12:34:56",
+            )
+        )
+
+    upgrade_database(engine)
+
+    with engine.connect() as connection:
+        dropped_at = connection.execute(
+            sa.select(tasks.c.dropped_at)
+        ).scalar_one()
+    assert dropped_at == "2026-07-27 12:34:56"
+    assert "tasks_user_dropped_at" in {
+        index["name"] for index in sa.inspect(engine).get_indexes("tasks")
+    }
+
+
 def test_schema_version_command_reports_current_and_latest(runner):
     result = runner.invoke(args=["schema-version"])
 
     assert result.exit_code == 0
-    assert result.output.strip() == "0006 (latest: 0006)"
+    assert result.output.strip() == "0007 (latest: 0007)"

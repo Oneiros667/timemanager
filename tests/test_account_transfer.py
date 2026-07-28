@@ -114,12 +114,13 @@ def test_export_is_account_scoped_versioned_and_excludes_secrets(app, client):
         )
 
     assert document["format"] == "timemanager.account-export"
-    assert document["format_version"] == 4
-    assert document["source_schema_revision"] == "0006"
+    assert document["format_version"] == 5
+    assert document["source_schema_revision"] == "0007"
     assert document["exported_at"] == "2026-07-24T10:00:00Z"
     assert set(document["account"]) == ACCOUNT_FIELDS
     assert [task["title"] for task in document["tasks"]] == ["Mine"]
     assert set(document["tasks"][0]) == TASK_FIELDS
+    assert document["tasks"][0]["dropped_at"] is None
     assert document["projects"] == []
     assert document["components"] == []
     assert document["dependencies"] == []
@@ -213,6 +214,78 @@ def test_revision_0002_fixture_import_is_adapted_idempotently(tmp_path):
         document["tasks"][0]["origin_installation_public_id"]
     )
     assert target_password_hash == destination_password_hash
+
+
+def test_dropped_timestamp_round_trips_and_version_4_backfills_it(tmp_path):
+    source = _new_app(tmp_path / "dropped-source.sqlite3")
+    source_id = create_user(
+        source,
+        "Source",
+        "source@example.com",
+        generate_password_hash("source-password"),
+    )
+    with source.app_context():
+        database = get_db()
+        database.execute(
+            sa.insert(tasks).values(
+                public_id=new_public_id(),
+                origin_installation_id=local_installation_id(database),
+                user_id=source_id,
+                title="Recover this",
+                state="dropped",
+                workflow_status="dropped",
+                dropped_at="2026-07-28T14:15:16",
+                updated_at="2026-07-28 14:15:16",
+            )
+        )
+        database.commit()
+        current_document = export_account(database, source_id)
+
+    invalid_document = deepcopy(current_document)
+    invalid_document["tasks"][0]["dropped_at"] = None
+    with pytest.raises(
+        InvalidAccountExportError,
+        match="dropped_at is required",
+    ):
+        parse_account_export(json.dumps(invalid_document))
+
+    destination = _new_app(tmp_path / "dropped-destination.sqlite3")
+    destination_id = create_user(
+        destination,
+        "Destination",
+        "destination@example.com",
+        generate_password_hash("destination-password"),
+    )
+    with destination.app_context():
+        database = get_db()
+        import_account(database, destination_id, current_document)
+        database.commit()
+        imported_dropped_at = database.execute(
+            sa.select(tasks.c.dropped_at)
+        ).scalar_one()
+    assert imported_dropped_at == "2026-07-28T14:15:16"
+
+    version_4_document = deepcopy(current_document)
+    version_4_document["format_version"] = 4
+    for task in version_4_document["tasks"]:
+        task.pop("dropped_at")
+    version_4_document = parse_account_export(json.dumps(version_4_document))
+
+    legacy_destination = _new_app(tmp_path / "dropped-v4-destination.sqlite3")
+    legacy_destination_id = create_user(
+        legacy_destination,
+        "Legacy destination",
+        "legacy@example.com",
+        generate_password_hash("destination-password"),
+    )
+    with legacy_destination.app_context():
+        database = get_db()
+        import_account(database, legacy_destination_id, version_4_document)
+        database.commit()
+        backfilled_dropped_at = database.execute(
+            sa.select(tasks.c.dropped_at)
+        ).scalar_one()
+    assert backfilled_dropped_at == "2026-07-28 14:15:16"
 
 
 def test_import_applies_newer_revision_and_keeps_newer_local_record(tmp_path):
@@ -400,7 +473,7 @@ def test_import_cannot_overfill_the_active_today_plan(tmp_path):
 
 def test_export_parser_rejects_unknown_versions_fields_and_duplicate_keys():
     document = _fixture_document()
-    document["format_version"] = 5
+    document["format_version"] = 6
     with pytest.raises(InvalidAccountExportError, match="not supported"):
         parse_account_export(json.dumps(document))
 
@@ -622,6 +695,8 @@ def test_version_3_complex_documents_remain_importable(tmp_path):
 
     document["format_version"] = 3
     document.pop("remember_items")
+    for task in document["tasks"]:
+        task.pop("dropped_at")
     document = parse_account_export(json.dumps(document))
 
     destination = _new_app(tmp_path / "destination-v3.sqlite3")

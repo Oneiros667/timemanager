@@ -49,6 +49,9 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
 - [ADR 0006: Complex-work state and relationships](decisions/0006-complex-work-state-and-relationships.md)
   records the shallow hierarchy, readiness/Today separation, preferred order,
   prerequisite and external-wait rules, and v3 transfer boundary.
+- [ADR 0007: Dropped-task recovery and retention](decisions/0007-dropped-task-recovery-and-retention.md)
+  records server-confirmed Drop, newest-ten account-scoped recovery, safe
+  restoration, older-record retention, and the v5 transfer boundary.
 - [ADHD time-management domain research](adhd-time-management-domain-research.md)
   synthesises clinical guidance, cognitive and motivational theories, tested
   behavioural methods, common "life hacks", and their implications for a

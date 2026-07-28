@@ -8,14 +8,16 @@ Updated: 2026-07-28
 
 Timemanager is currently a **partial Phase 1 local pilot**. The application
 implements registration/login, local SQLite task persistence, Today and Later
-capture, one daily highlight, completion/restoring, deliberate dropping, a Low
-Capacity view, and a client-side focus timer. Persistence now uses SQLAlchemy
-Core and ordered Alembic revisions with stable public identifiers, installation
-provenance, and pre-migration SQLite recovery. A versioned operator CLI can
-export one account's current profile/task data and import its tasks into an
-explicit existing local account with idempotent revision handling. Today now
-enforces one highlight plus at most three optional active actions, with excess
-assigned tasks retained as explicit, user-controlled overflow.
+capture, one daily highlight, completion/restoring, server-confirmed Drop with
+newest-ten recovery, a Low Capacity view, and a client-side focus timer.
+Persistence now uses SQLAlchemy Core and ordered Alembic revisions with stable
+public identifiers, installation provenance, and pre-migration SQLite
+recovery. A versioned operator CLI can export one account's current
+profile/task data, including dropped-task recovery timestamps, and import its
+tasks into an explicit existing local account with idempotent revision
+handling. Today now enforces one highlight plus at most three optional active
+actions, with excess assigned tasks retained as explicit, user-controlled
+overflow.
 
 Task detail, ordered components, lightweight projects, preferred task order,
 prerequisites, external waits, next-ready computation, and separate Today

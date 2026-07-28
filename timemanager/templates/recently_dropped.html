@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Recently dropped · Timemanager{% endblock %}
+
+{% block content %}
+  <section class="day-heading">
+    <div>
+      <p class="eyebrow">Recovery · Newest ten</p>
+      <h1>Recently dropped</h1>
+      <p>
+        Restore a task to Later without changing Today, or explicitly add an
+        unblocked task back to Today.
+      </p>
+    </div>
+    <a class="secondary-button" href="{{ url_for('tasks.later') }}">Back to Later</a>
+  </section>
+
+  {% if just_dropped %}
+    <section class="workspace-card" aria-labelledby="undo-heading">
+      <div role="status">
+        <h2 id="undo-heading">“{{ just_dropped.title }}” was dropped</h2>
+        <p>Undo restores it to Later and does not consume Today capacity.</p>
+      </div>
+      <form action="{{ url_for('tasks.restore_dropped_task', task_id=just_dropped.id) }}" method="post">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="revision" value="{{ just_dropped.revision }}">
+        <input type="hidden" name="destination" value="later">
+        <button class="primary-button" type="submit">Undo — restore to Later</button>
+      </form>
+    </section>
+  {% endif %}
+
+  <section class="task-section inbox-section" aria-labelledby="dropped-heading">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Recoverable work</p>
+        <h2 id="dropped-heading">Newest dropped tasks</h2>
+      </div>
+      <span>{{ dropped_tasks|length }}</span>
+    </div>
+    {% if dropped_tasks %}
+      <div class="inbox-list">
+        {% for task in dropped_tasks %}
+          <article class="inbox-row">
+            <div>
+              <p>{{ task.title }}</p>
+              <span>Dropped {{ task.dropped_at }}</span>
+              {% if task.blocker_summary %}
+                <span> · {{ task.blocker_summary }}</span>
+              {% endif %}
+            </div>
+            <div class="task-actions">
+              <form action="{{ url_for('tasks.restore_dropped_task', task_id=task.id) }}" method="post">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="revision" value="{{ task.revision }}">
+                <input type="hidden" name="destination" value="later">
+                <button class="primary-button compact-button" type="submit">Restore to Later</button>
+              </form>
+              {% if task.can_restore_to_today %}
+                <form action="{{ url_for('tasks.restore_dropped_task', task_id=task.id) }}" method="post">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="revision" value="{{ task.revision }}">
+                  <input type="hidden" name="destination" value="today">
+                  <button class="secondary-button compact-button" type="submit">Add to Today</button>
+                </form>
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted-copy">Nothing has been dropped.</p>
+    {% endif %}
+  </section>
+{% endblock %}

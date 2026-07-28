@@ -20,7 +20,9 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
 - a separate three-item Remember list for short-term context-switching cues;
 - one changeable daily highlight plus at most three optional active actions;
 - explicit, recoverable Today overflow with activate and save-for-later choices;
-- complete, restore, deliberately drop, and move-to-Today actions;
+- complete, restore, move-to-Today, and server-confirmed Drop actions;
+- a newest-ten Recently dropped recovery surface with immediate Undo,
+  restore-to-Later defaults, and separate Add-to-Today actions;
 - inline task editing plus task workspaces for next action, definition of done,
   notes, and ordered steps;
 - 24-hour browser-local recovery for interrupted task and project autosave
@@ -137,14 +139,19 @@ uv run flask --app timemanager import-account \
   --into-email destination@example.com
 ```
 
-Export format v4 includes task detail, projects, ordered steps, dependencies,
-external waits, and Remember items. Import remains compatible with supported
-v1, v2, and v3 documents and validates relationships atomically. Stable object IDs insert
-once; a higher incoming revision updates an object, a lower revision leaves
-newer local data unchanged, and differing content at the same revision fails
-closed. Imported objects retain their source-installation provenance. The
-source profile is informational and does not replace the destination account's
-name, email, or password.
+Export format v5 includes task detail, dropped-task recovery timestamps,
+projects, ordered steps, dependencies, external waits, and Remember items.
+Import remains compatible with supported v1, v2, v3, and v4 documents and
+validates relationships atomically. Stable object IDs insert once; a higher
+incoming revision updates an object, a lower revision leaves newer local data
+unchanged, and differing content at the same revision fails closed. Imported
+objects retain their source-installation provenance. The source profile is
+informational and does not replace the destination account's name, email, or
+password.
+
+Recently dropped shows only the newest ten account-scoped tasks. Older dropped
+tasks remain in protected database storage and account export; this slice does
+not add a deeper user-facing archive or automatic purge.
 
 This is tested migration and recovery plumbing, not yet a self-service restore
 experience, full-database backup, deletion mirror, credential transfer, or
@@ -165,7 +172,7 @@ three account-scoped micro-reminders, such as “Get coffee,” for short-term
 memory during context switching. Remember items do not consume Today capacity
 and do not participate in task, project, ordering, or blocker state. Checking
 one removes it immediately; deletion is not mirrored by account import.
-Active items persist in SQLite and are included in account export format v4.
+Active items persist in SQLite and are included in account export format v5.
 
 Optional local settings:
 

@@ -161,6 +161,7 @@ tasks = sa.Table(
         server_default=sa.text("CURRENT_TIMESTAMP"),
     ),
     sa.Column("completed_at", sa.String),
+    sa.Column("dropped_at", sa.String),
     sa.Column(
         "project_id",
         sa.Integer,
@@ -196,6 +197,7 @@ tasks = sa.Table(
 )
 
 sa.Index("tasks_user_state", tasks.c.user_id, tasks.c.state, tasks.c.planned_date)
+sa.Index("tasks_user_dropped_at", tasks.c.user_id, tasks.c.dropped_at)
 sa.Index(
     "tasks_one_active_highlight",
     tasks.c.user_id,

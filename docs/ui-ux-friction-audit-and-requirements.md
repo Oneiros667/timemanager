@@ -4,10 +4,10 @@
   requirements; not yet participant-usability validated
 - Updated: 2026-07-28
 - Audited commit: `3cea2d1eff1b4d7fbb75e7c3b5bb576fd1910d92`
-- Current implementation revalidation: 80 automated tests on 2026-07-28;
-  UX-001 is implemented with automated Chromium coverage, four P0
-  implementation findings remain open, and manual and participant gates remain
-  unverified
+- Current implementation revalidation: 87 automated tests on 2026-07-28;
+  UX-001 and UX-002 are implemented with automated Chromium and
+  JavaScript-disabled coverage, three P0 implementation findings remain open,
+  and manual and participant gates remain unverified
 
 ## 1. Purpose
 
@@ -95,8 +95,8 @@ results:
 - **Drop requires server confirmation without JavaScript:** False. The task was
   dropped immediately.
 
-These results validate current implementation behavior only. They are not
-participant-usability evidence.
+These results validate the audited implementation behavior at that time. They
+are not participant-usability evidence.
 
 The full isolated automated suite was re-run at `47000ad`:
 
@@ -111,13 +111,13 @@ measured functional colour tokens remained unchanged, the countdown still
 updated a polite live region every second, and mobile CSS still moved a
 focusable card ahead of its DOM position.
 
-The current implementation adds immediate browser-local draft
-persistence and passes all 80 automated tests, including Chromium coverage for
-reload, Back, page close/reopen, failed and delayed requests, sign-out, expiry,
-and stale and concurrent-tab revisions. Drop, contrast, timer announcements,
-and mobile focus order remain unchanged. Neither revalidation replaces
-participant evidence, attended screen-reader sessions, real-device checks, or
-broader-browser manual verification.
+The current implementation adds immediate browser-local draft persistence and
+server-confirmed Drop recovery and passes all 87 automated tests. Coverage
+includes reload, Back, page close/reopen, failed and delayed requests, sign-out,
+expiry, stale and concurrent-tab revisions, and JavaScript-disabled Drop and
+Undo. Contrast, timer announcements, and mobile focus order remain unchanged.
+Neither revalidation replaces participant evidence, attended screen-reader
+sessions, real-device checks, or broader-browser manual verification.
 
 ### 2.4 Implemented versus proposed
 
@@ -130,6 +130,8 @@ The current local pilot implements:
 - Today, Later, Remember, task, project, blocker, and waiting interactions;
 - 24-hour account-, object-, form-, revision-, and tab-scoped browser-local
   recovery for interrupted task and project autosave drafts;
+- server-confirmed named Drop, immediate Undo, and a newest-ten account-scoped
+  recovery surface with separate Later and Today restoration;
 - Low Capacity presentation as a partial client-side mode;
 - a client-side 5/15/25-minute timer;
 - responsive server-rendered pages and a public offline shell; and
@@ -327,31 +329,35 @@ Priority reflects implementation order; severity reflects user impact.
 ### UX-002: Dropped tasks lack complete end-user recovery
 
 - **Priority:** P0
+- **Implementation status:** Implemented in the current source with automated
+  server, migration, transfer, account-isolation, and JavaScript-disabled
+  Chromium coverage. Manual touch, complete keyboard, broader-browser, and
+  participant-usability evidence remains open.
 - **Severity:** Blocking
 - **Screen or workflow:** Today and Later task rows; task recovery
-- **Observed problem:** Drop confirmation is a JavaScript-only `window.confirm`.
-  Without JavaScript, the form submits directly. Dropped tasks leave all
-  ordinary user-facing views.
+- **Observed baseline problem:** At the audited commit, Drop confirmation was a
+  JavaScript-only `window.confirm`. Without JavaScript, the form submitted
+  directly and dropped tasks left all ordinary user-facing views.
 - **Likely user impact:** A mis-tap or keyboard mistake can make personal work
   effectively disappear and reduce trust in the system.
 - **Product-owner decision:** Drop is a soft delete. The ten most recently
-  dropped tasks must remain available for recovery.
+  dropped tasks must remain available for recovery. Older dropped tasks remain
+  in protected database storage and account export; no deeper archive or purge
+  is included in this slice.
 - **Recommended change:** Require a server-enforced named confirmation, show
   immediate Undo, and add an account-scoped `Recently dropped` list containing
   the newest ten dropped tasks.
 - **Why this should reduce friction:** The consequence is explicit and a user
   can recover an accidental action without operator or database help.
-- **Implementation notes:** Store a dropped timestamp and reversible state.
-  Show the task title, the exact consequence, Cancel as the safe initial action,
-  and a specific `Drop task` action. Restore to Later by default so recovery
-  cannot silently consume Today capacity; offer a separate explicit `Add to
-  Today` action. Define what happens after more than ten tasks are dropped
-  before implementation; the recommended rule is to retain older soft-deleted
-  records but expose only the newest ten in this recovery surface. Preserve
-  CSRF and account ownership.
-- **How to validate:** Test touch, keyboard, JavaScript-disabled, repeated
-  submission, Undo, newest-ten ordering, the eleventh drop, cross-account
-  access, and restoration to Later.
+- **Implementation notes:** The implementation stores `dropped_at`, requires
+  the exact title and current revision on a server-rendered confirmation, shows
+  immediate Undo, restores to Later by default, and offers separate Add to
+  Today for unblocked tasks. CSRF and account ownership remain enforced.
+- **How to validate:** Automated coverage gates JavaScript-disabled operation,
+  repeated submission, stale revisions, Undo, newest-ten ordering, the
+  eleventh retained in export, cross-account access, migration, transfer, and
+  Later/Today restoration. Manual touch, full keyboard, and participant gates
+  remain.
 
 ### UX-003: Several visual control and focus indicators miss contrast thresholds
 
@@ -1330,7 +1336,9 @@ they do not show that users will notice, understand, or benefit from it.
 - **AS-04 — The timer already survives refresh:** Falsified by browser
   validation. The timer state and dialog were gone.
 - **AS-05 — Drop is confirmed by the server when JavaScript is absent:**
-  Falsified by no-JavaScript validation. The task was dropped immediately.
+  Confirmed by current no-JavaScript Chromium validation after UX-002
+  implementation. This was falsified at the audited commit, where the task was
+  dropped immediately.
 - **AS-06 — The responsive page overflows horizontally at 320 px:** Falsified
   for the tested synthetic states. This does not replace reflow testing of all
   screens, zoom levels, long content, and translated text.
@@ -1380,9 +1388,8 @@ they do not show that users will notice, understand, or benefit from it.
   separate explicit Add-to-Today action. This avoids silently consuming an
   active slot during recovery.
 - **AS-21 — More than ten dropped tasks:** The newest ten are exposed for
-  recovery. Whether older soft-deleted records remain accessible through a
-  deeper archive or only through export/retention policy still needs a product
-  decision before implementation.
+  recovery. Older records remain in protected database storage and account
+  export. A deeper user-facing archive or purge requires a separate decision.
 - **AS-22 — Suggestion ranking:** Frequency plus recency with no more than five
   results is a proposed starting rule, not a product-owner decision.
 - **AS-23 — Same-device timer scope:** Continuation through navigation, refresh,
@@ -1527,8 +1534,8 @@ Initial product targets are:
 
 - Draft preservation and unresolved-save recovery are implemented; the listed
   manual and participant gates remain.
-- Make Drop a server-confirmed soft delete and expose the newest ten items for
-  recovery.
+- Server-confirmed Drop and newest-ten recovery are implemented; manual touch,
+  keyboard, broader-browser, and participant gates remain.
 - Correct text, boundary, and focus contrast.
 - Correct timer announcements and mobile DOM/focus order.
 - Run the relevant WCAG 2.2 AA manual and automated checks.

@@ -5,6 +5,7 @@ from datetime import date
 import sqlalchemy as sa
 from werkzeug.security import generate_password_hash
 
+from timemanager.account_transfer import export_account
 from timemanager.db import get_db, local_installation_id, new_public_id
 from timemanager.models import (
     projects,
@@ -12,6 +13,7 @@ from timemanager.models import (
     task_dependencies,
     task_waits,
     tasks,
+    users,
 )
 
 from .conftest import create_user, csrf_token, register
@@ -880,19 +882,268 @@ def test_drop_is_deliberate_and_removes_task_from_active_view(app, client):
     with app.app_context():
         task_id = get_db().execute(sa.select(tasks.c.id)).scalar_one()
 
-    response = _post_with_csrf(client, f"/tasks/{task_id}/drop")
-    assert b"Letting go is a valid decision." in response.data
+    confirmation = client.get(f"/tasks/{task_id}/drop?return_to=/today")
+    assert confirmation.status_code == 200
+    assert b'Type the task title exactly to confirm' in confirmation.data
+    assert b'value="/today"' in confirmation.data
+
+    rejected = _post_with_csrf(
+        client,
+        f"/tasks/{task_id}/drop",
+        {
+            "confirm_title": "A different title",
+            "revision": "1",
+            "return_to": "/today",
+        },
+    )
+    assert rejected.status_code == 400
+    assert b"Type the task title exactly to confirm." in rejected.data
+
+    assert client.post(
+        f"/tasks/{task_id}/drop",
+        data={"confirm_title": "An optional task", "revision": "1"},
+    ).status_code == 400
+
+    response = _post_with_csrf(
+        client,
+        f"/tasks/{task_id}/drop",
+        {
+            "confirm_title": "An optional task",
+            "revision": "1",
+            "return_to": "/today",
+        },
+    )
+    assert b"to Recently dropped. You can undo below." in response.data
     assert b'data-focus-task="An optional task"' not in response.data
+    assert b"Undo \xe2\x80\x94 restore to Later" in response.data
 
     with app.app_context():
         task = (
             get_db()
-            .execute(sa.select(tasks.c.state, tasks.c.revision))
+            .execute(
+                sa.select(
+                    tasks.c.state,
+                    tasks.c.workflow_status,
+                    tasks.c.dropped_at,
+                    tasks.c.revision,
+                )
+            )
             .mappings()
             .one()
         )
         assert task["state"] == "dropped"
+        assert task["workflow_status"] == "dropped"
+        assert task["dropped_at"] is not None
         assert task["revision"] == 2
+
+    repeated = _post_with_csrf(
+        client,
+        f"/tasks/{task_id}/drop",
+        {
+            "confirm_title": "An optional task",
+            "revision": "1",
+        },
+    )
+    assert b"already in Recently dropped" in repeated.data
+    with app.app_context():
+        assert get_db().execute(
+            sa.select(tasks.c.revision).where(tasks.c.id == task_id)
+        ).scalar_one() == 2
+
+    restored = _post_with_csrf(
+        client,
+        f"/tasks/{task_id}/restore",
+        {"destination": "later", "revision": "2"},
+        page="/recently-dropped",
+    )
+    assert (
+        b"Restored \xe2\x80\x9cAn optional task\xe2\x80\x9d to Later."
+        in restored.data
+    )
+    with app.app_context():
+        task = (
+            get_db()
+            .execute(
+                sa.select(
+                    tasks.c.workflow_status,
+                    tasks.c.today_placement,
+                    tasks.c.planned_date,
+                    tasks.c.dropped_at,
+                    tasks.c.revision,
+                )
+            )
+            .mappings()
+            .one()
+        )
+    assert dict(task) == {
+        "workflow_status": "open",
+        "today_placement": "unplanned",
+        "planned_date": None,
+        "dropped_at": None,
+        "revision": 3,
+    }
+
+
+def test_recently_dropped_shows_newest_ten_for_current_account(app, client):
+    register(client)
+    other_id = create_user(
+        app,
+        "Morgan",
+        "morgan@example.com",
+        generate_password_hash("another secure password"),
+    )
+    with app.app_context():
+        database = get_db()
+        installation_id = local_installation_id(database)
+        user_id = database.execute(
+            sa.select(users.c.id).where(users.c.email == "alex@example.com")
+        ).scalar_one()
+        database.execute(
+            sa.insert(tasks),
+            [
+                {
+                    "public_id": new_public_id(),
+                    "origin_installation_id": installation_id,
+                    "user_id": user_id,
+                    "title": f"Dropped task {index:02d}",
+                    "state": "dropped",
+                    "workflow_status": "dropped",
+                    "dropped_at": f"2026-07-28T12:{index:02d}:00",
+                }
+                for index in range(1, 12)
+            ],
+        )
+        database.execute(
+            sa.insert(tasks).values(
+                public_id=new_public_id(),
+                origin_installation_id=installation_id,
+                user_id=other_id,
+                title="Private dropped task",
+                state="dropped",
+                workflow_status="dropped",
+                dropped_at="2026-07-28T13:00:00",
+            )
+        )
+        database.commit()
+        exported_titles = {
+            task["title"] for task in export_account(database, user_id)["tasks"]
+        }
+
+    response = client.get("/recently-dropped")
+    assert response.status_code == 200
+    assert b"Dropped task 11" in response.data
+    assert b"Dropped task 02" in response.data
+    assert b"Dropped task 01" not in response.data
+    assert b"Private dropped task" not in response.data
+    assert "Dropped task 01" in exported_titles
+    assert "Private dropped task" not in exported_titles
+    positions = [
+        response.data.index(f"Dropped task {index:02d}".encode())
+        for index in range(11, 1, -1)
+    ]
+    assert positions == sorted(positions)
+
+
+def test_restore_dropped_task_to_today_is_explicit_and_csrf_protected(app, client):
+    register(client)
+    with app.app_context():
+        database = get_db()
+        installation_id = local_installation_id(database)
+        user_id = database.execute(
+            sa.select(users.c.id).where(users.c.email == "alex@example.com")
+        ).scalar_one()
+        task_id = database.execute(
+            sa.insert(tasks)
+            .values(
+                public_id=new_public_id(),
+                origin_installation_id=installation_id,
+                user_id=user_id,
+                title="Bring this back today",
+                state="dropped",
+                workflow_status="dropped",
+                dropped_at="2026-07-28T12:00:00",
+            )
+            .returning(tasks.c.id)
+        ).scalar_one()
+        database.commit()
+
+    assert client.post(
+        f"/tasks/{task_id}/restore",
+        data={"destination": "today", "revision": "1"},
+    ).status_code == 400
+    response = _post_with_csrf(
+        client,
+        f"/tasks/{task_id}/restore",
+        {"destination": "today", "revision": "1"},
+        page="/recently-dropped",
+    )
+    assert (
+        b"Restored \xe2\x80\x9cBring this back today\xe2\x80\x9d to Today."
+        in response.data
+    )
+    with app.app_context():
+        task = (
+            get_db()
+            .execute(
+                sa.select(
+                    tasks.c.workflow_status,
+                    tasks.c.today_placement,
+                    tasks.c.planned_date,
+                    tasks.c.dropped_at,
+                ).where(tasks.c.id == task_id)
+            )
+            .mappings()
+            .one()
+        )
+    assert dict(task) == {
+        "workflow_status": "open",
+        "today_placement": "active",
+        "planned_date": date.today().isoformat(),
+        "dropped_at": None,
+    }
+
+
+def test_drop_rejects_a_stale_confirmation_without_mutating(app, client):
+    register(client)
+    _post_with_csrf(
+        client,
+        "/tasks",
+        {"title": "Original title", "placement": "later"},
+    )
+    with app.app_context():
+        database = get_db()
+        task_id = database.execute(sa.select(tasks.c.id)).scalar_one()
+        database.execute(
+            sa.update(tasks)
+            .where(tasks.c.id == task_id)
+            .values(title="Newer saved title", revision=2)
+        )
+        database.commit()
+
+    response = _post_with_csrf(
+        client,
+        f"/tasks/{task_id}/drop",
+        {"confirm_title": "Original title", "revision": "1"},
+    )
+    assert response.status_code == 409
+    with app.app_context():
+        task = (
+            get_db()
+            .execute(
+                sa.select(
+                    tasks.c.workflow_status,
+                    tasks.c.dropped_at,
+                    tasks.c.revision,
+                ).where(tasks.c.id == task_id)
+            )
+            .mappings()
+            .one()
+        )
+    assert dict(task) == {
+        "workflow_status": "inbox",
+        "dropped_at": None,
+        "revision": 2,
+    }
 
 
 def test_users_cannot_read_or_mutate_another_users_tasks(app, client):
@@ -923,6 +1174,8 @@ def test_users_cannot_read_or_mutate_another_users_tasks(app, client):
     assert b"Private task" not in today.data
 
     response = _post_with_csrf(client, f"/tasks/{private_task_id}/drop")
+    assert response.status_code == 404
+    response = _post_with_csrf(client, f"/tasks/{private_task_id}/restore")
     assert response.status_code == 404
     response = _post_with_csrf(client, f"/tasks/{private_task_id}/activate")
     assert response.status_code == 404

@@ -21,10 +21,10 @@
     {% elif task.blocker_summary %}
       <a class="secondary-button compact-button" href="{{ url_for('tasks.task_detail', task_id=task.id, return_to=request.full_path) }}">Review blocker</a>
     {% endif %}
-    <form action="{{ url_for('tasks.drop_task', task_id=task.id) }}" method="post" data-confirm="Drop this task? It will leave the active views.">
-      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-      <button class="quiet-button" type="submit">Drop</button>
-    </form>
+    <a
+      class="quiet-button"
+      href="{{ url_for('tasks.drop_task', task_id=task.id, return_to=request.full_path) }}"
+    >Drop</a>
     <button class="quiet-button compact-button" type="button" data-inline-edit-toggle="{{ task.id }}">Edit</button>
   </div>
   <form

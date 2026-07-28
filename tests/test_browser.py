@@ -187,6 +187,34 @@ def test_today_and_later_navigation_shows_the_current_view(page, live_url):
     )
 
 
+def test_drop_confirmation_and_undo_work_without_javascript(page, live_url):
+    context = page.context.browser.new_context(java_script_enabled=False)
+    no_js_page = context.new_page()
+    try:
+        _register(no_js_page, live_url)
+        no_js_page.get_by_placeholder("What do you need to remember?").fill(
+            "No-JS task"
+        )
+        no_js_page.get_by_role("button", name="Add to Later").click()
+        no_js_page.get_by_role("link", name="Drop", exact=True).click()
+
+        expect(
+            no_js_page.get_by_role("heading", name="Drop “No-JS task”?")
+        ).to_be_visible()
+        no_js_page.get_by_label("Type the task title exactly to confirm").fill(
+            "No-JS task"
+        )
+        no_js_page.get_by_role("button", name="Drop task").click()
+
+        expect(
+            no_js_page.get_by_role("heading", name="Recently dropped")
+        ).to_be_visible()
+        no_js_page.get_by_role("button", name="Undo — restore to Later").click()
+        expect(no_js_page.get_by_text("No-JS task", exact=True)).to_be_visible()
+    finally:
+        context.close()
+
+
 def test_failed_autosave_keeps_the_edit_and_can_retry(page, live_url):
     _register(page, live_url)
     page.get_by_placeholder("What do you need to remember?").fill("Call supplier")
@@ -326,7 +354,7 @@ def test_inline_and_project_drafts_restore_in_their_existing_context(page, live_
     restored_editor.get_by_role("button", name="Save now").click()
     expect(restored_editor.get_by_text("Saved", exact=True)).to_be_visible()
 
-    page.get_by_role("link", name="Plan the launch").click()
+    page.get_by_role("link", name="Plan the launch", exact=True).click()
     page.locator("summary").filter(has_text="Turn into a project").click()
     page.get_by_role("button", name="Turn into a project").click()
     outcome = page.get_by_label("Outcome")

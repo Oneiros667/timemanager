@@ -41,13 +41,14 @@
       <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
       <button class="quiet-button compact-button" type="submit">Move to Later</button>
     </form>
-    <form action="{{ url_for('tasks.drop_task', task_id=task.id) }}" method="post" data-confirm="Drop this task? You can still recover it from the database or an export, but it leaves the active views.">
-      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-      <button class="icon-button" type="submit" title="Deliberately drop this task">
-        <span aria-hidden="true">×</span>
-        <span class="sr-only">Drop {{ task.title }}</span>
-      </button>
-    </form>
+    <a
+      class="icon-button"
+      href="{{ url_for('tasks.drop_task', task_id=task.id, return_to=request.full_path) }}"
+      title="Review dropping this task"
+    >
+      <span aria-hidden="true">×</span>
+      <span class="sr-only">Review dropping {{ task.title }}</span>
+    </a>
   </div>
   <form
     class="inline-task-editor"

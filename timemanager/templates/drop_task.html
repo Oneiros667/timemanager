@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Drop · Timemanager{% endblock %}
+
+{% block content %}
+  <a class="text-button workspace-back" href="{{ return_to }}">← Cancel and go back</a>
+
+  <section class="workspace-card" aria-labelledby="drop-heading">
+    <p class="eyebrow">Confirm a consequential action</p>
+    <h1 id="drop-heading">Drop “{{ task.title }}”?</h1>
+    <p id="drop-consequence">
+      This removes the task from Today and Later. It remains recoverable from
+      Recently dropped; that ordinary recovery list shows the newest ten.
+      Older dropped tasks remain in protected account storage and export.
+    </p>
+
+    <form
+      class="stacked-form"
+      action="{{ url_for('tasks.drop_task', task_id=task.id) }}"
+      method="post"
+    >
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="revision" value="{{ task.revision }}">
+      <input type="hidden" name="return_to" value="{{ return_to }}">
+      <label>
+        <span>Type the task title exactly to confirm</span>
+        <input
+          name="confirm_title"
+          maxlength="180"
+          autocomplete="off"
+          aria-describedby="drop-consequence{% if confirmation_error %} drop-error{% endif %}"
+          {% if confirmation_error %}aria-invalid="true"{% endif %}
+          required
+        >
+      </label>
+      {% if confirmation_error %}
+        <p id="drop-error" class="error-copy" role="alert">{{ confirmation_error }}</p>
+      {% endif %}
+      <div class="task-actions">
+        <a class="primary-button" href="{{ return_to }}">Cancel</a>
+        <button class="secondary-button" type="submit">Drop task</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}
