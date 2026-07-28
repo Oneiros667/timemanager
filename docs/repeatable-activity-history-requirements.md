@@ -2,7 +2,7 @@
 
 Status: proposed product requirement
 
-Updated: 2026-07-24
+Updated: 2026-07-28
 
 ## Purpose
 
@@ -536,6 +536,28 @@ Requirements:
 
 Calendar linking is deferred until the internal commitment boundary is
 implemented and stable.
+
+## Future Day Context integration
+
+The deferred Phase 4
+[Day Context feature](day-context-history-requirements.md) may place an
+explicit Last Done execution beside mood, energy, focus, and other
+user-confirmed events on a within-day timeline.
+
+The integration must:
+
+- reference the execution by stable identifier rather than copying it;
+- preserve the execution as the authoritative occurrence/log-time record;
+- never infer an execution from a state check-in, nearby event, calendar
+  commitment, or model output;
+- never infer that the execution helped, harmed, caused, or treated a state;
+- store any possible-influence label as the user's editable attribution;
+- update or remove the timeline reference when the source is corrected or
+  deleted; and
+- keep Last Done useful without Day Context, Quick Help, or AI.
+
+This future integration does not change the first Last Done implementation or
+authorise health interpretation.
 
 ## Privacy and security requirements
 

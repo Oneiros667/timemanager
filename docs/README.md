@@ -64,6 +64,14 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
 - [Optional AI body-doubling and voice design](ai-body-doubling-and-voice-design.md)
   specifies a privacy-controlled AI companion, its safety boundaries, and a
   local-container-to-mobile rollout architecture.
+- [Day Context and within-day history requirements](day-context-history-requirements.md)
+  defines future mood, energy, focus, activity, caffeine, food, exercise,
+  distraction, interruption, and environment logging as a factual,
+  Sensitive-by-default timeline with non-causal summaries.
+- [Future Quick Help, mood, energy, and focus support](quick-help-mood-energy-design.md)
+  defines a deferred user-invoked reset surface, the supplied lunchtime-slump
+  scenario, medication and urgent-help boundaries, Day Context integration,
+  and non-AI/AI release gates.
 
 ## Reading the evidence labels
 

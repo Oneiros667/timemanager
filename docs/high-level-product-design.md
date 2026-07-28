@@ -88,6 +88,8 @@ Related research:
 - [Reference-system analysis](reference-systems-analysis.md)
 - [Reddit app-experience analysis](reddit-app-experience-analysis.md)
 - [Optional AI body-doubling and voice design](ai-body-doubling-and-voice-design.md)
+- [Day Context and within-day history requirements](day-context-history-requirements.md)
+- [Future Quick Help, mood, energy, and focus support](quick-help-mood-energy-design.md)
 
 ## Confirmed direction and working assumptions
 
@@ -104,8 +106,9 @@ The delivery direction is:
    and editing, and add other calendar providers later;
 7. validate an assisted-planning prototype in the Phase 2 integrated local
    pilot using synthetic data and same-device role simulation;
-8. exclude AI decomposition, voice, and AI body doubling through the Phase 3
-   hosted release.
+8. exclude AI decomposition, voice, AI body doubling, health-oriented Quick
+   Help, and Day Context state/event tracking through the Phase 3 hosted
+   release.
 
 The Phase 1 local pilot is a development stage, not a supported self-hosted
 edition or a permanent promise that the released product will be local-first or
@@ -465,6 +468,8 @@ Statuses describe the current repository, not the intended milestone scope.
 | Account data portability | Phase 1 | Partial | Authenticated self-service restore and hosted adapter | Required trust and migration foundation |
 | Google Calendar integration | Phase 2 | Blocked by Phase 1 | Other providers | Supported need; integration behavior to test |
 | AI voice/body doubling | Phase 4 | Deferred | Opt-in connector | Experiential/early research |
+| Day Context state and event history | Phase 4 | Deferred | Mood, energy, focus, food, caffeine, exercise, and disruption timeline with descriptive summaries | Plausible product design; health-data and interpretation sensitive |
+| Quick Help | Phase 4 | Deferred | Reviewed playbooks, Day Context integration, optional AI phrasing, and user-authored personal plans | Plausible product design; health-data and clinical-safety sensitive |
 | Goals, habits, journaling, social features | Deferred | Deferred | Only after core validation | Unproven for the core job |
 
 ## Core information model
@@ -880,7 +885,12 @@ signals, not acceptable costs of higher task completion.
 - additional calendar providers;
 - stronger temporary focus controls;
 - user-confirmed decomposition suggestions and opt-in AI body-doubling features
-  only after separate validation.
+  only after separate validation;
+- user-owned Day Context history for mood, energy, focus ability, activities,
+  and disruptions only after privacy, interpretation, and usability gates;
+- user-invoked Quick Help with a non-AI path and optional Day Context
+  integration only after separate clinical-safety, privacy, and usability
+  gates.
 
 ## Explicitly out of the Phase 3 hosted release
 
@@ -947,7 +957,13 @@ signals, not acceptable costs of higher task completion.
   preview and a privacy-safe external-title choice.
 - Worldwide availability is the product objective, subject to a country/region
   child-data and privacy release gate before launch in each market.
-- AI decomposition, voice, and AI body doubling are deferred to Phase 4.
+- AI decomposition, voice, AI body doubling, Day Context, and Quick Help are
+  deferred to Phase 4. Day Context's factual-history, privacy, and
+  interpretation gates are defined in
+  [Day Context and within-day history requirements](day-context-history-requirements.md).
+  Quick Help's separate clinical-safety, privacy, AI, and release gates are
+  defined in
+  [Future Quick Help, mood, energy, and focus support](quick-help-mood-energy-design.md).
 - The Phase 1 local pilot is a development predecessor, not a supported
   self-hosted edition after the Phase 3 hosted release.
 
