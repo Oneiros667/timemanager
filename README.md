@@ -23,6 +23,8 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
 - complete, restore, deliberately drop, and move-to-Today actions;
 - inline task editing plus task workspaces for next action, definition of done,
   notes, and ordered steps;
+- 24-hour browser-local recovery for interrupted task and project autosave
+  drafts, including explicit handling of stale server revisions;
 - lightweight project workspaces with preferred ordering and one next-ready
   task;
 - one-confirmation task-to-project conversion that preserves the original task
@@ -53,6 +55,14 @@ permissions between those accounts.
 The installation operator can access the SQLite database and backups on disk.
 The local pilot is therefore not a privacy boundary against that operator and
 must not be exposed as a public multi-tenant service.
+
+Interrupted task and project drafts may contain sensitive text. They are kept
+in the signed-in browser profile, scoped by account, object, form, and tab.
+Drafts expire after 24 hours and are pruned on the next Timemanager page load;
+matching drafts are removed after an acknowledged save, and all drafts for the
+account are removed on sign-out. They are not placed in the public
+service-worker cache or included in account export. Browser-profile and device
+access remain part of the trusted local-installation boundary.
 
 ## Quick start
 

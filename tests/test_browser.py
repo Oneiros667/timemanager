@@ -33,8 +33,10 @@ def live_url(tmp_path):
 def page():
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
-        page = browser.new_page()
+        context = browser.new_context()
+        page = context.new_page()
         yield page
+        context.close()
         browser.close()
 
 
@@ -204,3 +206,317 @@ def test_failed_autosave_keeps_the_edit_and_can_retry(page, live_url):
     expect(page.get_by_text("Saved", exact=True)).to_be_visible()
     page.reload()
     expect(page.get_by_label("Next action")).to_have_value("Find the order number")
+
+
+def test_edit_during_delayed_save_keeps_and_saves_the_newer_draft(page, live_url):
+    _register(page, live_url)
+    page.get_by_placeholder("What do you need to remember?").fill("Call supplier")
+    page.get_by_role("button", name="Add to Later").click()
+    page.get_by_role("link", name="Add details").click()
+    page.evaluate(
+        """
+        () => {
+          const originalFetch = window.fetch.bind(window);
+          let delayed = false;
+          window.fetch = (...args) => {
+            if (delayed) return originalFetch(...args);
+            delayed = true;
+            return new Promise((resolve, reject) => {
+              window.setTimeout(
+                () => originalFetch(...args).then(resolve, reject),
+                1200,
+              );
+            });
+          };
+        }
+        """
+    )
+
+    next_action = page.get_by_label("Next action")
+    next_action.fill("First thought")
+    expect(page.get_by_text("Saving…", exact=True)).to_be_visible()
+    next_action.fill("Newer thought while saving")
+
+    expect(page.get_by_text("Saved", exact=True)).to_be_visible(timeout=5000)
+    page.reload()
+    expect(page.get_by_label("Next action")).to_have_value(
+        "Newer thought while saving"
+    )
+
+
+def test_task_workspace_draft_survives_immediate_reload_and_clears_after_save(
+    page,
+    live_url,
+):
+    _register(page, live_url)
+    page.get_by_placeholder("What do you need to remember?").fill("Prepare report")
+    page.get_by_role("button", name="Add to Later").click()
+    page.get_by_role("link", name="Add details").click()
+    page.on("dialog", lambda dialog: dialog.accept())
+
+    next_action = page.get_by_label("Next action")
+    next_action.fill("Open the figures before the interruption")
+    page.reload()
+
+    expect(page.get_by_label("Next action")).to_have_value(
+        "Open the figures before the interruption"
+    )
+    expect(page.get_by_text("Unsaved draft restored.")).to_be_visible()
+    page.get_by_role("button", name="Save now").click()
+    expect(page.get_by_text("Saved", exact=True)).to_be_visible()
+    assert page.evaluate(
+        "Object.keys(localStorage).filter((key) => "
+        "key.startsWith('timemanager-draft-v1:')).length"
+    ) == 0
+
+    page.reload()
+    expect(page.get_by_label("Next action")).to_have_value(
+        "Open the figures before the interruption"
+    )
+
+
+def test_task_workspace_draft_survives_navigation_and_page_close(page, live_url):
+    _register(page, live_url)
+    page.get_by_placeholder("What do you need to remember?").fill("Prepare report")
+    page.get_by_role("button", name="Add to Later").click()
+    page.get_by_role("link", name="Add details").click()
+    task_url = page.url
+    page.on("dialog", lambda dialog: dialog.accept())
+    page.route(
+        "**/tasks/*/details",
+        lambda route: (
+            route.abort()
+            if route.request.method == "POST"
+            else route.continue_()
+        ),
+    )
+
+    page.get_by_label("Next action").fill("Return to this exact thought")
+    page.get_by_role("link", name="Back").click()
+    page.goto(task_url)
+    expect(page.get_by_label("Next action")).to_have_value(
+        "Return to this exact thought"
+    )
+
+    context = page.context
+    page.close()
+    reopened = context.new_page()
+    reopened.goto(task_url)
+    expect(reopened.get_by_label("Next action")).to_have_value(
+        "Return to this exact thought"
+    )
+    expect(reopened.get_by_text("Unsaved draft restored.")).to_be_visible()
+
+
+def test_inline_and_project_drafts_restore_in_their_existing_context(page, live_url):
+    _register(page, live_url)
+    page.on("dialog", lambda dialog: dialog.accept())
+
+    page.get_by_placeholder("What do you need to remember?").fill("Plan the launch")
+    page.get_by_role("button", name="Add to today").click()
+    page.get_by_role("button", name="Edit").click()
+    editor = page.locator("[data-inline-edit]:visible")
+    editor.get_by_label("Next action").fill("Open the launch checklist")
+    page.reload()
+
+    restored_editor = page.locator("[data-inline-edit]:visible")
+    expect(restored_editor.get_by_label("Next action")).to_have_value(
+        "Open the launch checklist"
+    )
+    restored_editor.get_by_role("button", name="Save now").click()
+    expect(restored_editor.get_by_text("Saved", exact=True)).to_be_visible()
+
+    page.get_by_role("link", name="Plan the launch").click()
+    page.locator("summary").filter(has_text="Turn into a project").click()
+    page.get_by_role("button", name="Turn into a project").click()
+    outcome = page.get_by_label("Outcome")
+    outcome.fill("The first release is available")
+    page.reload()
+
+    expect(page.get_by_label("Outcome")).to_have_value(
+        "The first release is available"
+    )
+    expect(page.get_by_text("Unsaved draft restored.")).to_be_visible()
+
+
+def test_sign_out_clears_account_scoped_drafts(page, live_url):
+    _register(page, live_url)
+    page.get_by_placeholder("What do you need to remember?").fill("Call supplier")
+    page.get_by_role("button", name="Add to Later").click()
+    page.get_by_role("link", name="Add details").click()
+    page.get_by_label("Next action").fill("Find the order number")
+
+    assert page.evaluate(
+        "Object.keys(localStorage).filter((key) => "
+        "key.startsWith('timemanager-draft-v1:')).length"
+    ) == 1
+    page.get_by_role("button", name="Sign out").click()
+    page.wait_for_url(f"{live_url}/login")
+    assert page.evaluate(
+        "Object.keys(localStorage).filter((key) => "
+        "key.startsWith('timemanager-draft-v1:')).length"
+    ) == 0
+
+
+def test_expired_draft_is_removed_without_replacing_saved_fields(page, live_url):
+    _register(page, live_url)
+    page.get_by_placeholder("What do you need to remember?").fill("Call supplier")
+    page.get_by_role("button", name="Add to Later").click()
+    page.get_by_role("link", name="Add details").click()
+    page.evaluate(
+        """
+        () => {
+          const form = document.querySelector("[data-autosave-form]");
+          const account = document.body.dataset.draftAccount;
+          const key = `timemanager-draft-v1:${account}:${form.dataset.draftScope}:fixture`;
+          localStorage.setItem(key, JSON.stringify({
+            version: 1,
+            savedAt: Date.now() - (25 * 60 * 60 * 1000),
+            revision: Number(form.querySelector("[data-revision]").value),
+            requiresExplicitSave: false,
+            fields: {
+              title: "Expired title",
+              next_action: "Expired action",
+              definition_of_done: "",
+              notes: "",
+            },
+          }));
+          localStorage.setItem(
+            `timemanager-draft-v1:${account}:task:unrelated-expired:inline:fixture`,
+            JSON.stringify({
+              version: 1,
+              savedAt: Date.now() - (25 * 60 * 60 * 1000),
+              revision: 1,
+              requiresExplicitSave: false,
+              fields: {title: "Also expired"},
+            }),
+          );
+          localStorage.setItem(
+            `timemanager-draft-v1:${account}:task:unrelated-current:inline:fixture`,
+            JSON.stringify({
+              version: 1,
+              savedAt: Date.now(),
+              revision: 1,
+              requiresExplicitSave: false,
+              fields: {title: "Still current"},
+            }),
+          );
+        }
+        """
+    )
+
+    page.reload()
+
+    expect(page.get_by_label("Task title")).to_have_value("Call supplier")
+    expect(page.get_by_label("Next action")).to_have_value("")
+    draft_keys = page.evaluate(
+        "Object.keys(localStorage).filter((key) => "
+        "key.startsWith('timemanager-draft-v1:'))"
+    )
+    assert len(draft_keys) == 1
+    assert ":task:unrelated-current:inline:" in draft_keys[0]
+
+
+def test_stale_draft_requires_an_explicit_conflict_choice(page, live_url):
+    _register(page, live_url)
+    page.get_by_placeholder("What do you need to remember?").fill("Call supplier")
+    page.get_by_role("button", name="Add to Later").click()
+    page.get_by_role("link", name="Add details").click()
+
+    page.evaluate(
+        """
+        () => {
+          const form = document.querySelector("[data-autosave-form]");
+          const account = document.body.dataset.draftAccount;
+          const key = `timemanager-draft-v1:${account}:${form.dataset.draftScope}:fixture`;
+          localStorage.setItem(key, JSON.stringify({
+            version: 1,
+            savedAt: Date.now(),
+            revision: Number(form.querySelector("[data-revision]").value),
+            requiresExplicitSave: false,
+            fields: {
+              title: "Call supplier",
+              next_action: "Use the interrupted draft",
+              definition_of_done: "",
+              notes: "",
+            },
+          }));
+        }
+        """
+    )
+    page.evaluate(
+        """
+        async () => {
+          const form = document.querySelector("[data-autosave-form]");
+          const data = new FormData(form);
+          data.set("title", "Call supplier from the saved copy");
+          data.set("next_action", "Use the server copy");
+          const response = await fetch(form.action, {
+            method: "POST",
+            body: data,
+            headers: {
+              Accept: "application/json",
+              "X-Requested-With": "fetch",
+            },
+          });
+          if (!response.ok) throw new Error("fixture update failed");
+        }
+        """
+    )
+
+    page.reload()
+
+    expect(page.get_by_label("Next action")).to_have_value(
+        "Use the interrupted draft"
+    )
+    expect(page.get_by_text("Saved version changed.", exact=False)).to_be_visible()
+    page.get_by_role("button", name="Discard draft").click()
+    expect(page.get_by_label("Task title")).to_have_value(
+        "Call supplier from the saved copy"
+    )
+    expect(page.get_by_label("Next action")).to_have_value("Use the server copy")
+
+
+def test_concurrent_tabs_keep_separate_drafts_and_expose_revision_conflict(
+    page,
+    live_url,
+):
+    _register(page, live_url)
+    page.get_by_placeholder("What do you need to remember?").fill("Call supplier")
+    page.get_by_role("button", name="Add to Later").click()
+    page.get_by_role("link", name="Add details").click()
+    task_url = page.url
+
+    other_tab = page.context.new_page()
+    other_tab.goto(task_url)
+
+    page.route("**/tasks/*/details", lambda route: route.abort())
+    page.get_by_label("Next action").fill("Keep the first tab draft")
+    expect(page.get_by_role("button", name="Couldn’t save — Retry")).to_be_visible()
+
+    other_tab.get_by_label("Task title").fill("Saved from the second tab")
+    other_tab.get_by_label("Task title").blur()
+    expect(other_tab.get_by_text("Saved", exact=True)).to_be_visible()
+
+    draft_keys = page.evaluate(
+        "Object.keys(localStorage).filter((key) => "
+        "key.startsWith('timemanager-draft-v1:'))"
+    )
+    assert len(draft_keys) == 1
+
+    page.unroute("**/tasks/*/details")
+    page.on("dialog", lambda dialog: dialog.accept())
+    page.reload()
+
+    expect(page.get_by_label("Next action")).to_have_value(
+        "Keep the first tab draft"
+    )
+    expect(
+        page.get_by_text("Draft restored but not saved.", exact=False)
+    ).to_be_visible()
+    page.get_by_role("button", name="Discard draft").click()
+    expect(page.get_by_label("Task title")).to_have_value("Saved from the second tab")
+    assert page.evaluate(
+        "Object.keys(localStorage).filter((key) => "
+        "key.startsWith('timemanager-draft-v1:')).length"
+    ) == 0

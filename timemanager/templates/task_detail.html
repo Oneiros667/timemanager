@@ -10,6 +10,7 @@
     action="{{ url_for('tasks.update_task_details', task_id=task.id) }}"
     method="post"
     data-autosave-form
+    data-draft-scope="task:{{ task.public_id }}:workspace"
   >
     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="revision" value="{{ task.revision }}" data-revision data-task-revision>

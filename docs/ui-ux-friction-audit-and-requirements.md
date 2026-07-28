@@ -4,8 +4,10 @@
   requirements; not yet participant-usability validated
 - Updated: 2026-07-28
 - Audited commit: `3cea2d1eff1b4d7fbb75e7c3b5bb576fd1910d92`
-- Current-source revalidation: `47000ad` on 2026-07-28; all five P0 findings
-  remain open
+- Current implementation revalidation: 80 automated tests on 2026-07-28;
+  UX-001 is implemented with automated Chromium coverage, four P0
+  implementation findings remain open, and manual and participant gates remain
+  unverified
 
 ## 1. Purpose
 
@@ -74,10 +76,10 @@ uv run pytest tests/test_browser.py tests/test_pwa.py tests/test_remember.py
 15 passed
 ```
 
-Those tests confirm existing behavior; they do not cover all findings below.
-In particular, they do not currently gate contrast, assistive-technology timer
-behavior, JavaScript-disabled destructive actions, immediate-refresh draft
-recovery, or complete mobile focus order.
+Those audit-baseline tests confirmed the behavior at the audited commit; they
+did not cover all findings below. In particular, they did not gate contrast,
+assistive-technology timer behavior, JavaScript-disabled destructive actions,
+immediate-refresh draft recovery, or complete mobile focus order.
 
 A fresh isolated browser and no-JavaScript validation run produced these
 results:
@@ -103,13 +105,19 @@ PYTHONDONTWRITEBYTECODE=1 uv run pytest
 72 passed in 19.32s
 ```
 
-Current source inspection confirmed that task/project drafts still exist only
-in page memory, Drop is still accepted immediately by the server, the measured
-functional colour tokens remain unchanged, the countdown still updates a polite
-live region every second, and mobile CSS still moves a focusable card ahead of
-its DOM position. This current-source revalidation does not replace the
-isolated browser reproductions above, participant evidence, attended
-screen-reader sessions, or real-device checks.
+At `47000ad`, source inspection confirmed that task/project drafts still
+existed only in page memory, Drop was accepted immediately by the server, the
+measured functional colour tokens remained unchanged, the countdown still
+updated a polite live region every second, and mobile CSS still moved a
+focusable card ahead of its DOM position.
+
+The current implementation adds immediate browser-local draft
+persistence and passes all 80 automated tests, including Chromium coverage for
+reload, Back, page close/reopen, failed and delayed requests, sign-out, expiry,
+and stale and concurrent-tab revisions. Drop, contrast, timer announcements,
+and mobile focus order remain unchanged. Neither revalidation replaces
+participant evidence, attended screen-reader sessions, real-device checks, or
+broader-browser manual verification.
 
 ### 2.4 Implemented versus proposed
 
@@ -120,6 +128,8 @@ The current local pilot implements:
 - one daily highlight and no more than three optional active actions;
 - recoverable Today overflow with no silent promotion;
 - Today, Later, Remember, task, project, blocker, and waiting interactions;
+- 24-hour account-, object-, form-, revision-, and tab-scoped browser-local
+  recovery for interrupted task and project autosave drafts;
 - Low Capacity presentation as a partial client-side mode;
 - a client-side 5/15/25-minute timer;
 - responsive server-rendered pages and a public offline shell; and
@@ -285,11 +295,15 @@ Priority reflects implementation order; severity reflects user impact.
 ### UX-001: Interrupted autosave can lose task or project text
 
 - **Priority:** P0
+- **Implementation status:** Implemented in the current source with automated
+  Chromium coverage. Manual Firefox/WebKit, true-offline, keyboard-focus,
+  screen-reader, Cache Storage, and participant-usability evidence remains
+  open.
 - **Severity:** Blocking
 - **Screen or workflow:** Task and project workspaces; inline task editing
-- **Observed problem:** Autosave is delayed and relies on an asynchronous fetch.
-  An immediate reload lost a newly entered next action. An aborted save followed
-  by navigation also lost the draft.
+- **Observed baseline problem:** At the audited commit, autosave was delayed and
+  relied on an asynchronous fetch. An immediate reload lost a newly entered
+  next action. An aborted save followed by navigation also lost the draft.
 - **Likely user impact:** The user must reconstruct thoughts after exactly the
   kind of interruption the product is intended to support. Loss may not be
   noticed until later.
@@ -302,9 +316,13 @@ Priority reflects implementation order; severity reflects user impact.
   another reviewed local-draft boundary; expire drafts; clear them on successful
   acknowledgement and sign-out; do not put personal text in the public
   service-worker cache. Keep visible `Unsaved`, `Saving`, `Saved`, and `Could not
-  save` states. Resolve revision conflicts before overwriting server data.
-- **How to validate:** Automate reload, Back, close/reopen, offline, aborted
-  request, delayed request, retry, and multi-tab revision-conflict scenarios.
+  save` states. Resolve revision conflicts before overwriting server data. The
+  implementation uses local storage with account, object, form, revision, and
+  per-tab identity, 24-hour expiry, and explicit stale-revision actions.
+- **How to validate:** Automated coverage now gates reload, Back, close/reopen,
+  aborted and delayed requests, retry, sign-out, expiry, and concurrent-tab
+  revision conflicts. A true offline browser return and the manual gates above
+  remain.
 
 ### UX-002: Dropped tasks lack complete end-user recovery
 
@@ -1306,8 +1324,9 @@ they do not show that users will notice, understand, or benefit from it.
   Enter submitted the primary `Add to today` action and navigated to Today.
 - **AS-02 — Low Capacity already shows one task without a highlight:** Falsified
   by browser validation. It hid the task and its Make-highlight action.
-- **AS-03 — Immediate autosave protects a draft through refresh:** Falsified by
-  browser validation. The newly typed value returned empty.
+- **AS-03 — Immediate autosave protects a draft through refresh:** Confirmed by
+  current automated Chromium validation after UX-001 implementation. This was
+  falsified at the audited commit, where the newly typed value returned empty.
 - **AS-04 — The timer already survives refresh:** Falsified by browser
   validation. The timer state and dialog were gone.
 - **AS-05 — Drop is confirmed by the server when JavaScript is absent:**
@@ -1506,7 +1525,8 @@ Initial product targets are:
 
 ### Stage 1: safety and accessibility blockers
 
-- Implement draft preservation and unresolved-save recovery.
+- Draft preservation and unresolved-save recovery are implemented; the listed
+  manual and participant gates remain.
 - Make Drop a server-confirmed soft delete and expose the newest ten items for
   recovery.
 - Correct text, boundary, and focus contrast.

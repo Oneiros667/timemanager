@@ -12,7 +12,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css', v=asset_version) }}">
     <title>{% block title %}Timemanager{% endblock %}</title>
   </head>
-  <body class="{% block body_class %}{% endblock %}">
+  <body
+    class="{% block body_class %}{% endblock %}"
+    {% if g.user %}data-draft-account="{{ g.user.public_id }}"{% endif %}
+  >
     <a class="skip-link" href="#main-content">Skip to content</a>
 
     {% if g.user %}
@@ -41,7 +44,7 @@
             <span aria-hidden="true">◐</span>
             <span data-mode-label>Low capacity</span>
           </button>
-          <form action="{{ url_for('auth.logout') }}" method="post">
+          <form action="{{ url_for('auth.logout') }}" method="post" data-clear-drafts>
             <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
             <button class="quiet-button" type="submit">Sign out</button>
           </form>

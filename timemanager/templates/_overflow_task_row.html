@@ -26,6 +26,7 @@
     action="{{ url_for('tasks.update_task_details', task_id=task.id) }}"
     method="post"
     data-autosave-form
+    data-draft-scope="task:{{ task.public_id }}:inline"
     data-inline-edit="{{ task.id }}"
     hidden
   >

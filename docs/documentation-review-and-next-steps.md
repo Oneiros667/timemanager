@@ -26,12 +26,16 @@ evidence.
 
 No broken local Markdown links, anchors, or reference definitions were found in
 the review. A current-source revalidation at commit `47000ad` passed all 72
-automated tests on 2026-07-28. The suite covers server-side account isolation,
-schema upgrades, migration recovery, export/import behavior, and
-representative real-browser complex-work flows. This does not close the UI
-audit's open immediate-refresh draft, JavaScript-disabled Drop, contrast,
-assistive-technology timer, or complete mobile focus-order findings. Complete
-timer and service-worker behavior still need broader browser coverage.
+automated tests on 2026-07-28. The interrupted-draft implementation added eight
+browser tests; the current implementation passes all 80 automated
+tests. The suite covers server-side account isolation, schema upgrades,
+migration recovery, export/import behavior, representative real-browser
+complex-work flows, and Chromium interruption recovery. This closes UX-001's
+automated implementation finding, but not its manual cross-browser,
+screen-reader, keyboard-focus, or participant-usability gates. The
+JavaScript-disabled Drop, contrast, assistive-technology timer, and complete
+mobile focus-order P0 findings remain open. Complete timer and service-worker
+behavior still need broader browser coverage.
 
 ## Confirmed implementation baseline
 
@@ -57,6 +61,9 @@ The following behavior is implemented:
 - task completion, restoration, deliberate dropping, and move-to-Today;
 - inline task editing and task workspaces with next action, definition of done,
   notes, and ordered components;
+- account-, object-, form-, revision-, and tab-scoped browser-local task and
+  project drafts with 24-hour expiry, sign-out clearing, and explicit stale
+  revision handling;
 - lightweight projects, preferred ordering, next-ready computation,
   prerequisites, external waits, follow-up tasks, and explicit overrides;
 - explicit task-to-project conversion that preserves the task’s details,
@@ -127,11 +134,11 @@ before the next ordinary roadmap item. This does not renumber Phase 1 or mark a
 later milestone complete.
 
 The [UI/UX friction audit](ui-ux-friction-audit-and-requirements.md) was
-originally run against commit `3cea2d1`. Current source and the 72-test
-revalidation at `47000ad` confirm that all five P0 findings remain open:
+originally run against commit `3cea2d1`. UX-001's interrupted-draft
+implementation and automated Chromium gate are now complete in the current
+source. Its manual accessibility, broader-browser, and participant-usability
+evidence remains open. Four P0 implementation findings remain open:
 
-- interrupted task or project autosave can lose unsaved text on immediate
-  navigation or refresh;
 - Drop relies on client-side confirmation and has no ordinary end-user recovery
   surface;
 - functional control, placeholder, and focus-indicator contrast remains below
@@ -143,25 +150,25 @@ These are implementation and verification findings, not participant-usability
 evidence. Participant validation, attended screen-reader checks, real-device
 touch checks, and the complete Phase 1 day-loop gate remain unverified.
 
-### Ranked next development slices
+### Ranked development slices and current status
 
-| Rank | Slice | Why now | Smallest coherent exit gate |
-| --- | --- | --- | --- |
-| 1 | Preserve interrupted task and project drafts | Current P0 data-loss risk in the exact interruption scenario the product is intended to support | Account-, object-, form-, and revision-scoped drafts survive refresh, Back, failed or delayed saves, and unresolved navigation without silently overwriting newer server data |
-| 2 | Make Drop server-confirmed and recoverable | Current P0 destructive action can remove work from every ordinary view without a usable no-JavaScript confirmation or recovery path | Named server confirmation, dropped timestamp, newest-ten account-scoped recovery, restore-to-Later default, separate Add-to-Today, CSRF/ownership enforcement, and migration/transfer coverage |
-| 3 | Close the remaining P0 accessibility blockers | Contrast, timer announcements, and mobile focus order can prevent predictable operation and would invalidate later participant evidence | Applicable contrast thresholds pass; timer announces meaningful transitions rather than every second; visual and sequential focus order agree at supported breakpoints; manual assistive-technology evidence is recorded |
-| 4 | Complete minimum safe Low Capacity behavior | The current partial mode can hide every route to a startable task | Show the highlight or, without mutation, the first active Today task; retain compact Remember/Capture, hidden count, and Show full Today; no hidden work changes |
-| 5 | Close milestone 1.2 discovery and validation | This is the remaining functional contract in the ordered plan once the safety interlock is clear | Later exposes a lightweight project collection and archive; assignment and creation are distinct; return context, ownership, CSRF, revision, browser/accessibility, and participant gates pass |
+| Rank | Status | Slice | Why now | Smallest coherent exit gate |
+| --- | --- | --- | --- | --- |
+| 1 | Implemented; manual validation remains | Preserve interrupted task and project drafts | P0 data-loss risk in the exact interruption scenario the product is intended to support | Automated Chromium coverage passes for reload, Back, page close/reopen, failed and delayed saves, expiry, sign-out, and stale and concurrent-tab revisions; manual cross-browser, accessibility, and participant gates remain |
+| 2 | Blocked by the retention decision below | Make Drop server-confirmed and recoverable | Current P0 destructive action can remove work from every ordinary view without a usable no-JavaScript confirmation or recovery path | Named server confirmation, dropped timestamp, newest-ten account-scoped recovery, restore-to-Later default, separate Add-to-Today, CSRF/ownership enforcement, and migration/transfer coverage |
+| 3 | Not started | Close the remaining P0 accessibility blockers | Contrast, timer announcements, and mobile focus order can prevent predictable operation and would invalidate later participant evidence | Applicable contrast thresholds pass; timer announces meaningful transitions rather than every second; visual and sequential focus order agree at supported breakpoints; manual assistive-technology evidence is recorded |
+| 4 | Not started | Complete minimum safe Low Capacity behavior | The current partial mode can hide every route to a startable task | Show the highlight or, without mutation, the first active Today task; retain compact Remember/Capture, hidden count, and Show full Today; no hidden work changes |
+| 5 | Not started | Close milestone 1.2 discovery and validation | This is the remaining functional contract in the ordered plan once the safety interlock is clear | Later exposes a lightweight project collection and archive; assignment and creation are distinct; return context, ownership, CSRF, revision, browser/accessibility, and participant gates pass |
 
-### Recommended next slice: interrupted-draft preservation
+### Implemented first slice: interrupted-draft preservation
 
-The next implementation should be limited to durable interruption recovery for
-the existing task-detail, project-detail, and inline autosave forms.
+The current implementation adds durable interruption recovery to the existing
+task-detail, project-detail, and inline autosave forms.
 
-In scope:
+Implemented scope:
 
-- define account-, object-, form-, and revision-scoped draft identity, expiry,
-  restoration, and clearing rules;
+- define account-, object-, form-, revision-, and tab-scoped draft identity,
+  expiry, restoration, and clearing rules;
 - preserve field values synchronously before the delayed network save;
 - retain the exact draft after a failed or delayed request;
 - restore a valid matching draft after refresh or navigation;
@@ -182,16 +189,19 @@ Out of scope:
 - project collection, Review, or Reset; and
 - caching authenticated pages or drafts in the service worker.
 
-Likely implementation and verification surfaces are `timemanager/static/app.js`,
-the task/project/inline form templates, sign-out handling where needed, and
-`tests/test_browser.py`, `tests/test_tasks.py`, and `tests/test_pwa.py`.
+Implementation and verification surfaces are `timemanager/static/app.js`, the
+task/project/inline form templates, authenticated account context and sign-out,
+`tests/test_browser.py`, and `tests/test_pwa.py`.
 
-The slice is complete only when automated browser coverage exercises immediate
-reload, Back, failed and delayed fetches, successful acknowledgement, account
-switching, and multi-tab revision conflict. Manual checks must cover
-close/reopen, offline return, keyboard focus, screen-reader save states, and
-inspection of Cache Storage. The full suite, coverage, compile check, and
-`git diff --check` must pass.
+Automated Chromium coverage now exercises immediate reload, Back, page
+close/reopen, failed and delayed fetches, successful acknowledgement, sign-out
+clearing, expiry, and stale and concurrent-tab revision conflicts. The
+implementation retains a newer per-tab draft and never places draft text in the
+service-worker asset list. Manual checks still need to cover a true offline
+return, keyboard focus after restoration and conflict actions, screen-reader
+save-state announcements, Firefox/WebKit behavior, Cache Storage inspection,
+and participant usability. Those are verification and validation gaps, not
+missing implementation behavior.
 
 ### Work held behind the interlock
 

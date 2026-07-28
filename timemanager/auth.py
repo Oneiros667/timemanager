@@ -36,7 +36,12 @@ def load_logged_in_user() -> None:
     g.user = (
         get_db()
         .execute(
-            sa.select(users.c.id, users.c.display_name, users.c.email).where(
+            sa.select(
+                users.c.id,
+                users.c.public_id,
+                users.c.display_name,
+                users.c.email,
+            ).where(
                 users.c.id == user_id
             )
         )

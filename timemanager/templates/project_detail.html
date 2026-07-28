@@ -4,7 +4,13 @@
 
 {% block content %}
   <a class="text-button workspace-back" href="{{ url_for('tasks.today') }}">← Back to Today</a>
-  <form class="workspace-heading autosave-workspace" action="{{ url_for('tasks.update_project_details', project_id=project.id) }}" method="post" data-autosave-form>
+  <form
+    class="workspace-heading autosave-workspace"
+    action="{{ url_for('tasks.update_project_details', project_id=project.id) }}"
+    method="post"
+    data-autosave-form
+    data-draft-scope="project:{{ project.public_id }}:workspace"
+  >
     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="revision" value="{{ project.revision }}" data-revision data-project-revision>
     <p class="eyebrow">Project</p>

@@ -63,6 +63,7 @@
             action="{{ url_for('tasks.update_task_details', task_id=highlight.id) }}"
             method="post"
             data-autosave-form
+            data-draft-scope="task:{{ highlight.public_id }}:inline"
             data-inline-edit="{{ highlight.id }}"
             hidden
           >

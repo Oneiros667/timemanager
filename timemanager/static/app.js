@@ -2,6 +2,132 @@
   "use strict";
   document.documentElement.classList.add("js");
 
+  const DRAFT_STORAGE_PREFIX = "timemanager-draft-v1:";
+  const DRAFT_TAB_STORAGE_KEY = "timemanager-draft-tab-v1";
+  const DRAFT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+  let fallbackDraftTabId = null;
+
+  const draftAccount = () => document.body.dataset.draftAccount || "";
+
+  const draftTabId = () => {
+    try {
+      let tabId = window.sessionStorage.getItem(DRAFT_TAB_STORAGE_KEY);
+      if (!tabId) {
+        tabId = window.crypto.randomUUID();
+        window.sessionStorage.setItem(DRAFT_TAB_STORAGE_KEY, tabId);
+      }
+      return tabId;
+    } catch (_error) {
+      fallbackDraftTabId ||= window.crypto.randomUUID();
+      return fallbackDraftTabId;
+    }
+  };
+
+  const draftScopePrefix = (scope) => {
+    const account = draftAccount();
+    return account && scope
+      ? `${DRAFT_STORAGE_PREFIX}${account}:${scope}:`
+      : null;
+  };
+
+  const draftKey = (scope) => {
+    const scopePrefix = draftScopePrefix(scope);
+    return scopePrefix ? `${scopePrefix}${draftTabId()}` : null;
+  };
+
+  const removeStoredDraft = (key) => {
+    if (!key) return;
+    try {
+      window.localStorage.removeItem(key);
+    } catch (_error) {
+      // Autosave remains usable when browser storage is unavailable.
+    }
+  };
+
+  const readStoredDraft = (key) => {
+    if (!key) return null;
+    try {
+      const serialized = window.localStorage.getItem(key);
+      if (!serialized) return null;
+      const draft = JSON.parse(serialized);
+      if (
+        draft.version !== 1
+        || !Number.isFinite(draft.savedAt)
+        || Date.now() - draft.savedAt > DRAFT_MAX_AGE_MS
+        || typeof draft.fields !== "object"
+        || draft.fields === null
+      ) {
+        removeStoredDraft(key);
+        return null;
+      }
+      return draft;
+    } catch (_error) {
+      removeStoredDraft(key);
+      return null;
+    }
+  };
+
+  const readNewestStoredDraft = (scope, preferredKey) => {
+    const scopePrefix = draftScopePrefix(scope);
+    if (!scopePrefix) return null;
+    try {
+      const candidates = [];
+      for (let index = 0; index < window.localStorage.length; index += 1) {
+        const key = window.localStorage.key(index);
+        if (!key?.startsWith(scopePrefix)) continue;
+        const draft = readStoredDraft(key);
+        if (draft) candidates.push({ key, draft });
+      }
+      return candidates.find(({ key }) => key === preferredKey)
+        || candidates.sort((left, right) => (
+          right.draft.savedAt - left.draft.savedAt
+        ))[0]
+        || null;
+    } catch (_error) {
+      return null;
+    }
+  };
+
+  const clearAccountDrafts = () => {
+    const accountPrefix = `${DRAFT_STORAGE_PREFIX}${draftAccount()}:`;
+    if (!draftAccount()) return;
+    try {
+      for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+        const key = window.localStorage.key(index);
+        if (key?.startsWith(accountPrefix)) {
+          window.localStorage.removeItem(key);
+        }
+      }
+    } catch (_error) {
+      // Sign-out still proceeds when browser storage is unavailable.
+    }
+  };
+
+  const pruneExpiredDrafts = () => {
+    try {
+      const keys = [];
+      for (let index = 0; index < window.localStorage.length; index += 1) {
+        const key = window.localStorage.key(index);
+        if (key?.startsWith(DRAFT_STORAGE_PREFIX)) {
+          keys.push(key);
+        }
+      }
+      keys.forEach((key) => readStoredDraft(key));
+    } catch (_error) {
+      // Autosave remains usable when browser storage is unavailable.
+    }
+  };
+
+  const setupDraftClearing = () => {
+    pruneExpiredDrafts();
+    document.querySelectorAll("form[data-clear-drafts]").forEach((form) => {
+      form.addEventListener("submit", () => {
+        document.body.dataset.draftsDiscarding = "true";
+        clearAccountDrafts();
+      });
+    });
+  };
+
   const registerServiceWorker = () => {
     if (document.body.classList.contains("prototype-page")) {
       return;
@@ -130,26 +256,131 @@
     document.querySelectorAll("[data-autosave-form]").forEach((form) => {
       const status = form.querySelector("[data-save-state]");
       const revision = form.querySelector("[data-revision]");
+      const storageKey = draftKey(form.dataset.draftScope);
+      let restoredSourceKey = null;
+      const fields = [...form.querySelectorAll(
+        "input:not([type=hidden]):not([type=submit]):not([type=button]), textarea, select",
+      )].filter((field) => field.name);
       let timer = null;
       let saving = false;
       let dirty = false;
       let changeVersion = 0;
+      let requiresExplicitSave = false;
 
-      const renderFailure = (message) => {
-        if (!status) return;
-        status.textContent = "";
-        const retry = document.createElement("button");
-        retry.type = "button";
-        retry.className = "text-button";
-        retry.textContent = `${message} — Retry`;
-        retry.addEventListener("click", () => save());
-        status.append(retry);
+      const captureFields = () => Object.fromEntries(
+        fields.map((field) => [
+          field.name,
+          field instanceof HTMLInputElement && field.type === "checkbox"
+            ? field.checked
+            : field.value,
+        ]),
+      );
+
+      const applyFields = (values) => {
+        fields.forEach((field) => {
+          if (!Object.hasOwn(values, field.name)) return;
+          if (field instanceof HTMLInputElement && field.type === "checkbox") {
+            field.checked = Boolean(values[field.name]);
+          } else if (typeof values[field.name] === "string") {
+            field.value = values[field.name];
+          }
+        });
       };
 
-      const save = async () => {
+      let savedFields = captureFields();
+
+      const persistDraft = () => {
+        if (!storageKey) return;
+        try {
+          window.localStorage.setItem(storageKey, JSON.stringify({
+            version: 1,
+            savedAt: Date.now(),
+            revision: Number(revision?.value || 0),
+            requiresExplicitSave,
+            fields: captureFields(),
+          }));
+        } catch (_error) {
+          // Network autosave remains the fallback when storage is unavailable.
+        }
+      };
+
+      const fieldsMatch = (left, right) => (
+        JSON.stringify(left) === JSON.stringify(right)
+      );
+
+      const clearDraft = ({ acknowledgedFields = null } = {}) => {
+        removeStoredDraft(storageKey);
+        if (!restoredSourceKey || restoredSourceKey === storageKey) return;
+        const sourceDraft = readStoredDraft(restoredSourceKey);
+        if (
+          acknowledgedFields
+          && sourceDraft
+          && fieldsMatch(sourceDraft.fields, acknowledgedFields)
+        ) {
+          removeStoredDraft(restoredSourceKey);
+        }
+      };
+
+      const renderActions = (message, actions) => {
+        if (!status) return;
+        status.textContent = `${message} `;
+        actions.forEach(({ label, run }) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "text-button";
+          button.textContent = label;
+          button.addEventListener("click", run);
+          status.append(button);
+        });
+      };
+
+      const renderFailure = (message) => {
+        renderActions("", [{
+          label: `${message} — Retry`,
+          run: () => save(),
+        }]);
+      };
+
+      const discardDraft = () => {
+        window.clearTimeout(timer);
+        applyFields(savedFields);
+        clearDraft();
+        removeStoredDraft(restoredSourceKey);
+        dirty = false;
+        saving = false;
+        requiresExplicitSave = false;
+        if (status) status.textContent = "Saved";
+      };
+
+      const renderConflict = (currentTitle = "") => {
+        const currentCopy = currentTitle
+          ? ` Current saved title: “${currentTitle}”.`
+          : "";
+        renderActions(
+          `Saved version changed.${currentCopy} Draft restored but not saved.`,
+          [
+            {
+              label: "Save this draft",
+              run: () => {
+                requiresExplicitSave = false;
+                persistDraft();
+                save({ explicit: true });
+              },
+            },
+            { label: "Discard draft", run: discardDraft },
+          ],
+        );
+      };
+
+      const save = async ({ explicit = false } = {}) => {
         window.clearTimeout(timer);
         if (saving || !dirty) return;
+        if (requiresExplicitSave && !explicit) {
+          renderConflict();
+          return;
+        }
         const savingVersion = changeVersion;
+        const submittedFields = captureFields();
         saving = true;
         if (status) status.textContent = "Saving…";
         try {
@@ -164,10 +395,12 @@
           const result = await response.json();
           if (response.status === 409) {
             if (revision) revision.value = String(result.revision);
-            const currentValue = result.current?.title
-              ? ` Current saved title: “${result.current.title}”.`
-              : "";
-            renderFailure(`Saved version changed.${currentValue}`);
+            if (result.current && typeof result.current === "object") {
+              savedFields = { ...savedFields, ...result.current };
+            }
+            requiresExplicitSave = true;
+            persistDraft();
+            renderConflict(result.current?.title || "");
             return;
           }
           if (!response.ok) throw new Error("save failed");
@@ -183,24 +416,65 @@
             });
           }
           dirty = changeVersion !== savingVersion;
+          requiresExplicitSave = false;
+          savedFields = submittedFields;
+          if (dirty) {
+            persistDraft();
+          } else {
+            clearDraft({ acknowledgedFields: submittedFields });
+          }
           if (status) status.textContent = dirty ? "Unsaved" : "Saved";
         } catch (_error) {
+          persistDraft();
           renderFailure("Couldn’t save");
         } finally {
           saving = false;
-          if (dirty && changeVersion !== savingVersion) {
+          if (
+            dirty
+            && changeVersion !== savingVersion
+            && !requiresExplicitSave
+          ) {
             timer = window.setTimeout(save, 750);
           }
         }
       };
 
-      form.querySelectorAll("input:not([type=hidden]), textarea").forEach((field) => {
+      const storedCandidate = readNewestStoredDraft(
+        form.dataset.draftScope,
+        storageKey,
+      );
+      const storedDraft = storedCandidate?.draft;
+      if (storedDraft) {
+        restoredSourceKey = storedCandidate.key;
+        applyFields(storedDraft.fields);
+        form.hidden = false;
+        dirty = true;
+        changeVersion = 1;
+        const currentRevision = Number(revision?.value || 0);
+        requiresExplicitSave = Boolean(storedDraft.requiresExplicitSave)
+          || storedDraft.revision !== currentRevision;
+        if (requiresExplicitSave) {
+          renderConflict();
+        } else {
+          renderActions(
+            "Unsaved draft restored.",
+            [{ label: "Save now", run: () => save({ explicit: true }) }],
+          );
+        }
+      }
+
+      fields.forEach((field) => {
         field.addEventListener("input", () => {
           changeVersion += 1;
           dirty = true;
-          if (status) status.textContent = "Unsaved";
+          persistDraft();
           window.clearTimeout(timer);
-          timer = window.setTimeout(save, 750);
+          if (requiresExplicitSave) {
+            renderConflict();
+          } else {
+            if (status) status.textContent = "Unsaved";
+            timer = window.setTimeout(save, 750);
+          }
         });
         field.addEventListener("blur", save);
       });
@@ -208,7 +482,17 @@
         event.preventDefault();
         changeVersion += 1;
         dirty = true;
-        save();
+        persistDraft();
+        save({ explicit: true });
+      });
+      window.addEventListener("beforeunload", (event) => {
+        if (
+          (dirty || saving)
+          && document.body.dataset.draftsDiscarding !== "true"
+        ) {
+          event.preventDefault();
+          event.returnValue = "";
+        }
       });
     });
   };
@@ -414,6 +698,7 @@
 
   registerServiceWorker();
   setupFlashes();
+  setupDraftClearing();
   setupLowCapacityMode();
   setupCaptureShortcut();
   setupConfirmations();
