@@ -2,12 +2,12 @@
 
 Status: proposed product direction
 
-Updated: 2026-07-24
+Updated: 2026-07-28
 
 ## Implementation status
 
 Timemanager is currently a **partial Phase 1 local pilot**. The application
-implements registration/login, local SQLite task persistence, Today and Inbox
+implements registration/login, local SQLite task persistence, Today and Later
 capture, one daily highlight, completion/restoring, deliberate dropping, a Low
 Capacity view, and a client-side focus timer. Persistence now uses SQLAlchemy
 Core and ordered Alembic revisions with stable public identifiers, installation
@@ -17,10 +17,14 @@ explicit existing local account with idempotent revision handling. Today now
 enforces one highlight plus at most three optional active actions, with excess
 assigned tasks retained as explicit, user-controlled overflow.
 
+Task detail, ordered components, lightweight projects, preferred task order,
+prerequisites, external waits, next-ready computation, and separate Today
+placement are now implemented as a local-pilot slice. Its synthetic prototype
+and evaluation materials exist, but no participant findings have been recorded.
 Self-service restore and credential recovery, Google Calendar, assisted
 planning for guardians and trusted people, the Phase 3 hosted release,
 local-to-online migration, AI, and native mobile applications remain
-unimplemented. The phases below describe intended scope, not shipped behavior.
+unimplemented.
 
 ### Canonical milestones and statuses
 
@@ -48,8 +52,8 @@ Delivery status and validation evidence are separate:
   not been linked.
 
 An implementation status does not establish that a product hypothesis has been
-validated with users. No Phase 0 interview, prototype, or usability artifact is
-currently recorded in this repository, so Phase 0 evidence is Unverified.
+validated with users. A synthetic complex-work prototype is recorded, but its
+five-participant gate has not been run, so Phase 0 evidence remains Unverified.
 
 ## Purpose
 
@@ -174,7 +178,7 @@ hours logged, streak length, and app-open frequency are not primary outcomes.
 ## Product principles
 
 1. **Capture first, classify later.** Only a title is required to save.
-2. **One home, several views.** Inbox, Today, Low Capacity, and Review are views
+2. **One home, several views.** Today, Later, Low Capacity, and Review are views
    over the same objects.
 3. **The present is deliberately small.** The active plan is not the backlog.
 4. **Fixed commitments remain visible.** Capacity can change the plan but does
@@ -421,11 +425,11 @@ The Phase 3 hosted release has four primary destinations:
 | Area | Purpose |
 |---|---|
 | Today | Orient, choose, launch, transition, and recover |
-| Inbox | Clarify captured items in a short, bounded queue |
+| Later | Clarify captured items and find work outside Today |
 | Review | Revisit deferred work and run the weekly learning loop |
 | Settings | Calendar, cues, accessibility, privacy, data, and optional integrations |
 
-Task detail and Focus are contextual views reached from Today, Inbox, or Review.
+Task detail and Focus are contextual views reached from Today, Later, or Review.
 Projects are initially lightweight outcome groupings inside task detail, not a
 separate dashboard. Search is a utility, not a fifth place the user must check.
 
@@ -435,10 +439,13 @@ Statuses describe the current repository, not the intended milestone scope.
 
 | Capability | Target milestone | Current status | Later extension | Confidence |
 |---|---|---|---|---|
-| Universal text capture and inbox | Phase 1 | Implemented | Voice, widget, watch, share-sheet | Supported foundation |
+| Universal text capture and task clarification | Phase 1 | Implemented | Voice, widget, watch, share-sheet | Supported foundation |
 | Today timeline with fixed commitments | Phase 1 | Partial | Multi-calendar reconciliation | Supported foundation |
 | Highlight plus small active plan | Phase 1 | Implemented | Learned capacity limit | Supported method; plausible interface |
-| Manual next action and definition of done | Phase 1 | Not started | Suggested decomposition | Supported foundation |
+| Three-item Remember cues | Phase 1 | Implemented | Usability validation | Plausible context-switching aid |
+| Manual next action and definition of done | Phase 1 | Partial | Suggested decomposition | Supported foundation |
+| Short task components and lightweight projects | Phase 1 | Partial | Richer project views | Supported decomposition; plausible interface |
+| Dependencies and external waiting | Phase 1 | Partial | Richer dependency analysis | Supported readiness question; plausible state model |
 | Flexible focus session | Phase 1 | Partial | Stronger blocking and AI body doubling | Supported elements; experiential options |
 | Assisted planning | Phase 2 | Blocked by Phase 1 | Richer household and support controls | Plausible/experiential; privacy-sensitive |
 | Transition and leave-by cues | Phase 1 | Not started | Location/event-triggered cues | Plausible interface |
@@ -457,9 +464,15 @@ Statuses describe the current repository, not the intended milestone scope.
 ### Entities
 
 - **Capture item:** original input, source, timestamp, and clarification state.
-- **Task:** title, next action, definition of done, state, consequence, true
-  deadline, estimate range, context, capacity fit, value link, and provenance.
-- **Project/outcome:** optional grouping with a desired outcome and next task.
+- **Task:** title, next action, definition of done, workflow status, Today
+  placement, consequence, true deadline, estimate range, context, capacity fit,
+  value link, dependencies, external waiting, and provenance.
+- **Task component:** an optional short checklist step that cannot contain
+  components or dependencies and does not independently enter Today.
+- **Project/outcome:** optional shallow grouping with a desired outcome,
+  preferred task order, and one next-ready task.
+- **Task dependency:** an account-owned prerequisite relationship, distinct
+  from preferred order and from external waiting.
 - **Commitment:** fixed time interval, source calendar, preparation/leave-by
   boundaries, and sync provenance.
 - **Daily plan:** date, highlight, selected actions, capacity mode, and explicit
@@ -496,7 +509,7 @@ Statuses describe the current repository, not the intended milestone scope.
 ### Task states
 
 ```text
-Inbox -> Ready -> Active -> Done
+Captured -> Ready -> Active -> Done
            |        |
            v        v
         Waiting   Paused
@@ -573,7 +586,7 @@ every feature:
 - **Protected:** user-designated essential reminders, selected appointments,
   travel, or real deadlines; may use staged interruptive cues.
 - **Actionable:** starts, transitions, and review prompts; grouped and limited.
-- **Ambient:** inbox counts, suggestions, and weekly patterns; visible in-app,
+- **Ambient:** Later counts, suggestions, and weekly patterns; visible in-app,
   not interruptive by default.
 
 Privacy is selected separately:
@@ -798,7 +811,9 @@ signals, not acceptable costs of higher task completion.
 - text capture and inbox;
 - manually entered commitments;
 - Today, highlight, and small active plan;
-- task next action and definition of done;
+- task detail, next action, definition of done, and short components;
+- lightweight projects, preferred ordering, prerequisites, external waiting,
+  and one next-ready task;
 - local focus session and transition protection;
 - Low Capacity and Reset;
 - basic optional estimate-versus-actual recording;

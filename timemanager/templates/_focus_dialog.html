@@ -1,0 +1,19 @@
+<dialog class="focus-dialog" id="focus-dialog" aria-labelledby="focus-title">
+  <div class="focus-dialog-inner">
+    <button class="dialog-close" type="button" data-focus-close aria-label="Close focus timer">×</button>
+    <p class="eyebrow">One thing at a time</p>
+    <h2 id="focus-title" data-focus-title>Focus session</h2>
+    <p class="focus-intention">For now, this is the only task that matters.</p>
+    <div class="timer-display" data-timer-display aria-live="polite">05:00</div>
+    <div class="duration-options" aria-label="Focus duration">
+      <button type="button" data-duration="5" aria-pressed="true">5 min</button>
+      <button type="button" data-duration="15" aria-pressed="false">15 min</button>
+      <button type="button" data-duration="25" aria-pressed="false">25 min</button>
+    </div>
+    <div class="focus-controls">
+      <button class="primary-button" type="button" data-timer-toggle>Start</button>
+      <button class="secondary-button" type="button" data-timer-reset>Reset</button>
+    </div>
+    <p class="timer-note" data-timer-note>Starting is the win.</p>
+  </div>
+</dialog>

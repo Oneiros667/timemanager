@@ -16,7 +16,7 @@ from timemanager.database_migrations import (
     head_revision,
     upgrade_database,
 )
-from timemanager.models import installations, tasks, users
+from timemanager.models import installations, remember_items, tasks, users
 
 
 SCHEMA_V1 = Path(__file__).with_name("fixtures") / "schema_v1.sql"
@@ -32,7 +32,7 @@ def test_fresh_database_upgrades_to_head_and_is_idempotent(tmp_path):
     engine = _engine(tmp_path / "fresh.sqlite3")
 
     upgrade_database(engine)
-    assert current_revision(engine) == head_revision() == "0003"
+    assert current_revision(engine) == head_revision() == "0006"
 
     with engine.connect() as connection:
         installation = connection.execute(sa.select(installations)).mappings().one()
@@ -46,6 +46,21 @@ def test_fresh_database_upgrades_to_head_and_is_idempotent(tmp_path):
             connection.execute(sa.select(installations.c.public_id)).scalar_one()
             == original_public_id
         )
+
+
+@pytest.mark.parametrize(
+    "starting_revision",
+    ["0001", "0002", "0003", "0004", "0005"],
+)
+def test_every_supported_revision_upgrades_to_head(tmp_path, starting_revision):
+    engine = _engine(tmp_path / f"from-{starting_revision}.sqlite3")
+    upgrade_database(engine, starting_revision)
+    assert current_revision(engine) == starting_revision
+
+    upgrade_database(engine)
+
+    assert current_revision(engine) == "0006"
+    assert sa.inspect(engine).has_table(remember_items.name)
 
 
 def test_exact_legacy_database_is_stamped_upgraded_and_preserved(tmp_path):
@@ -80,7 +95,7 @@ def test_exact_legacy_database_is_stamped_upgraded_and_preserved(tmp_path):
     engine = _engine(database_path)
     upgrade_database(engine)
 
-    assert current_revision(engine) == "0003"
+    assert current_revision(engine) == "0006"
     backups = list(tmp_path.glob("legacy.sqlite3.pre-migration-unversioned-*.bak"))
     assert len(backups) == 1
     backup = sqlite3.connect(backups[0])
@@ -109,7 +124,11 @@ def test_exact_legacy_database_is_stamped_upgraded_and_preserved(tmp_path):
     assert task["user_id"] == 7
     assert task["title"] == "Preserve this task"
     assert task["notes"] == "Original note"
+    assert task["next_action"] == ""
+    assert task["definition_of_done"] == ""
     assert task["state"] == "done"
+    assert task["workflow_status"] == "done"
+    assert task["today_placement"] == "unplanned"
     assert task["planned_date"] == "2026-07-20"
     assert task["completed_at"] == "2026-07-20T09:00:00"
     assert task["origin_installation_id"] == installation["id"]
@@ -192,9 +211,13 @@ def test_revision_0003_limits_existing_active_today_options(tmp_path):
     with engine.connect() as connection:
         rows = (
             connection.execute(
-                sa.select(tasks.c.title, tasks.c.state, tasks.c.is_highlight).order_by(
-                    tasks.c.id
-                )
+                sa.select(
+                    tasks.c.title,
+                    tasks.c.state,
+                    tasks.c.workflow_status,
+                    tasks.c.today_placement,
+                    tasks.c.is_highlight,
+                ).order_by(tasks.c.id)
             )
             .mappings()
             .all()
@@ -207,6 +230,81 @@ def test_revision_0003_limits_existing_active_today_options(tmp_path):
         "active",
         "ready",
     ]
+    assert all(row["workflow_status"] == "open" for row in rows)
+    assert [row["today_placement"] for row in rows] == [
+        "active",
+        "active",
+        "active",
+        "active",
+        "overflow",
+    ]
+
+
+def test_revision_0005_maps_each_legacy_task_state_without_moving_today(tmp_path):
+    engine = _engine(tmp_path / "complex-state.sqlite3")
+    upgrade_database(engine, "0004")
+    with engine.begin() as connection:
+        installation_id = connection.execute(
+            sa.select(installations.c.id)
+        ).scalar_one()
+        user_id = connection.execute(
+            sa.insert(users)
+            .values(
+                public_id="33333333-3333-4333-8333-333333333333",
+                origin_installation_id=installation_id,
+                display_name="Alex",
+                email="alex@example.com",
+                password_hash="hash",
+            )
+            .returning(users.c.id)
+        ).scalar_one()
+        connection.execute(
+            sa.insert(tasks),
+            [
+                {
+                    "public_id": f"44444444-4444-4444-8444-{index:012d}",
+                    "origin_installation_id": installation_id,
+                    "user_id": user_id,
+                    "title": state,
+                    "state": state,
+                    "planned_date": "2026-07-28" if state in ("active", "ready") else None,
+                    "is_highlight": state == "active",
+                }
+                for index, state in enumerate(
+                    ("inbox", "active", "ready", "done", "dropped"),
+                    start=1,
+                )
+            ],
+        )
+
+    upgrade_database(engine)
+
+    with engine.connect() as connection:
+        rows = (
+            connection.execute(
+                sa.select(
+                    tasks.c.state,
+                    tasks.c.workflow_status,
+                    tasks.c.today_placement,
+                    tasks.c.planned_date,
+                    tasks.c.is_highlight,
+                ).order_by(tasks.c.id)
+            )
+            .mappings()
+            .all()
+        )
+    assert [
+        (row["state"], row["workflow_status"], row["today_placement"])
+        for row in rows
+    ] == [
+        ("inbox", "inbox", "unplanned"),
+        ("active", "open", "active"),
+        ("ready", "open", "overflow"),
+        ("done", "done", "unplanned"),
+        ("dropped", "dropped", "unplanned"),
+    ]
+    assert rows[1]["planned_date"] == rows[2]["planned_date"] == "2026-07-28"
+    assert rows[1]["is_highlight"] is True
 
 
 def test_unrecognized_unversioned_database_fails_closed(tmp_path):
@@ -333,4 +431,4 @@ def test_schema_version_command_reports_current_and_latest(runner):
     result = runner.invoke(args=["schema-version"])
 
     assert result.exit_code == 0
-    assert result.output.strip() == "0003 (latest: 0003)"
+    assert result.output.strip() == "0006 (latest: 0006)"

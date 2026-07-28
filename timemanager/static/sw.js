@@ -1,9 +1,9 @@
-const CACHE_NAME = "timemanager-shell-v3";
+const CACHE_NAME = "timemanager-shell-v6";
 const SHELL_ASSETS = [
   "/offline",
   "/manifest.webmanifest",
-  "/static/styles.css",
-  "/static/app.js",
+  "/static/styles.css?v=6",
+  "/static/app.js?v=6",
   "/static/icons/icon.svg",
   "/static/icons/icon-192.png",
   "/static/icons/icon-512.png"
@@ -46,7 +46,15 @@ self.addEventListener("fetch", (event) => {
 
   if (requestUrl.pathname.startsWith("/static/") || requestUrl.pathname === "/manifest.webmanifest") {
     event.respondWith(
-      caches.match(event.request).then((cached) => cached || fetch(event.request))
+      fetch(event.request)
+        .then(async (response) => {
+          if (response.ok) {
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(event.request, response.clone());
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
     );
   }
 });

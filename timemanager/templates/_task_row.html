@@ -7,8 +7,16 @@
   </form>
 
   <div class="task-copy">
-    <p>{{ task.title }}</p>
-    <span>Ready when you are</span>
+    <p><a class="task-title-link" href="{{ url_for('tasks.task_detail', task_id=task.id, return_to=request.full_path) }}">{{ task.title }}</a></p>
+    <span>
+      {% if task.blocker_summary %}{{ task.blocker_summary }}
+      {% elif task.next_action %}Next: {{ task.next_action }}
+      {% elif task.project_title %}Project: {{ task.project_title }}
+      {% else %}Ready when you are{% endif %}
+    </span>
+    {% if request.args.get('created') == task.id|string %}
+      <a class="text-button" href="{{ url_for('tasks.task_detail', task_id=task.id, return_to=request.full_path) }}">Add details</a>
+    {% endif %}
   </div>
 
   <div class="task-actions">
@@ -28,11 +36,12 @@
     >
       Focus
     </button>
-    <form action="{{ url_for('tasks.move_to_inbox', task_id=task.id) }}" method="post">
+    <button class="quiet-button compact-button" type="button" data-inline-edit-toggle="{{ task.id }}">Edit</button>
+    <form action="{{ url_for('tasks.move_to_later', task_id=task.id) }}" method="post">
       <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-      <button class="quiet-button compact-button" type="submit">Later</button>
+      <button class="quiet-button compact-button" type="submit">Move to Later</button>
     </form>
-    <form action="{{ url_for('tasks.drop_task', task_id=task.id) }}" method="post">
+    <form action="{{ url_for('tasks.drop_task', task_id=task.id) }}" method="post" data-confirm="Drop this task? You can still recover it from the database or an export, but it leaves the active views.">
       <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
       <button class="icon-button" type="submit" title="Deliberately drop this task">
         <span aria-hidden="true">×</span>
@@ -40,4 +49,21 @@
       </button>
     </form>
   </div>
+  <form
+    class="inline-task-editor"
+    action="{{ url_for('tasks.update_task_details', task_id=task.id) }}"
+    method="post"
+    data-autosave-form
+    data-inline-edit="{{ task.id }}"
+    hidden
+  >
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="revision" value="{{ task.revision }}" data-revision>
+    <label>Task <input name="title" maxlength="180" value="{{ task.title }}" required></label>
+    <label>Next action <input name="next_action" maxlength="500" value="{{ task.next_action }}"></label>
+    <input type="hidden" name="definition_of_done" value="{{ task.definition_of_done }}">
+    <input type="hidden" name="notes" value="{{ task.notes }}">
+    <button class="secondary-button compact-button no-js-save" type="submit">Save</button>
+    <span class="save-state" aria-live="polite" data-save-state></span>
+  </form>
 </article>

@@ -39,6 +39,8 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         SESSION_COOKIE_SAMESITE="Lax",
         SESSION_COOKIE_SECURE=False,
         MAX_CONTENT_LENGTH=64 * 1024,
+        ENABLE_PROTOTYPES=os.environ.get("TIMEMANAGER_ENABLE_PROTOTYPES") == "1",
+        STATIC_ASSET_VERSION="6",
     )
 
     if test_config is None:
@@ -46,12 +48,14 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     else:
         app.config.update(test_config)
 
-    from . import account_transfer, auth, db, tasks
+    from . import account_transfer, auth, db, prototype, remember, tasks
 
     db.init_app(app)
     account_transfer.init_app(app)
     app.register_blueprint(auth.blueprint)
     app.register_blueprint(tasks.blueprint)
+    app.register_blueprint(remember.blueprint)
+    app.register_blueprint(prototype.blueprint)
 
     with app.app_context():
         db.init_db()
@@ -74,7 +78,10 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
                 session["_csrf_token"] = token
             return token
 
-        return {"csrf_token": csrf_token}
+        return {
+            "asset_version": app.config["STATIC_ASSET_VERSION"],
+            "csrf_token": csrf_token,
+        }
 
     @app.after_request
     def secure_response(response):

@@ -13,7 +13,7 @@ design specifies one highlight plus up to three optional active actions by
 default.
 
 Hard rejection would make quick capture fragile, while silently moving excess
-tasks to Inbox or automatically promoting another task when space opens would
+tasks outside Today or automatically promoting another task when space opens would
 change the user's plan without an explicit choice. Existing databases and
 versioned imports can also contain more assigned tasks than the new active
 limit.
@@ -34,7 +34,7 @@ limit.
 - Do not promote overflow automatically when a slot opens.
 - Let the user:
   - activate an overflow task when a slot is available;
-  - save an active, highlighted, or overflow task back to Inbox;
+  - move an active, highlighted, or overflow task to Later;
   - make an active or overflow task the highlight;
   - complete or deliberately drop active tasks as before.
 - If an overflow task replaces the highlight while all optional slots are

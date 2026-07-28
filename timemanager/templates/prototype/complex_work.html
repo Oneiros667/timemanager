@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Complex-work prototype · Timemanager{% endblock %}
+{% block body_class %}prototype-page{% endblock %}
+
+{% block content %}
+  <section class="prototype-banner" role="note">
+    <div>
+      <p class="eyebrow">Synthetic prototype</p>
+      <h1>Complex work, without the project-management overhead</h1>
+      <p>No data is saved. Reset at any time.</p>
+    </div>
+    <div class="focus-controls">
+      <button class="quiet-button" type="button" aria-pressed="false" data-prototype-low-capacity>Low capacity</button>
+      <button class="secondary-button" type="button" data-prototype-reset>Reset scenario</button>
+    </div>
+  </section>
+
+  <nav class="prototype-tabs" aria-label="Prototype views">
+    <button type="button" aria-pressed="true" data-prototype-view="today">Today</button>
+    <button type="button" aria-pressed="false" data-prototype-view="task">Task</button>
+    <button type="button" aria-pressed="false" data-prototype-view="project">Project</button>
+  </nav>
+
+  <div class="prototype-status sr-only" aria-live="polite" data-prototype-status></div>
+
+  <section data-prototype-panel="today">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">One meaningful win</p>
+        <h2>Today</h2>
+      </div>
+    </div>
+    <form class="capture-form" data-prototype-capture>
+      <label>
+        <span class="sr-only">What do you need to remember?</span>
+        <input name="title" maxlength="180" placeholder="What do you need to remember?" autocomplete="off" required>
+      </label>
+      <button class="secondary-button" type="submit">Add to Later</button>
+    </form>
+    <div data-prototype-captured></div>
+    <article class="task-row prototype-task-row">
+      <button class="task-check" type="button" aria-label="Complete Prepare tax return">
+        <span aria-hidden="true"></span>
+      </button>
+      <div class="task-copy">
+        <button class="prototype-title-link" type="button" data-open-task>Prepare tax return</button>
+        <span data-today-secondary>Next: Download the bank statements</span>
+      </div>
+      <div class="task-actions">
+        <button class="secondary-button compact-button" type="button" data-inline-edit>Edit</button>
+        <button class="primary-button compact-button" type="button">Focus</button>
+      </div>
+      <form class="prototype-inline-editor" data-inline-editor hidden>
+        <label>
+          <span>Task</span>
+          <input name="title" maxlength="180" value="Prepare tax return">
+        </label>
+        <label>
+          <span>Next action</span>
+          <input name="next_action" value="Download the bank statements">
+        </label>
+        <button class="secondary-button compact-button" type="submit">Save</button>
+        <span class="save-state" aria-live="polite" data-inline-save-state></span>
+      </form>
+    </article>
+    <article class="task-row prototype-task-row is-blocked low-capacity-secondary">
+      <span class="status-symbol" aria-hidden="true">○</span>
+      <div class="task-copy">
+        <button class="prototype-title-link" type="button" data-open-task>Submit the return</button>
+        <span>Needs: Review the figures</span>
+      </div>
+      <div class="task-actions">
+        <button class="quiet-button compact-button" type="button" data-keep-blocked>Keep here</button>
+        <button class="quiet-button compact-button" type="button" data-replace-blocked>Replace</button>
+        <button class="quiet-button compact-button" type="button" data-remove-today-blocker>Remove blocker</button>
+        <button class="quiet-button compact-button" type="button" data-open-task>View blocker</button>
+      </div>
+    </article>
+  </section>
+
+  <section data-prototype-panel="task" hidden>
+    <button class="text-button prototype-back" type="button" data-prototype-view="today">← Back to Today</button>
+    <div class="workspace-heading">
+      <div>
+        <p class="eyebrow">Task workspace</p>
+        <label class="workspace-title">
+          <span class="sr-only">Task title</span>
+          <input value="Prepare tax return" maxlength="180" data-prototype-title>
+        </label>
+        <span class="save-state" aria-live="polite" data-save-state>Saved</span>
+      </div>
+    </div>
+
+    <section class="workspace-card start-card">
+      <p class="eyebrow">Start here</p>
+      <label>
+        <span>Next action</span>
+        <input value="Download the bank statements" data-prototype-next>
+      </label>
+      <label>
+        <span>Done means</span>
+        <textarea rows="2" data-prototype-done>All statements are saved in the tax folder.</textarea>
+      </label>
+      <button class="secondary-button compact-button no-js-save" type="button">Save</button>
+    </section>
+
+    <section class="workspace-card">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Small, visible starts</p>
+          <h2>Steps</h2>
+        </div>
+      </div>
+      <ol class="component-list" data-prototype-steps>
+        <li>
+          <button type="button" aria-label="Mark Sign in to the bank complete">○</button>
+          <span>Sign in to the bank</span>
+          <span class="reorder-controls">
+            <button type="button" aria-label="Move Sign in to the bank down">↓</button>
+          </span>
+        </li>
+        <li>
+          <button type="button" aria-label="Mark Select every account complete">○</button>
+          <span>Select every account</span>
+          <span class="reorder-controls">
+            <button type="button" aria-label="Move Select every account up">↑</button>
+            <button type="button" aria-label="Move Select every account down">↓</button>
+          </span>
+        </li>
+        <li>
+          <button type="button" aria-label="Mark Save the PDFs complete">○</button>
+          <span>Save the PDFs</span>
+          <span class="reorder-controls">
+            <button type="button" aria-label="Move Save the PDFs up">↑</button>
+            <button type="button" data-promote-step>Turn into a task</button>
+          </span>
+        </li>
+      </ol>
+      <form class="rapid-entry" data-step-form>
+        <label>
+          <span class="sr-only">Add another step</span>
+          <input name="step" maxlength="180" placeholder="Add a step, then press Enter" autocomplete="off">
+        </label>
+        <button class="secondary-button compact-button" type="submit">Add step</button>
+      </form>
+    </section>
+
+    <details class="workspace-card">
+      <summary>Project</summary>
+      <p>Part of <button class="text-button" type="button" data-open-project>Submit the 2026 tax return</button></p>
+    </details>
+
+    <details class="workspace-card" data-blocker-card>
+      <summary>Needs and waiting</summary>
+      <div data-blocker-summary>
+        <p>No blocker. This task is ready.</p>
+        <button class="secondary-button compact-button" type="button" data-add-blocker>Add blocker</button>
+      </div>
+      <form class="blocker-form" data-blocker-form hidden>
+        <fieldset>
+          <legend>What is holding this up?</legend>
+          <label><input type="radio" name="kind" value="task" checked> Needs another task first</label>
+          <label><input type="radio" name="kind" value="external"> Waiting for someone or something</label>
+        </fieldset>
+        <label>
+          <span>Task or waiting reason</span>
+          <input name="reason" value="Review the figures">
+        </label>
+        <button class="primary-button compact-button" type="submit">Add blocker</button>
+      </form>
+    </details>
+
+    <div class="workspace-actions">
+      <button class="primary-button" type="button">Start focus</button>
+      <button class="secondary-button" type="button">Complete</button>
+      <button class="quiet-button" type="button">Add to Today</button>
+    </div>
+  </section>
+
+  <section data-prototype-panel="project" hidden>
+    <button class="text-button prototype-back" type="button" data-prototype-view="task">← Back to task</button>
+    <div class="workspace-heading">
+      <div>
+        <p class="eyebrow">Project</p>
+        <label class="workspace-title">
+          <span class="sr-only">Project title</span>
+          <input value="Submit the 2026 tax return" data-prototype-project-title>
+        </label>
+        <label class="outcome-field">
+          <span>Outcome</span>
+          <textarea rows="2" data-prototype-outcome>Return submitted and confirmation saved.</textarea>
+        </label>
+        <span class="save-state" aria-live="polite" data-project-save-state>Saved</span>
+      </div>
+    </div>
+
+    <article class="workspace-card next-ready-card">
+      <p class="eyebrow">Next ready</p>
+      <h2 data-next-ready>Download the bank statements</h2>
+      <button class="primary-button compact-button" type="button" data-complete-prerequisite>Complete this task</button>
+    </article>
+
+    <form class="rapid-entry workspace-card" data-project-task-form>
+      <label>
+        <span>Add project task</span>
+        <input name="task" maxlength="180" placeholder="Type a task, then press Enter" autocomplete="off">
+      </label>
+      <button class="secondary-button compact-button" type="submit">Add task</button>
+    </form>
+
+    <section class="project-group">
+      <h2>Ready</h2>
+      <div class="project-task-list" data-project-ready>
+        <article>
+          <span>Download the bank statements</span>
+          <span class="reorder-controls"><button type="button" aria-label="Move down">↓</button></span>
+        </article>
+        <article>
+          <span>Gather invoices</span>
+          <span class="reorder-controls"><button type="button" aria-label="Move up">↑</button></span>
+        </article>
+      </div>
+    </section>
+    <section class="project-group low-capacity-secondary">
+      <h2>Waiting</h2>
+      <div class="project-task-list" data-project-waiting>
+        <article>
+          <span>Submit the return</span>
+          <small>Needs: Review the figures</small>
+          <button class="quiet-button compact-button" type="button" data-remove-blocker>Can start anyway</button>
+        </article>
+        <article>
+          <span>Confirm supporting documents</span>
+          <small>Waiting for the accountant · review Friday</small>
+        </article>
+      </div>
+    </section>
+    <section class="project-group low-capacity-secondary">
+      <h2>Done</h2>
+      <div class="project-task-list"><article><span>Find last year's return</span></article></div>
+    </section>
+  </section>
+
+  <dialog class="confirm-dialog" data-promotion-dialog aria-labelledby="promotion-title">
+    <form method="dialog">
+      <h2 id="promotion-title">Turn this step into a task?</h2>
+      <p>“Save the PDFs” will become a project task after the current task and can have its own Today placement and blockers.</p>
+      <div class="focus-controls">
+        <button class="primary-button" value="confirm" data-confirm-promotion>Turn into a task</button>
+        <button class="secondary-button" value="cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="{{ url_for('static', filename='prototype-complex-work.js', v=asset_version) }}" defer></script>
+{% endblock %}

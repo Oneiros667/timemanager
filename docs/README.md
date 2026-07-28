@@ -14,6 +14,12 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
 - [Documentation review and next steps](documentation-review-and-next-steps.md)
   records the current implementation gaps, decisions, ordered execution plan,
   and evidence gates used for project tracking.
+- [Task detail and complex-work requirements](task-detail-and-complex-work-requirements.md)
+  defines the Phase 1 task-detail, component, lightweight-project, ordering,
+  dependency, external-waiting, readiness, and Today-placement contracts.
+- [Complex-work prototype walkthrough](complex-work-prototype-walkthrough.md)
+  and [findings template](complex-work-prototype-findings-template.md) define
+  the synthetic formative-usability gate without claiming validation.
 - [Repeatable activity and execution-history requirements](repeatable-activity-history-requirements.md)
   defines Last Done tracking, exact answer semantics, schedules, execution
   history, shared reflection markers, task/calendar links, privacy, and
@@ -36,6 +42,9 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
 - [ADR 0005: Small active Today plan](decisions/0005-small-active-today-plan.md)
   records the highlight-plus-three capacity, active/overflow state semantics,
   explicit recovery actions, migration behavior, and import boundary.
+- [ADR 0006: Complex-work state and relationships](decisions/0006-complex-work-state-and-relationships.md)
+  records the shallow hierarchy, readiness/Today separation, preferred order,
+  prerequisite and external-wait rules, and v3 transfer boundary.
 - [ADHD time-management domain research](adhd-time-management-domain-research.md)
   synthesises clinical guidance, cognitive and motivational theories, tested
   behavioural methods, common "life hacks", and their implications for a

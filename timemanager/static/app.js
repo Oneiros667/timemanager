@@ -1,7 +1,11 @@
 (() => {
   "use strict";
+  document.documentElement.classList.add("js");
 
   const registerServiceWorker = () => {
+    if (document.body.classList.contains("prototype-page")) {
+      return;
+    }
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("/sw.js").catch(() => {
@@ -66,6 +70,223 @@
         event.preventDefault();
         capture.focus();
       }
+    });
+  };
+
+  const setupConfirmations = () => {
+    document.querySelectorAll("form[data-confirm]").forEach((form) => {
+      form.addEventListener("submit", (event) => {
+        if (!window.confirm(form.getAttribute("data-confirm") || "Continue?")) {
+          event.preventDefault();
+          return;
+        }
+        const fieldName = form.getAttribute("data-confirm-field");
+        if (fieldName && !form.elements.namedItem(fieldName)) {
+          const confirmation = document.createElement("input");
+          confirmation.type = "hidden";
+          confirmation.name = fieldName;
+          confirmation.value = "1";
+          form.append(confirmation);
+        }
+      });
+    });
+  };
+
+  const setupInlineEditors = () => {
+    document.querySelectorAll("[data-inline-edit-toggle]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const editor = document.querySelector(
+          `[data-inline-edit="${button.getAttribute("data-inline-edit-toggle")}"]`,
+        );
+        if (!editor) return;
+        editor.hidden = !editor.hidden;
+        if (!editor.hidden) {
+          editor.querySelector("input:not([type=hidden])")?.focus();
+        } else {
+          button.focus();
+        }
+      });
+    });
+  };
+
+  const setupDependencySearch = () => {
+    document.querySelectorAll("[data-dependency-search]").forEach((search) => {
+      const form = search.closest("form");
+      const select = form?.querySelector("select[name=prerequisite_task_id]");
+      if (!(select instanceof HTMLSelectElement)) return;
+      const options = [...select.options];
+      search.addEventListener("input", () => {
+        const query = search.value.trim().toLowerCase();
+        options.forEach((option, index) => {
+          option.hidden = index > 0 && !option.text.toLowerCase().includes(query);
+        });
+        const firstMatch = options.find((option, index) => index > 0 && !option.hidden);
+        if (query && firstMatch) select.value = firstMatch.value;
+      });
+    });
+  };
+
+  const setupAutosave = () => {
+    document.querySelectorAll("[data-autosave-form]").forEach((form) => {
+      const status = form.querySelector("[data-save-state]");
+      const revision = form.querySelector("[data-revision]");
+      let timer = null;
+      let saving = false;
+      let dirty = false;
+      let changeVersion = 0;
+
+      const renderFailure = (message) => {
+        if (!status) return;
+        status.textContent = "";
+        const retry = document.createElement("button");
+        retry.type = "button";
+        retry.className = "text-button";
+        retry.textContent = `${message} — Retry`;
+        retry.addEventListener("click", () => save());
+        status.append(retry);
+      };
+
+      const save = async () => {
+        window.clearTimeout(timer);
+        if (saving || !dirty) return;
+        const savingVersion = changeVersion;
+        saving = true;
+        if (status) status.textContent = "Saving…";
+        try {
+          const response = await window.fetch(form.action, {
+            method: "POST",
+            body: new FormData(form),
+            headers: {
+              Accept: "application/json",
+              "X-Requested-With": "fetch",
+            },
+          });
+          const result = await response.json();
+          if (response.status === 409) {
+            if (revision) revision.value = String(result.revision);
+            const currentValue = result.current?.title
+              ? ` Current saved title: “${result.current.title}”.`
+              : "";
+            renderFailure(`Saved version changed.${currentValue}`);
+            return;
+          }
+          if (!response.ok) throw new Error("save failed");
+          if (revision) revision.value = String(result.revision);
+          if (form.querySelector("[data-task-revision]")) {
+            document.querySelectorAll("[data-task-revision]").forEach((field) => {
+              field.value = String(result.revision);
+            });
+          }
+          if (form.querySelector("[data-project-revision]")) {
+            document.querySelectorAll("[data-project-revision]").forEach((field) => {
+              field.value = String(result.revision);
+            });
+          }
+          dirty = changeVersion !== savingVersion;
+          if (status) status.textContent = dirty ? "Unsaved" : "Saved";
+        } catch (_error) {
+          renderFailure("Couldn’t save");
+        } finally {
+          saving = false;
+          if (dirty && changeVersion !== savingVersion) {
+            timer = window.setTimeout(save, 750);
+          }
+        }
+      };
+
+      form.querySelectorAll("input:not([type=hidden]), textarea").forEach((field) => {
+        field.addEventListener("input", () => {
+          changeVersion += 1;
+          dirty = true;
+          if (status) status.textContent = "Unsaved";
+          window.clearTimeout(timer);
+          timer = window.setTimeout(save, 750);
+        });
+        field.addEventListener("blur", save);
+      });
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        changeVersion += 1;
+        dirty = true;
+        save();
+      });
+    });
+  };
+
+  const setupRapidEntry = () => {
+    document.querySelectorAll("[data-rapid-entry]").forEach((form) => {
+      const input = form.querySelector("input[name=title]");
+      const status = form.querySelector("[data-rapid-status]");
+      if (!input) return;
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const title = input.value.trim();
+        if (!title) return;
+        if (status) status.textContent = "Adding…";
+        try {
+          const response = await window.fetch(form.action, {
+            method: "POST",
+            body: new FormData(form),
+            headers: {
+              Accept: "application/json",
+              "X-Requested-With": "fetch",
+            },
+          });
+          if (!response.ok) throw new Error("add failed");
+          const result = await response.json();
+          if (result.task_revision) {
+            document.querySelectorAll("[data-task-revision]").forEach((field) => {
+              field.value = String(result.task_revision);
+            });
+          }
+          if (result.project_revision) {
+            document.querySelectorAll("[data-project-revision]").forEach((field) => {
+              field.value = String(result.project_revision);
+            });
+          }
+          input.value = "";
+          input.focus();
+          if (status) status.textContent = `Added “${title}”`;
+          let list = form.parentElement?.querySelector(".component-list")
+            || document.querySelector(".project-task-list");
+          if (list) {
+            if (list.matches(".component-list") && list.children.length >= 3) {
+              let overflow = form.parentElement?.querySelector("details[data-component-overflow]");
+              if (!overflow) {
+                overflow = document.createElement("details");
+                overflow.setAttribute("data-component-overflow", "");
+                const summary = document.createElement("summary");
+                const overflowList = document.createElement("ol");
+                overflowList.className = "component-list";
+                overflowList.start = 4;
+                overflow.append(summary, overflowList);
+                form.before(overflow);
+              }
+              list = overflow.querySelector(".component-list");
+              const summary = overflow.querySelector("summary");
+              if (summary) {
+                const count = list.children.length + 1;
+                summary.textContent = `${count} more ${count === 1 ? "step" : "steps"}`;
+              }
+            }
+            if (result.html && list.matches(".component-list")) {
+              list.insertAdjacentHTML("beforeend", result.html);
+            } else {
+              const item = document.createElement(list.tagName === "OL" ? "li" : "article");
+              item.className = "newly-added";
+              const copy = document.createElement("span");
+              copy.textContent = title;
+              item.append(copy);
+              list.append(item);
+            }
+          }
+        } catch (_error) {
+          if (status) status.textContent = "Couldn’t add — your text is still here";
+        }
+      });
+    });
+    document.querySelector("[data-focus-rapid-entry]")?.addEventListener("click", () => {
+      document.querySelector("[data-rapid-entry] input[name=title]")?.focus();
     });
   };
 
@@ -195,5 +416,10 @@
   setupFlashes();
   setupLowCapacityMode();
   setupCaptureShortcut();
+  setupConfirmations();
+  setupInlineEditors();
+  setupDependencySearch();
+  setupAutosave();
+  setupRapidEntry();
   setupFocusTimer();
 })();

@@ -2,7 +2,7 @@
 
 Status: active project tracking
 
-Updated: 2026-07-24
+Updated: 2026-07-28
 
 ## Purpose
 
@@ -26,9 +26,9 @@ evidence.
 
 No broken local Markdown links, anchors, or reference definitions were found in
 the review. The automated suite now covers server-side account isolation,
-schema upgrades, migration recovery, and export/import behavior, but it does
-not exercise the client-side timer, Low Capacity behavior, or service-worker
-behavior in a real browser.
+schema upgrades, migration recovery, export/import behavior, and
+representative real-browser complex-work flows. Complete timer and
+service-worker behavior still need broader browser coverage.
 
 ## Confirmed implementation baseline
 
@@ -45,12 +45,20 @@ The following behavior is implemented:
 - versioned account-scoped JSON export/import for the current profile and task
   model, with operator CLI commands, secret exclusion, provenance retention,
   and fail-closed revision conflicts;
-- capture to Today or Inbox;
+- capture to Today or Later;
+- a separate three-item Remember list for short-term context-switching cues;
 - one changeable daily highlight and at most three optional active Today
   actions;
 - explicit recoverable Today overflow with user-controlled activation,
   highlight replacement, and save-for-later actions;
 - task completion, restoration, deliberate dropping, and move-to-Today;
+- inline task editing and task workspaces with next action, definition of done,
+  notes, and ordered components;
+- lightweight projects, preferred ordering, next-ready computation,
+  prerequisites, external waits, follow-up tasks, and explicit overrides;
+- workflow/readiness state kept separate from active/overflow Today placement;
+- v4 account transfer with v1/v2/v3 import compatibility, Remember items, and
+  atomic relationship validation;
 - a browser-local Low Capacity display toggle;
 - a 5/15/25-minute client-side focus timer;
 - responsive server-rendered pages;
@@ -59,7 +67,6 @@ The following behavior is implemented:
 The following product-design capabilities are not implemented:
 
 - fixed commitments or calendar objects;
-- a task detail view, next action, or definition of done;
 - a Review destination or recovery/reset flow;
 - transition or leave-by protection;
 - persisted focus sessions or estimate-versus-actual learning;
@@ -77,6 +84,7 @@ capability:
 | --- | --- | --- |
 | Low Capacity | CSS hides secondary Today content and stores a browser preference | No per-account state, current-time/commitment view, critical-item routing, smallest-action selection, or Reset |
 | Focus | A non-persisted countdown can start, pause, continue, and reset | No session intention record, distraction capture, transition protection, next commitment, or actual-time history |
+| Complex work | Task/project workspaces, components, order, blockers, readiness, and relationship transfer | Five-participant prototype gate plus manual screen-reader and contrast review remain unverified |
 | Backup and portability | Operator `instance/` backup, automatic pre-migration recovery, and versioned account/task CLI export/import | No self-service flow, credential recovery, full-account-type coverage, full operational restore rehearsal, or hosted adapter |
 
 ## Findings that require decisions
@@ -138,10 +146,10 @@ This prevents implementation progress from being presented as evidence that a
 product hypothesis has been validated.
 
 The capability catalogue records a target milestone and current delivery status
-instead of using `Yes` or `No`. No Phase 0 interview, prototype, or usability
-artifact is currently recorded in the repository, so its evidence status is
-Unverified. The authoritative definitions and current capability statuses are
-in the
+instead of using `Yes` or `No`. A resettable synthetic complex-work prototype,
+walkthrough, and findings template are recorded. No participant findings are
+recorded, so its evidence status remains Unverified. The authoritative
+definitions and current capability statuses are in the
 [high-level product design](high-level-product-design.md#canonical-milestones-and-statuses).
 
 ### D3: Local account topology
@@ -224,7 +232,8 @@ never prove guardianship. The detailed topology and release evidence are in
 | 0.2 | Add schema migrations and installation/public object provenance | Completed 2026-07-24 | Existing database upgrades without data loss; schema revision is inspectable |
 | 0.3 | Add export, restore, and migration-fixture foundations | Completed 2026-07-24 | Export/import round trip is idempotent and tested; secrets are excluded |
 | 1.1 | Enforce a deliberately small active Today plan | Completed 2026-07-24 | One highlight plus the chosen optional-task limit; overflow remains recoverable |
-| 1.2 | Add task detail, next action, and definition of done | Not started | Capture remains title-only; added structure is optional and editable |
+| 1.2a | Add task detail, next action, definition of done, and short components | Partial — implemented 2026-07-28; validation open | Capture remains title-only; added structure is optional, editable, owned, portable, and accessible |
+| 1.2b | Add lightweight projects, ordering, dependencies, and external waiting | Partial — implemented 2026-07-28; validation open | One shallow hierarchy; readiness is separate from Today placement; blockers never silently rearrange Today |
 | 1.3 | Add Review and consequence-aware Reset/recovery | Not started | No silent rollover; stale items can be kept, renegotiated, delegated, replaced, or dropped |
 | 1.4 | Add manually entered fixed commitments and transition boundaries | Not started | Fixed and flexible objects remain distinct; next commitment stays visible |
 | 1.5 | Complete Low Capacity semantics | Not started | Same underlying data; critical commitments, one action, capture, and Reset remain available |
@@ -246,6 +255,16 @@ each slice lands:
 - export/import idempotency, conflict, and secret-exclusion tests;
 - task ownership and assistance-permission tests for every new query or
   mutation;
+- task-detail and component tests proving that title-only capture remains
+  available, added structure is optional and editable, and completion with
+  unfinished components requires an explicit decision;
+- project and dependency tests proving that preferred ordering is not a
+  blocker, cycles and cross-account relationships fail closed, readiness
+  responds to prerequisite lifecycle changes, and project completion is
+  user-confirmed;
+- Today tests proving that blocked tasks are not newly suggested and that
+  blocking or unblocking work never silently promotes, removes, replaces, or
+  highlights a task;
 - assisted-prototype tests proving that Phase 2 uses synthetic same-device
   roles, sends no remote invitation, calls no external provider, and can reset
   the simulated workspace;
@@ -278,6 +297,9 @@ each slice lands:
 
 Python coverage alone is not evidence that the progressive client-side behavior
 or PWA privacy boundary works in a browser.
+
+The detailed milestone 1.2 behavior and separate exit gates are defined in
+[Task detail and complex-work requirements](task-detail-and-complex-work-requirements.md).
 
 ## Research and review gates
 

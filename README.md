@@ -16,10 +16,17 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
 - stable public UUIDs, installation provenance, and object revisions;
 - versioned, account-scoped JSON task export/import through operator CLI
   commands;
-- quick capture to Today or Inbox;
+- quick capture to Today or Later;
+- a separate three-item Remember list for short-term context-switching cues;
 - one changeable daily highlight plus at most three optional active actions;
 - explicit, recoverable Today overflow with activate and save-for-later choices;
 - complete, restore, deliberately drop, and move-to-Today actions;
+- inline task editing plus task workspaces for next action, definition of done,
+  notes, and ordered steps;
+- lightweight project workspaces with preferred ordering and one next-ready
+  task;
+- explicit task prerequisites, external waits, optional follow-up tasks, and
+  reversible blocker overrides separated from Today placement;
 - Low Capacity display mode;
 - a 5/15/25-minute client-side focus timer;
 - responsive desktop/mobile presentation;
@@ -27,8 +34,10 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
 
 Self-service account restore, credential recovery, Google Calendar,
 trusted-person sessions, hosted PostgreSQL accounts, local-to-online migration,
-and native mobile clients are not implemented yet. Their intended scope is
-documented in the [high-level product design](docs/high-level-product-design.md).
+and native mobile clients are not implemented yet. The implemented complex-work
+interaction remains a plausible design whose five-participant usability gate
+has not yet been run. Intended and gated scope is documented in the
+[high-level product design](docs/high-level-product-design.md).
 
 ## Local account topology
 
@@ -113,12 +122,14 @@ uv run flask --app timemanager import-account \
   --into-email destination@example.com
 ```
 
-The import is atomic and retry-safe. Stable task IDs insert once; a higher
-incoming revision updates that task, a lower revision leaves newer local data
-unchanged, and differing content at the same revision fails closed. Imported
-tasks retain their source-installation provenance. The source profile is
-informational and does not replace the destination account's name, email, or
-password.
+Export format v4 includes task detail, projects, ordered steps, dependencies,
+external waits, and Remember items. Import remains compatible with supported
+v1, v2, and v3 documents and validates relationships atomically. Stable object IDs insert
+once; a higher incoming revision updates an object, a lower revision leaves
+newer local data unchanged, and differing content at the same revision fails
+closed. Imported objects retain their source-installation provenance. The
+source profile is informational and does not replace the destination account's
+name, email, or password.
 
 This is tested migration and recovery plumbing, not yet a self-service restore
 experience, full-database backup, deletion mirror, credential transfer, or
@@ -132,6 +143,15 @@ than expanding the active plan or being discarded. Overflow tasks are never
 promoted silently: make space by saving an active item for later, then activate
 the chosen overflow item, or make an overflow item the new highlight.
 
+## Remember
+
+Today opens with a small Remember panel beside Quick Capture. It holds at most
+three account-scoped micro-reminders, such as “Get coffee,” for short-term
+memory during context switching. Remember items do not consume Today capacity
+and do not participate in task, project, ordering, or blocker state. Checking
+one removes it immediately; deletion is not mirrored by account import.
+Active items persist in SQLite and are included in account export format v4.
+
 Optional local settings:
 
 ```bash
@@ -143,10 +163,21 @@ network; it does not add TLS or make Flask's development server suitable for a
 public deployment. PWA installation on another device requires a trusted HTTPS
 origin.
 
+The synthetic complex-work prototype is disabled by default. To run a research
+session with browser-memory-only synthetic data:
+
+```bash
+TIMEMANAGER_ENABLE_PROTOTYPES=1 uv run timemanager
+```
+
+Open <http://127.0.0.1:5000/prototypes/complex-work>. The route returns `404`
+when disabled and `Cache-Control: no-store` when enabled.
+
 ## Verify
 
 ```bash
 uv run pytest
+uv run playwright install chromium
 uv run pytest --cov=timemanager --cov-report=term-missing
 uv run python -m compileall -q main.py timemanager tests migrations
 git diff --check

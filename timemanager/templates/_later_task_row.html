@@ -1,28 +1,34 @@
-<article class="overflow-row">
-  <div class="task-copy">
+<article class="inbox-row">
+  <div>
     <p><a class="task-title-link" href="{{ url_for('tasks.task_detail', task_id=task.id, return_to=request.full_path) }}">{{ task.title }}</a></p>
-    <span>{% if task.blocker_summary %}{{ task.blocker_summary }}{% elif task.next_action %}Next: {{ task.next_action }}{% elif task.project_title %}Project: {{ task.project_title }}{% else %}Outside the active plan{% endif %}</span>
+    <span>
+      {% if task.blocker_summary %}{{ task.blocker_summary }}
+      {% elif task.next_action %}Next: {{ task.next_action }}
+      {% elif task.project_title %}Project: {{ task.project_title }}
+      {% elif task.workflow_status == 'inbox' %}Captured {{ task.created_at }}
+      {% else %}Later{% endif %}
+    </span>
     {% if request.args.get('created') == task.id|string %}
       <a class="text-button" href="{{ url_for('tasks.task_detail', task_id=task.id, return_to=request.full_path) }}">Add details</a>
     {% endif %}
   </div>
   <div class="task-actions">
-    <form action="{{ url_for('tasks.activate_task', task_id=task.id) }}" method="post">
+    {% if task.can_add_to_today %}
+      <form action="{{ url_for('tasks.move_to_today', task_id=task.id) }}" method="post">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <button class="primary-button compact-button" type="submit">Add to Today</button>
+      </form>
+    {% elif task.blocker_summary %}
+      <a class="secondary-button compact-button" href="{{ url_for('tasks.task_detail', task_id=task.id, return_to=request.full_path) }}">Review blocker</a>
+    {% endif %}
+    <form action="{{ url_for('tasks.drop_task', task_id=task.id) }}" method="post" data-confirm="Drop this task? It will leave the active views.">
       <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-      <button class="primary-button compact-button" type="submit">Make active</button>
-    </form>
-    <form action="{{ url_for('tasks.choose_highlight', task_id=task.id) }}" method="post">
-      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-      <button class="secondary-button compact-button" type="submit">Make highlight</button>
-    </form>
-    <form action="{{ url_for('tasks.move_to_later', task_id=task.id) }}" method="post">
-      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-      <button class="quiet-button compact-button" type="submit">Move to Later</button>
+      <button class="quiet-button" type="submit">Drop</button>
     </form>
     <button class="quiet-button compact-button" type="button" data-inline-edit-toggle="{{ task.id }}">Edit</button>
   </div>
   <form
-    class="inline-task-editor"
+    class="inline-task-editor inbox-inline-editor"
     action="{{ url_for('tasks.update_task_details', task_id=task.id) }}"
     method="post"
     data-autosave-form

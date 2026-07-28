@@ -1,0 +1,51 @@
+<section class="remember-card" id="remember" aria-labelledby="remember-heading">
+  <div class="remember-heading">
+    <div>
+      <p class="eyebrow">Short-term cues</p>
+      <h2 id="remember-heading">Remember</h2>
+    </div>
+    <span aria-label="{{ remember_items|length }} of 3 Remember items">
+      {{ remember_items|length }}/3
+    </span>
+  </div>
+  <p class="remember-intro">
+    Tiny reminders for switching context—not part of your task plan.
+  </p>
+  <form class="remember-form" action="{{ url_for('remember.create_item') }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <label class="sr-only" for="remember-title">Add a short-term reminder</label>
+    <input
+      id="remember-title"
+      name="title"
+      maxlength="100"
+      placeholder="e.g. Get coffee"
+      autocomplete="off"
+      {% if remember_items|length >= 3 %}disabled{% endif %}
+      required
+    >
+    <button
+      class="secondary-button compact-button"
+      type="submit"
+      {% if remember_items|length >= 3 %}disabled{% endif %}
+    >
+      Add
+    </button>
+  </form>
+  {% if remember_items %}
+    <ul class="remember-list">
+      {% for item in remember_items %}
+        <li>
+          <form action="{{ url_for('remember.complete_item', item_id=item.id) }}" method="post">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <button class="remember-check" type="submit" aria-label="Done: {{ item.title }}">
+              <span aria-hidden="true"></span>
+            </button>
+          </form>
+          <span>{{ item.title }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="remember-empty">Nothing to hold in mind right now.</p>
+  {% endif %}
+</section>

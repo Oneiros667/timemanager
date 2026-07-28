@@ -1,0 +1,41 @@
+<li class="{% if component.is_done %}is-complete{% endif %}">
+  <form action="{{ url_for('tasks.toggle_component', component_id=component.id) }}" method="post">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="revision" value="{{ component.revision }}">
+    <button type="submit" aria-label="{% if component.is_done %}Restore{% else %}Complete{% endif %} {{ component.title }}">{% if component.is_done %}✓{% else %}○{% endif %}</button>
+  </form>
+  <span>{{ component.title }}</span>
+  <span class="reorder-controls">
+    <details class="component-editor">
+      <summary>Edit</summary>
+      <form action="{{ url_for('tasks.update_component', component_id=component.id) }}" method="post">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="revision" value="{{ component.revision }}">
+        <label><span class="sr-only">Step title</span><input name="title" maxlength="180" value="{{ component.title }}" required></label>
+        <button class="secondary-button compact-button" type="submit">Save</button>
+      </form>
+    </details>
+    {% if not is_first %}
+      <form action="{{ url_for('tasks.move_component', component_id=component.id) }}" method="post">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="revision" value="{{ component.revision }}"><input type="hidden" name="direction" value="up">
+        <button type="submit" aria-label="Move {{ component.title }} up">↑</button>
+      </form>
+    {% endif %}
+    <form action="{{ url_for('tasks.move_component', component_id=component.id) }}" method="post">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="revision" value="{{ component.revision }}"><input type="hidden" name="direction" value="down">
+      <button type="submit" aria-label="Move {{ component.title }} down">↓</button>
+    </form>
+    <details class="promotion-preview">
+      <summary>Turn into a task</summary>
+      <p>
+        Preview: add “{{ component.title }}” to
+        {% if project %}{{ project.title }}{% else %}a new “{{ task.title }}” project{% endif %}
+        in this step’s current order.
+      </p>
+      <form action="{{ url_for('tasks.promote_component', component_id=component.id) }}" method="post">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="revision" value="{{ component.revision }}"><input type="hidden" name="task_revision" value="{{ task.revision }}"><input type="hidden" name="confirm" value="1">
+        <button class="secondary-button compact-button" type="submit">Confirm new task</button>
+      </form>
+    </details>
+  </span>
+</li>

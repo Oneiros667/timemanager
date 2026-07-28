@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}{{ task.title }} · Timemanager{% endblock %}
+
+{% block content %}
+  <a class="text-button workspace-back" href="{{ return_to }}">← Back</a>
+
+  <form
+    class="workspace-heading autosave-workspace"
+    action="{{ url_for('tasks.update_task_details', task_id=task.id) }}"
+    method="post"
+    data-autosave-form
+  >
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="revision" value="{{ task.revision }}" data-revision data-task-revision>
+    <p class="eyebrow">Task workspace</p>
+    <label class="workspace-title">
+      <span class="sr-only">Task title</span>
+      <input name="title" maxlength="180" value="{{ task.title }}" required>
+    </label>
+    <span class="save-state" aria-live="polite" data-save-state>Saved</span>
+
+    <section class="workspace-card start-card">
+      <p class="eyebrow">Start here</p>
+      <label>
+        <span>Next action</span>
+        <input name="next_action" maxlength="500" value="{{ task.next_action }}" placeholder="What visible action starts this?">
+      </label>
+      <label>
+        <span>Done means</span>
+        <textarea name="definition_of_done" maxlength="1000" rows="2" placeholder="What would count as done?">{{ task.definition_of_done }}</textarea>
+      </label>
+      <label>
+        <span>Notes</span>
+        <textarea name="notes" maxlength="4000" rows="3">{{ task.notes }}</textarea>
+      </label>
+      <button class="secondary-button compact-button no-js-save" type="submit">Save</button>
+    </section>
+  </form>
+
+  <section class="workspace-card">
+    <div class="section-heading">
+      <div><p class="eyebrow">Small, visible starts</p><h2>Steps</h2></div>
+      <span>{{ components|length }}</span>
+    </div>
+    <ol class="component-list">
+      {% if components %}
+        {% for component in components[:3] %}
+          {% with is_first=loop.first %}
+            {% include "_component_row.html" %}
+          {% endwith %}
+        {% endfor %}
+      {% endif %}
+    </ol>
+    {% if components %}
+      {% if components|length > 3 %}
+        <details data-component-overflow>
+          <summary>{{ components|length - 3 }} more steps</summary>
+          <ol class="component-list" start="4">
+            {% for component in components[3:] %}
+              {% with is_first=loop.first %}
+                {% include "_component_row.html" %}
+              {% endwith %}
+            {% endfor %}
+          </ol>
+        </details>
+      {% endif %}
+    {% endif %}
+    <form class="rapid-entry" action="{{ url_for('tasks.add_component', task_id=task.id) }}" method="post" data-rapid-entry>
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="revision" value="{{ task.revision }}" data-task-revision>
+      <label><span class="sr-only">Add a step</span><input name="title" maxlength="180" placeholder="Add a step, then press Enter" required autocomplete="off"></label>
+      <button class="secondary-button compact-button" type="submit">Add step</button>
+      <span class="save-state" aria-live="polite" data-rapid-status></span>
+    </form>
+  </section>
+
+  <details class="workspace-card">
+    <summary>Project</summary>
+    {% if project %}
+      <p>Part of <a href="{{ url_for('tasks.project_detail', project_id=project.id) }}">{{ project.title }}</a>.</p>
+    {% endif %}
+    <form action="{{ url_for('tasks.set_task_project', task_id=task.id) }}" method="post" class="stacked-inline-form" data-confirm="Update this task’s project?">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="revision" value="{{ task.revision }}" data-task-revision>
+      <label>
+        <span>Project</span>
+        <select name="project_id">
+          <option value="">No project</option>
+          {% for candidate in candidate_projects %}
+            <option value="{{ candidate.id }}" {% if project and candidate.id == project.id %}selected{% endif %}>{{ candidate.title }}</option>
+          {% endfor %}
+          <option value="new">Create a new project</option>
+        </select>
+      </label>
+      <label><span>New project title</span><input name="project_title" maxlength="180" placeholder="Used only when creating"></label>
+      <button class="secondary-button compact-button" type="submit">Update project</button>
+    </form>
+  </details>
+
+  <details class="workspace-card" {% if task.saved_blocker_summary %}open{% endif %}>
+    <summary>Needs and waiting</summary>
+    {% if task.dependency_override and task.saved_blocker_summary %}
+      <p class="muted-copy">Can start anyway override is on. Saved blocker: {{ task.saved_blocker_summary }}</p>
+    {% endif %}
+    {% if task.blocker_summary and task.today_placement in ('active', 'overflow') %}
+      <aside class="blocked-today-choice" aria-labelledby="blocked-today-heading">
+        <h3 id="blocked-today-heading">This task is still in Today</h3>
+        <p>Adding a blocker did not move it. Choose what feels least disruptive.</p>
+        <div class="focus-controls">
+          <a class="secondary-button compact-button" href="{{ url_for('tasks.today') }}">Keep here</a>
+          <form action="{{ url_for('tasks.move_to_later', task_id=task.id) }}" method="post" data-confirm="Replace this task by moving it to Later? You can choose another task next.">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <button class="quiet-button compact-button" type="submit">Replace</button>
+          </form>
+          <a class="text-button" href="#saved-blockers">Remove blocker</a>
+        </div>
+      </aside>
+    {% endif %}
+    <div id="saved-blockers">
+    {% for prerequisite in prerequisites %}
+      <div class="blocker-row">
+        <span>Needs: {{ prerequisite.title }}{% if prerequisite.workflow_status == 'done' %} · done{% endif %}</span>
+        <form action="{{ url_for('tasks.remove_dependency', task_id=task.id, prerequisite_id=prerequisite.id) }}" method="post" data-confirm="Remove this prerequisite?">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="revision" value="{{ task.revision }}" data-task-revision>
+          <button class="quiet-button compact-button" type="submit">Remove</button>
+        </form>
+      </div>
+    {% endfor %}
+    {% if wait %}
+      <div class="blocker-row">
+        <span>Waiting for: {{ wait.reason }}{% if wait.review_date %} · review {{ wait.review_date }}{% endif %}</span>
+        <form action="{{ url_for('tasks.remove_wait', task_id=task.id) }}" method="post">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="revision" value="{{ task.revision }}" data-task-revision>
+          <button class="quiet-button compact-button" type="submit">Stop waiting</button>
+        </form>
+      </div>
+    {% endif %}
+    </div>
+
+    <div class="blocker-forms">
+      <form action="{{ url_for('tasks.add_dependency', task_id=task.id) }}" method="post" class="stacked-inline-form" data-confirm="Add this prerequisite? Preferred order will remain separate.">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="revision" value="{{ task.revision }}" data-task-revision>
+        <label><span>Find a prerequisite</span><input type="search" data-dependency-search placeholder="Search your tasks" autocomplete="off"></label>
+        <label><span>Needs another task first</span>
+          <select name="prerequisite_task_id" required>
+            <option value="">Choose a task</option>
+            {% for candidate in candidate_tasks %}<option value="{{ candidate.id }}">{{ candidate.title }}</option>{% endfor %}
+          </select>
+        </label>
+        <button class="secondary-button compact-button" type="submit">Add prerequisite</button>
+      </form>
+      <form action="{{ url_for('tasks.set_wait', task_id=task.id) }}" method="post" class="stacked-inline-form">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="revision" value="{{ task.revision }}" data-task-revision>
+        <label><span>Waiting reason</span><input name="reason" maxlength="500" value="{{ wait.reason if wait else '' }}" required></label>
+        <label><span>Waiting on (optional)</span><input name="waiting_on" maxlength="180" value="{{ wait.waiting_on if wait else '' }}"></label>
+        <label><span>Review date (optional)</span><input type="date" name="review_date" value="{{ wait.review_date if wait else '' }}"></label>
+        <label><span>Follow-up task (optional)</span><input name="follow_up_title" maxlength="180" placeholder="For example, check in on Friday"></label>
+        <button class="secondary-button compact-button" type="submit">Record waiting</button>
+      </form>
+    </div>
+    {% if task.blocker_summary %}
+      <form action="{{ url_for('tasks.override_blockers', task_id=task.id) }}" method="post" data-confirm="Start anyway without removing the saved blockers?">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="revision" value="{{ task.revision }}" data-task-revision>
+        <input type="hidden" name="confirm" value="1">
+        <button class="quiet-button compact-button" type="submit">Can start anyway</button>
+      </form>
+    {% endif %}
+  </details>
+
+  <div class="workspace-actions">
+    <button class="focus-button primary-button" type="button" data-focus-task="{{ task.title }}">Start focus</button>
+    <form action="{{ url_for('tasks.toggle_task', task_id=task.id) }}" method="post" {% if task.workflow_status != 'done' and components|selectattr('is_done', 'equalto', false)|list %}data-confirm="This task still has unfinished steps. Complete it anyway?" data-confirm-field="confirm_unfinished"{% endif %}>
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="revision" value="{{ task.revision }}" data-task-revision>
+      {% if request.args.get('confirm_completion') == '1' %}
+        <input type="hidden" name="confirm_unfinished" value="1">
+        <span class="save-state">Complete despite unfinished steps?</span>
+      {% endif %}
+      <button class="secondary-button" type="submit">{% if task.workflow_status == 'done' %}Restore{% else %}Complete{% endif %}</button>
+    </form>
+    {% if task.can_add_to_today %}
+      <form action="{{ url_for('tasks.move_to_today', task_id=task.id) }}" method="post">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <button class="quiet-button" type="submit">Add to Today</button>
+      </form>
+    {% endif %}
+  </div>
+  {% include "_focus_dialog.html" %}
+{% endblock %}

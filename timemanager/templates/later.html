@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Later · Timemanager{% endblock %}
+
+{% block content %}
+  <section class="day-heading">
+    <div>
+      <p class="eyebrow">Current view · Later</p>
+      <h1>Later</h1>
+      <p>New captures and work saved for later, outside today’s active plan.</p>
+    </div>
+    <a class="secondary-button" href="{{ url_for('tasks.today') }}">View Today</a>
+  </section>
+
+  {% include "_capture_card.html" %}
+
+  <section class="task-section inbox-section" aria-labelledby="captured-heading">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">New or still vague</p>
+        <h2 id="captured-heading">Captured</h2>
+        <p>Items that still need a decision or a little more detail.</p>
+      </div>
+      <span>{{ captured_tasks|length }}</span>
+    </div>
+    {% if captured_tasks %}
+      <div class="inbox-list">
+        {% for task in captured_tasks %}
+          {% include "_later_task_row.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted-copy">Nothing is waiting to be clarified.</p>
+    {% endif %}
+  </section>
+
+  <section class="task-section inbox-section" aria-labelledby="later-heading">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Saved, not forgotten</p>
+        <h2 id="later-heading">Ready and waiting</h2>
+        <p>Ready or waiting work that is not using space in today’s plan.</p>
+      </div>
+      <span>{{ ready_or_waiting_tasks|length }}</span>
+    </div>
+    {% if ready_or_waiting_tasks %}
+      <div class="inbox-list">
+        {% for task in ready_or_waiting_tasks %}
+          {% include "_later_task_row.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted-copy">Nothing is saved for later.</p>
+    {% endif %}
+  </section>
+{% endblock %}

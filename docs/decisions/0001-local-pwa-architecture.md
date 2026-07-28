@@ -33,7 +33,7 @@ Use:
 
 The automatically generated local secret and SQLite database live under the
 ignored `instance/` directory. The service worker must not cache authenticated
-Today, Inbox, or task responses.
+Today, Later, or task responses.
 
 The installation-level account and operator-access boundary is defined in
 [ADR 0002: Local account topology](0002-local-account-topology.md).
