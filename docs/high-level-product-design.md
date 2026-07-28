@@ -9,10 +9,13 @@ Updated: 2026-07-28
 Timemanager is currently a **partial Phase 1 local pilot**. The application
 implements registration/login, local SQLite task persistence, Today and Later
 capture, one daily highlight, completion/restoring, server-confirmed Drop with
-newest-ten recovery, a Low Capacity view, and a client-side focus timer with
-transition-only assistive announcements. Functional-control, placeholder, and
-focus-indicator contrast have automated thresholds, and mobile Today no longer
-reorders a focusable card ahead of its DOM position.
+newest-ten recovery, a minimum-safe Today-scoped Low Capacity view, and a
+client-side focus timer with transition-only assistive announcements. Low
+Capacity shows the saved highlight or one deterministic actionable fallback
+without mutating task state, retains compact Remember and Capture, reports
+hidden Today work, and provides a full-view escape. Functional-control,
+placeholder, and focus-indicator contrast have automated thresholds, and mobile
+Today no longer reorders a focusable card ahead of its DOM position.
 Persistence now uses SQLAlchemy Core and ordered Alembic revisions with stable
 public identifiers, installation provenance, and pre-migration SQLite
 recovery. A versioned operator CLI can export one account's current
@@ -24,11 +27,14 @@ overflow.
 
 Task detail, ordered components, lightweight projects, preferred task order,
 prerequisites, external waits, next-ready computation, and separate Today
-placement are now implemented as a local-pilot slice. Its synthetic prototype
-and evaluation materials exist, but no participant findings have been recorded.
-The local pilot has no project collection, navigation entry point, or
-completed/dropped archive, and existing-project assignment remains nested in
-task detail.
+placement are now implemented as a local-pilot slice. Later links to an
+account-scoped project collection showing active outcomes and next-ready work,
+with completed and dropped projects in a collapsed restorable archive.
+Existing-project assignment and new-project creation are separate task actions,
+and local return context is preserved. Its synthetic prototype and evaluation
+materials exist, but no participant findings have been recorded. Manual
+screen-reader, keyboard, zoom, forced-colors, and real-device verification also
+remains open.
 Self-service restore and credential recovery, Google Calendar, assisted
 planning for guardians and trusted people, the Phase 3 hosted release,
 local-to-online migration, AI, and native mobile applications remain
@@ -443,12 +449,11 @@ The Phase 3 hosted release has four primary destinations:
 
 Task detail and Focus are contextual views reached from Today, Later, or Review.
 Projects are initially lightweight outcome groupings inside task detail, not a
-separate primary destination. A lightweight collection reached from Later may
-support project discovery without adding another place the user must routinely
-check. The current local pilot has individual project routes but no collection,
-navigation entry point, or completed/dropped archive; existing-project
-assignment is nested in task detail. Search is a utility, not a fifth place the
-user must check.
+separate primary destination. The current local pilot provides a lightweight
+collection reached from Later, so active and archived projects are discoverable
+without adding another place the user must routinely check. Existing-project
+assignment and new-project creation are separate task actions. Search is a
+utility, not a fifth place the user must check.
 
 ## Feature catalogue and phasing
 
@@ -460,8 +465,8 @@ Statuses describe the current repository, not the intended milestone scope.
 | Today timeline with fixed commitments | Phase 1 | Partial | Multi-calendar reconciliation | Supported foundation |
 | Highlight plus small active plan | Phase 1 | Implemented | Learned capacity limit | Supported method; plausible interface |
 | Three-item Remember cues | Phase 1 | Implemented | Usability validation | Plausible context-switching aid |
-| Manual next action and definition of done | Phase 1 | Partial | Suggested decomposition | Supported foundation |
-| Short task components and lightweight projects | Phase 1 | Partial — model/workspaces implemented; collection, navigation, and archive missing | Project discovery and richer project views | Supported decomposition; plausible interface |
+| Manual next action and definition of done | Phase 1 | Partial — functional slice implemented; validation open | Suggested decomposition | Supported foundation |
+| Short task components and lightweight projects | Phase 1 | Partial — model, workspaces, collection, navigation, and archive implemented; validation open | Richer project views | Supported decomposition; plausible interface |
 | Dependencies and external waiting | Phase 1 | Partial | Richer dependency analysis | Supported readiness question; plausible state model |
 | Flexible focus session | Phase 1 | Partial | Stronger blocking and AI body doubling | Supported elements; experiential options |
 | Assisted planning | Phase 2 | Blocked by Phase 1 | Richer household and support controls | Plausible/experiential; privacy-sensitive |
@@ -470,7 +475,7 @@ Statuses describe the current repository, not the intended milestone scope.
 | Estimate versus actual | Phase 1 | Not started | Reference-class duration ranges | Supported mechanism; plausible algorithm |
 | Last Done repeatable activity history | Phase 1 | Not started | Task/calendar links and natural-language retrieval | Plausible product design; privacy-sensitive |
 | Weekly review and one experiment | Phase 2 | Not started | Longer-term pattern comparison | Supported components |
-| Low-capacity mode | Phase 1 | Partial | User-defined low-capacity layouts | Plausible product design |
+| Low-capacity mode | Phase 1 | Partial — minimum-safe Today slice implemented; commitments, Reset, and validation open | User-defined low-capacity layouts | Plausible product design |
 | Account data portability | Phase 1 | Partial | Authenticated self-service restore and hosted adapter | Required trust and migration foundation |
 | Google Calendar integration | Phase 2 | Blocked by Phase 1 | Other providers | Supported need; integration behavior to test |
 | AI voice/body doubling | Phase 4 | Deferred | Opt-in connector | Experiential/early research |

@@ -4,10 +4,12 @@
   requirements; not yet participant-usability validated
 - Updated: 2026-07-28
 - Audited commit: `3cea2d1eff1b4d7fbb75e7c3b5bb576fd1910d92`
-- Current implementation revalidation: 91 automated tests on 2026-07-28;
-  UX-001 through UX-005 are implemented with automated contrast, Chromium, and
-  JavaScript-disabled coverage; manual accessibility, broader-browser,
-  real-device, and participant gates remain unverified
+- Current implementation revalidation: 98 automated tests and 87% Python
+  coverage at `5995e2d` on 2026-07-28; UX-001 through UX-005 and UX-007 are
+  implemented with automated contrast, Chromium, and JavaScript-disabled
+  coverage, and the project collection/archive contract has automated server
+  and Chromium coverage; manual accessibility, broader-browser, real-device,
+  and participant gates remain unverified
 
 ## 1. Purpose
 
@@ -114,13 +116,17 @@ focusable card ahead of its DOM position.
 The current implementation adds immediate browser-local draft persistence,
 server-confirmed Drop recovery, tested functional contrast tokens, a non-live
 timer display with transition-only announcements, and matching mobile Today
-DOM and visual order. Automated coverage includes reload, Back, page
-close/reopen, failed and delayed requests, sign-out, expiry, stale and
-concurrent-tab revisions, JavaScript-disabled Drop and Undo, contrast
-thresholds, timer status stability while seconds change, and responsive card
-order. This revalidation does not replace participant evidence, attended
-screen-reader sessions, real-device checks, 200% zoom, forced-colors review, or
-broader-browser manual verification.
+DOM and visual order. It also implements the minimum-safe Low Capacity Today
+contract and a Later-linked project collection with active outcomes,
+next-ready work, and a collapsed restorable archive. Automated coverage
+includes reload, Back, page close/reopen, failed and delayed requests, sign-out,
+expiry, stale and concurrent-tab revisions, JavaScript-disabled Drop and Undo,
+contrast thresholds, timer status stability while seconds change, responsive
+card order, Low Capacity no-mutation behavior, and project ownership,
+restoration, return-context, and 320 px reflow contracts. This revalidation
+does not replace participant evidence, attended screen-reader sessions,
+real-device checks, 200% zoom, forced-colors review, or broader-browser manual
+verification.
 
 ### 2.4 Implemented versus proposed
 
@@ -135,7 +141,12 @@ The current local pilot implements:
   recovery for interrupted task and project autosave drafts;
 - server-confirmed named Drop, immediate Undo, and a newest-ten account-scoped
   recovery surface with separate Later and Today restoration;
-- Low Capacity presentation as a partial client-side mode;
+- minimum-safe Low Capacity Today presentation with highlight-or-one-actionable
+  fallback behavior, compact Remember/Capture, a hidden-work count, full-view
+  escape, and a persisted browser-local preference;
+- a Later-linked account-scoped project collection with active outcomes and
+  next-ready work, plus a collapsed completed/dropped archive with explicit
+  restoration;
 - a client-side 5/15/25-minute timer;
 - responsive server-rendered pages and a public offline shell; and
 - operator-level account export and import.
@@ -147,7 +158,6 @@ not be described as shipped:
 - Reset and return-after-absence recovery;
 - persisted focus sessions and transition history;
 - self-service restore or credential recovery;
-- a project collection and completed/dropped archive;
 - hosted accounts, local-to-online migration, or native applications; and
 - AI planning, voice, or body-doubling features.
 
@@ -222,16 +232,17 @@ All recommendations and implementations must preserve these constraints:
   action.
 - Too many planning, execution, editing, movement, completion, and destructive
   actions appear simultaneously.
-- Low Capacity is partial, inconsistent across screens, and can hide the only
-  way to choose a highlight.
+- The audited Low Capacity dead end is resolved by the current minimum-safe
+  Today slice; fixed commitments and Reset remain future semantics.
 - Destructive or consequential actions do not consistently provide end-user
   recovery.
-- An interrupted task-detail edit can lose unsaved text.
-- Mobile visual order and sequential keyboard order diverge.
-- Several control boundaries, focus indicators, and placeholder text fall below
-  relevant contrast thresholds.
-- The timer exposes a live update every second to assistive technology and loses
-  its state across interruptions.
+- The audited interrupted-draft loss is resolved in the current source.
+- The audited mobile visual/sequential-order divergence is resolved in the
+  current source.
+- The audited functional contrast failures are resolved by gated semantic
+  tokens; manual display and forced-colors verification remains.
+- The timer no longer exposes a live update every second to assistive
+  technology, but it still loses state across interruptions.
 - Global flash messages do not consistently restore visual or keyboard context
   to the object that changed.
 
@@ -502,6 +513,12 @@ Priority reflects implementation order; severity reflects user impact.
 - **How to validate:** Test with no tasks, optional tasks but no highlight, a
   highlight, blockers, overflow, completed work, refresh, and navigation.
   Confirm exactly one flexible task is visible and hidden work is unchanged.
+- **Implementation status:** Implemented on 2026-07-28. Server and Chromium
+  automation covers empty, fallback, saved-highlight, blocked, overflow,
+  completed, refresh, navigation, exactly-one-visible-task, hidden-count,
+  full-view escape, persisted preference, and no task/highlight/order/placement
+  or revision mutation. Manual screen-reader, keyboard, zoom, forced-colors,
+  broader-browser, real-device, and participant checks remain open.
 
 ### UX-008: Task rows present too many simultaneous actions
 
@@ -646,6 +663,10 @@ Priority reflects implementation order; severity reflects user impact.
 - **How to validate:** Ask participants to add a prerequisite, external wait,
   follow-up task, existing-project assignment, and new-project conversion
   without facilitator assistance.
+- **Implementation status:** Partial. Existing-project assignment and
+  new-project creation are now separate disclosures and are covered by server
+  and Chromium automation. Prerequisite and external-wait inputs still share
+  one dense disclosure, and participant/accessibility validation remains open.
 
 ### UX-014: Later gives too much space to an empty first section
 
@@ -884,7 +905,7 @@ need either implementation or a documented reason for deferral.
   link to a recovery or review action.
 - **UI-LATER-04:** Moving a task to Today MUST preserve the one-highlight plus
   three-option limit and overflow contract.
-- **UI-LATER-05:** A future project collection SHOULD be reached from Later
+- **UI-LATER-05:** The project collection SHOULD be reached from Later
   rather than creating another mandatory primary destination.
 - **UI-LATER-06:** The project collection SHOULD show outcome and next-ready task
   for active projects and keep completed/dropped projects in a collapsed
@@ -1352,8 +1373,10 @@ they do not show that users will notice, understand, or benefit from it.
 
 - **AS-01 — Later Enter saves to Later:** Falsified by browser validation.
   Enter submitted the primary `Add to today` action and navigated to Today.
-- **AS-02 — Low Capacity already shows one task without a highlight:** Falsified
-  by browser validation. It hid the task and its Make-highlight action.
+- **AS-02 — Low Capacity shows one task without a highlight:** Confirmed by
+  current server and Chromium automation after UX-007 implementation. This was
+  falsified at the audited commit, where the mode hid the task and its
+  Make-highlight action.
 - **AS-03 — Immediate autosave protects a draft through refresh:** Confirmed by
   current automated Chromium validation after UX-001 implementation. This was
   falsified at the audited commit, where the newly typed value returned empty.
@@ -1430,8 +1453,8 @@ they do not show that users will notice, understand, or benefit from it.
   value or consume too much mobile space.
 - **AS-27 — Later retrieval:** Search may be unnecessary for a small list but
   become necessary with 20 or more realistic items.
-- **AS-28 — Project discovery:** A project collection inside Later is a
-  supported direction, not a validated navigation choice.
+- **AS-28 — Project discovery:** A project collection reached from Later is now
+  implemented, but remains an unvalidated navigation choice.
 - **AS-29 — Calendar presentation:** No supplied current screen contains
   calendar commitments, so the distinction can be validated only with a future
   synthetic prototype.
@@ -1560,8 +1583,11 @@ Initial product targets are:
   manual and participant gates remain.
 - Server-confirmed Drop and newest-ten recovery are implemented; manual touch,
   keyboard, broader-browser, and participant gates remain.
-- Correct text, boundary, and focus contrast.
-- Correct timer announcements and mobile DOM/focus order.
+- Text, boundary, and focus contrast are corrected with automated thresholds;
+  manual display, zoom, and forced-colors gates remain.
+- Timer announcements and mobile DOM/focus order are corrected with automated
+  Chromium coverage; attended screen-reader, reverse-tab, zoom, magnifier, and
+  real-device gates remain.
 - Run the relevant WCAG 2.2 AA manual and automated checks.
 
 ### Stage 2: confirmed quick friction reductions
@@ -1577,18 +1603,21 @@ Initial product targets are:
 
 ### Stage 3: structural recovery
 
-- Complete Low Capacity with the highlight-or-one-task rule, hidden count, and
-  full-view escape.
+- The minimum-safe Low Capacity highlight-or-one-task rule, hidden count, and
+  full-view escape are implemented; broader semantics and manual/participant
+  validation remain.
 - Add account-scoped Remember suggestion history and the two-character
   recent/frequent suggestion list.
 - Persist and continue focus timer state across same-device interruptions.
-- Preserve return and scroll context across task and project workspaces.
+- Originating-view return context is preserved across task and project
+  workspaces; explicit scroll restoration remains open.
 
 ### Stage 4: complex-work structure
 
 - Separate prerequisite and waiting flows.
-- Separate existing-project assignment from new-project creation.
-- Add the lightweight project collection under Later.
+- Existing-project assignment and new-project creation are separate.
+- The lightweight project collection is implemented as a contextual destination
+  reached from Later, with a collapsed restorable archive.
 
 ### Stage 5: gated experiments
 

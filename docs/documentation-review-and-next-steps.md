@@ -25,18 +25,16 @@ operational view of what is implemented, partial, blocked, and gated by further
 evidence.
 
 No broken local Markdown links, anchors, or reference definitions were found in
-the review. A current-source revalidation at commit `47000ad` passed all 72
-automated tests on 2026-07-28. The interrupted-draft implementation added eight
-browser tests, and the Drop-recovery implementation added seven more tests; the
-current implementation passes all 87 automated tests. The suite covers
-server-side account isolation, schema upgrades, migration recovery,
-export/import behavior, representative real-browser complex-work flows,
-Chromium interruption recovery, and JavaScript-disabled Drop recovery. This
-closes UX-001 and UX-002's automated implementation findings, but not their
-manual accessibility, broader-browser, real-device, or participant-usability
-gates. Contrast, assistive-technology timer, and complete mobile focus-order P0
-findings remain open. Complete timer and service-worker behavior still need
-broader browser coverage.
+the original review. Current-source revalidation at commit `5995e2d` passes all
+98 automated tests with 87% Python coverage. The suite covers server-side
+account isolation, schema upgrades, migration recovery, export/import behavior,
+representative real-browser complex-work flows, Chromium interruption recovery,
+JavaScript-disabled Drop recovery, the minimum-safe Low Capacity contract, and
+project collection/archive navigation and restoration. This closes UX-001
+through UX-005 and UX-007's automated implementation findings and the functional
+project-discovery gap. It does not close manual accessibility,
+broader-browser, real-device, or participant-usability gates. Complete timer
+persistence and true-offline return behavior also remain open.
 
 ## Confirmed implementation baseline
 
@@ -68,12 +66,18 @@ The following behavior is implemented:
   revision handling;
 - lightweight projects, preferred ordering, next-ready computation,
   prerequisites, external waits, follow-up tasks, and explicit overrides;
+- a lightweight account-scoped project collection reached from Later, with
+  active outcomes and next-ready work, a collapsed completed/dropped archive,
+  explicit revision-checked restoration, and safe return context;
 - explicit task-to-project conversion that preserves the task’s details,
   relationships, and Today placement as the first project task;
 - workflow/readiness state kept separate from active/overflow Today placement;
 - v5 account transfer with v1/v2/v3/v4 import compatibility, dropped-task
   timestamps, Remember items, and atomic relationship validation;
-- a browser-local Low Capacity display toggle;
+- a browser-local, Today-scoped Low Capacity view that shows the highlight or
+  exactly one deterministic unblocked active fallback without mutating task or
+  highlight state, retains compact Remember and Capture, reports hidden work,
+  and provides a full-Today escape;
 - a 5/15/25-minute client-side focus timer;
 - responsive server-rendered pages;
 - an installable PWA shell whose authenticated navigation remains network-only.
@@ -97,36 +101,33 @@ capability:
 
 | Capability | Implemented slice | Missing contract |
 | --- | --- | --- |
-| Low Capacity | CSS hides secondary Today content and stores a browser preference | No per-account state, current-time/commitment view, critical-item routing, smallest-action selection, or Reset |
+| Low Capacity | Minimum-safe Today view shows the highlight or one deterministic actionable fallback without mutation, retains compact Remember/Capture, reports hidden work, and stores a browser preference | No per-account preference, current-time/commitment view, critical-item routing, smallest-action selection beyond the saved next action, or Reset |
 | Focus | A non-persisted countdown can start, pause, continue, and reset | No session intention record, distraction capture, transition protection, next commitment, or actual-time history |
-| Complex work | Task/project workspaces, conversion, existing-project assignment, components, order, blockers, readiness, and relationship transfer | No project collection/index, project navigation entry point, or completed/dropped project archive; assignment remains nested in task detail; five-participant prototype gate plus manual screen-reader and contrast review remain unverified |
+| Complex work | Task/project workspaces, conversion, distinct existing-project assignment, components, order, blockers, readiness, relationship transfer, Later-linked project collection, and restorable completed/dropped archive | Prerequisite and external-wait forms remain dense; five-participant prototype gate plus manual screen-reader, keyboard, zoom, forced-colors, and real-device review remain unverified |
 | Backup and portability | Operator `instance/` backup, automatic pre-migration recovery, and versioned account/task CLI export/import | No self-service flow, credential recovery, full-account-type coverage, full operational restore rehearsal, or hosted adapter |
 
-### Known project-workflow functional gaps
+### Implemented project-workflow discovery slice
 
-The current project data model and individual project workspace are
-implemented, but the surrounding navigation is incomplete:
+The project data model, individual workspace, and surrounding discovery path
+are implemented:
 
-- there is no `/projects` collection route or other place to browse projects;
-- no primary or contextual navigation control exposes a project list;
-- a project is discoverable only through a linked task, the redirect after
-  task conversion or component promotion, or a previously known direct URL;
-- assigning a captured task to an existing project is implemented only inside
-  task detail, nested under the project disclosure, and candidates are limited
-  to active projects;
-- the same disclosure presents both creating a new project and assigning an
-  existing one, so the two distinct actions are not sufficiently visible;
-- completed and dropped projects have no browsable archive or restoration
-  entry point; and
-- project pages return to Today rather than preserving the user’s originating
-  Later or task context.
+- `/projects` provides an account-scoped collection reached contextually from
+  Later rather than becoming another mandatory primary destination;
+- active projects show the desired outcome, deterministic next-ready task, and
+  concrete ready/waiting/done counts;
+- completed and dropped projects remain in a collapsed archive with explicit
+  CSRF-protected, revision-checked restoration;
+- archived project structure is read-only until restoration, and restoring a
+  project does not change linked task state, placement, ordering, or revisions;
+- task detail presents **Add to an existing project** separately from **Turn
+  into a new project** and accepts only active assignment targets; and
+- validated local return paths preserve Later, task, project, and collection
+  context without creating an external redirect.
 
-Closing this gap should add a lightweight project collection reachable from
-Later, show each active project’s desired outcome and next-ready task, provide
-a collapsed completed/dropped archive, and present **Add to existing project**
-and **Turn into a new project** as separate task actions. This is a
-discoverability and navigation slice, not authority to add Projects as another
-mandatory primary destination or to expand whole projects into Today.
+Automated server and Chromium coverage verifies those contracts, including
+320 px reflow without horizontal overflow. Manual assistive-technology and
+real-device checks and the five-participant complex-work gate remain open, so
+milestone 1.2 remains `Partial`.
 
 ## Current priority interlock
 
@@ -138,14 +139,11 @@ later milestone complete.
 
 The [UI/UX friction audit](ui-ux-friction-audit-and-requirements.md) was
 originally run against commit `3cea2d1`. UX-001's interrupted-draft
-implementation and automated Chromium gate are now complete in the current
-source. Its manual accessibility, broader-browser, and participant-usability
-evidence remains open. UX-002's Drop recovery implementation and automated
-no-JavaScript gate are also complete. The remaining three P0 implementation
-findings now have automated coverage: functional control, placeholder, and
-focus-indicator contrast meet their documented thresholds; the focus countdown
-is non-live and announces only meaningful transitions; and mobile Today visual
-and sequential focus order agree.
+implementation and automated Chromium gate, UX-002's server-confirmed Drop
+recovery and no-JavaScript gate, and UX-003 through UX-005's contrast, timer,
+and mobile-order implementations are complete in the current source. UX-007's
+minimum-safe Low Capacity contract and milestone 1.2's project-discovery
+contract now also pass automated server and Chromium gates.
 
 Manual accessibility verification remains open. Participant validation,
 attended screen-reader checks, 200% zoom, forced-colors, real-device touch
@@ -158,8 +156,8 @@ checks, and the complete Phase 1 day-loop gate remain unverified.
 | 1 | Implemented; manual validation remains | Preserve interrupted task and project drafts | P0 data-loss risk in the exact interruption scenario the product is intended to support | Automated Chromium coverage passes for reload, Back, page close/reopen, failed and delayed saves, expiry, sign-out, and stale and concurrent-tab revisions; manual cross-browser, accessibility, and participant gates remain |
 | 2 | Implemented; manual validation remains | Make Drop server-confirmed and recoverable | P0 destructive-action and recovery risk | Named server confirmation, dropped timestamp, newest-ten account-scoped recovery, restore-to-Later default, separate Add-to-Today, CSRF/ownership enforcement, and migration/transfer coverage pass automated tests; manual touch, keyboard, and participant gates remain |
 | 3 | Implemented; manual validation remains | Close the remaining P0 accessibility blockers | Contrast, timer announcements, and mobile focus order can prevent predictable operation and would invalidate later participant evidence | Automated contrast, timer-transition, and mobile-order gates pass; manual keyboard, zoom, forced-colors, screen-reader, and real-device evidence remains |
-| 4 | Not started | Complete minimum safe Low Capacity behavior | The current partial mode can hide every route to a startable task | Show the highlight or, without mutation, the first active Today task; retain compact Remember/Capture, hidden count, and Show full Today; no hidden work changes |
-| 5 | Not started | Close milestone 1.2 discovery and validation | This is the remaining functional contract in the ordered plan once the safety interlock is clear | Later exposes a lightweight project collection and archive; assignment and creation are distinct; return context, ownership, CSRF, revision, browser/accessibility, and participant gates pass |
+| 4 | Implemented; manual validation remains | Complete minimum safe Low Capacity behavior | The earlier partial mode could hide every route to a startable task | Highlight-or-one-task behavior, compact Remember/Capture, hidden count, full-view escape, persisted preference, and no-mutation tests pass; manual accessibility, broader-browser, real-device, and participant gates remain |
+| 5 | Functional slice implemented; validation remains | Close milestone 1.2 discovery and validation | This was the remaining functional contract once the safety interlock was clear | Later exposes an owned collection/archive; assignment and creation are distinct; return context, CSRF, revision, restoration, and Chromium gates pass; manual accessibility and five-participant evidence remain |
 
 ### Implemented first slice: interrupted-draft preservation
 
@@ -245,15 +243,55 @@ interactive and responsive checks. Manual keyboard, reverse-tab, 200% zoom,
 forced-colors, magnifier, real-device, NVDA, VoiceOver, and timer-boundary
 checks remain open, as does participant validation.
 
+### Implemented fourth slice: minimum-safe Low Capacity Today
+
+Low Capacity is now explicitly scoped as a lower-demand Today view over the same
+task data. It shows the saved highlight when one exists, otherwise exactly the
+first unblocked active Today task in deterministic Today order. The fallback is
+presentation-only and never assigns a highlight, promotes overflow, reorders,
+completes, changes placement, or increments a revision.
+
+Compact Remember and Capture remain available. The view reports the exact
+number of hidden unfinished Today items, states that nothing was changed, and
+provides `Show full Today`. When no actionable Today task exists, it shows a
+calm empty state while leaving blocked and overflow work available in full
+Today. The existing browser-local preference remains scoped to Today and does
+not alter Later or workspace presentation.
+
+Automated server and Chromium coverage exercises empty, fallback, highlight,
+blocked, overflow, completed, refresh, navigation, exactly-one-visible-task,
+hidden-count, full-view escape, and no-mutation behavior. Manual
+screen-reader, keyboard, zoom, forced-colors, broader-browser, real-device, and
+participant checks remain open.
+
+### Implemented fifth slice: project collection and archive
+
+Later now exposes the lightweight project collection described above. Active
+projects show outcome and next-ready work; completed and dropped projects remain
+in a collapsed, restorable archive; archived project structure is read-only
+until restoration; and task assignment is visibly separate from new-project
+creation. Local return paths retain the originating Later, task, project, or
+collection context.
+
+Automated server and Chromium coverage verifies account scope, CSRF, current
+revisions, safe restoration, active-only assignment, deterministic ordering,
+320 px reflow, and preservation of linked task state, placement, ordering, and
+revisions. No-op assignment and state submissions leave records unchanged.
+Manual accessibility and real-device review and the five-participant
+complex-work gate remain open.
+
 ### Work held behind the interlock
 
-- Review/Reset remains after P0 closure and milestone 1.2's functional gate.
-  Validate stale-plan and recovery choices with synthetic scenarios before
-  committing to the persistent interaction.
-- Same-device focus persistence remains behind Low Capacity and milestone 1.2
-  in the ranked development order; its accessible-timer precondition is now
-  implemented. Cross-device continuation remains outside the current sync
-  contract.
+- The ranked implementation slices are now present, but their manual
+  accessibility, broader-browser, real-device, and participant gates are not.
+  Record that evidence before treating the safety interlock or milestone 1.2 as
+  complete.
+- Review/Reset is the next feature in the canonical Phase 1 sequence once the
+  outstanding validation gate is handled. Validate stale-plan and recovery
+  choices with synthetic scenarios before committing to persistent behavior.
+- Same-device focus persistence remains later in the Phase 1 sequence; its
+  accessible-timer precondition is implemented. Cross-device continuation
+  remains outside the current sync contract.
 - Fixed commitments, Last Done, Phase 2 integrations, hosted accounts, native
   clients, optional AI, Day Context, Medication Context, and Quick Help retain
   their documented milestone and release gates. Documentation recency is not
@@ -415,11 +453,11 @@ never prove guardianship. The detailed topology and release evidence are in
 | 0.2 | Add schema migrations and installation/public object provenance | Completed 2026-07-24 | Existing database upgrades without data loss; schema revision is inspectable |
 | 0.3 | Add export, restore, and migration-fixture foundations | Completed 2026-07-24 | Export/import round trip is idempotent and tested; secrets are excluded |
 | 1.1 | Enforce a deliberately small active Today plan | Completed 2026-07-24 | One highlight plus the chosen optional-task limit; overflow remains recoverable |
-| 1.2a | Add task detail, next action, definition of done, and short components | Partial — implemented 2026-07-28; validation open | Capture remains title-only; added structure is optional, editable, owned, portable, and accessible |
-| 1.2b | Add lightweight projects, ordering, dependencies, and external waiting | Partial — core model implemented 2026-07-28; discovery, navigation, archive, and validation open | One shallow hierarchy; projects and existing-project assignment are discoverable; readiness is separate from Today placement; blockers never silently rearrange Today |
-| 1.3 | Add Review and consequence-aware Reset/recovery | Not started | No silent rollover; stale items can be kept, renegotiated, delegated, replaced, or dropped |
+| 1.2a | Add task detail, next action, definition of done, and short components | Partial — functional slice implemented 2026-07-28; manual and participant validation open | Capture remains title-only; added structure is optional, editable, owned, portable, and accessible |
+| 1.2b | Add lightweight projects, ordering, dependencies, and external waiting | Partial — functional slice including discovery/archive implemented 2026-07-28; manual and participant validation open | One shallow hierarchy; projects and existing-project assignment are discoverable; readiness is separate from Today placement; blockers never silently rearrange Today |
+| 1.3 | Add Review and consequence-aware Reset/recovery | Not started — next feature after the outstanding validation gate | No silent rollover; stale items can be kept, renegotiated, delegated, replaced, or dropped |
 | 1.4 | Add manually entered fixed commitments and transition boundaries | Not started | Fixed and flexible objects remain distinct; next commitment stays visible |
-| 1.5 | Complete Low Capacity semantics | Partial — browser-local display slice exists; completion work not started | Same underlying data; critical commitments, one action, capture, and Reset remain available |
+| 1.5 | Complete Low Capacity semantics | Partial — minimum-safe Today behavior implemented 2026-07-28; fixed commitments, Reset, manual, and participant gates remain | Same underlying data; critical commitments, one action, capture, and Reset remain available |
 | 1.6 | Extend focus into an optional bounded session record | Partial — client countdown exists; persisted-session work not started | Intention, boundary, interruption-tolerant actuals, and next-step outcome are user-controlled |
 | 1.7 | Add generic Last Done activities and execution history | Not started | Manual create/log/query/correct/export passes exactness, privacy, time, and medication-safety criteria |
 | 1.8 | Validate the complete non-AI day loop | Not started | Browser/accessibility tests plus recorded user-research evidence |
@@ -445,9 +483,16 @@ each slice lands:
   blocker, cycles and cross-account relationships fail closed, readiness
   responds to prerequisite lifecycle changes, and project completion is
   user-confirmed;
+- project-collection tests proving account scope, deterministic next-ready
+  presentation, collapsed completed/dropped archive, revision-checked
+  restoration, active-only assignment, safe return paths, and no linked-task
+  mutation;
 - Today tests proving that blocked tasks are not newly suggested and that
   blocking or unblocking work never silently promotes, removes, replaces, or
   highlights a task;
+- Low Capacity tests proving highlight-or-one-actionable-task presentation,
+  trustworthy hidden counts, a full-view escape, preference persistence, and no
+  task, highlight, ordering, placement, or revision mutation;
 - assisted-prototype tests proving that Phase 2 uses synthetic same-device
   roles, sends no remote invitation, calls no external provider, and can reset
   the simulated workspace;

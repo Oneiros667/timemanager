@@ -50,8 +50,9 @@ Self-service account restore, credential recovery, Google Calendar,
 trusted-person sessions, hosted PostgreSQL accounts, local-to-online migration,
 and native mobile clients are not implemented yet.
 The implemented complex-work interaction remains a plausible design whose
-five-participant usability gate has not yet been run. Intended and gated scope
-is documented in the
+five-participant usability gate has not yet been run. Manual screen-reader,
+keyboard, zoom, forced-colors, and real-device verification also remains open.
+Intended and gated scope is documented in the
 [high-level product design](docs/high-level-product-design.md).
 
 ## Local account topology
