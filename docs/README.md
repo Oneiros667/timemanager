@@ -14,6 +14,10 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
 - [Documentation review and next steps](documentation-review-and-next-steps.md)
   records the current implementation gaps, decisions, ordered execution plan,
   and evidence gates used for project tracking.
+- [UI/UX friction audit and requirements](ui-ux-friction-audit-and-requirements.md)
+  records screenshot- and implementation-backed usability findings, prioritized
+  safety and accessibility issues, proposed interaction requirements, validation
+  scenarios, and a staged optimization plan.
 - [Task detail and complex-work requirements](task-detail-and-complex-work-requirements.md)
   defines the Phase 1 task-detail, component, lightweight-project, ordering,
   dependency, external-waiting, readiness, and Today-placement contracts.
