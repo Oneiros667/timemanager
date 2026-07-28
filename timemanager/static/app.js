@@ -585,17 +585,34 @@
     const toggle = dialog.querySelector("[data-timer-toggle]");
     const reset = dialog.querySelector("[data-timer-reset]");
     const note = dialog.querySelector("[data-timer-note]");
+    const status = document.querySelector("[data-timer-status]");
     const durationButtons = [...dialog.querySelectorAll("[data-duration]")];
     let selectedSeconds = 5 * 60;
     let remainingSeconds = selectedSeconds;
     let timerId = null;
     let deadline = null;
+    let hasStarted = false;
 
     const render = () => {
       const minutes = Math.floor(remainingSeconds / 60);
       const seconds = remainingSeconds % 60;
       if (display) {
         display.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      }
+    };
+
+    const remainingLabel = () => {
+      const minutes = Math.floor(remainingSeconds / 60);
+      const seconds = remainingSeconds % 60;
+      if (seconds === 0) {
+        return `${minutes} ${minutes === 1 ? "minute" : "minutes"} remaining`;
+      }
+      return `${minutes}:${String(seconds).padStart(2, "0")} remaining`;
+    };
+
+    const announce = (message) => {
+      if (status) {
+        status.textContent = message;
       }
     };
 
@@ -606,20 +623,22 @@
       }
       deadline = null;
       if (toggle) {
-        toggle.textContent = remainingSeconds === selectedSeconds ? "Start" : "Continue";
+        toggle.textContent = hasStarted ? "Continue" : "Start";
       }
     };
 
     const finish = () => {
       pause();
       remainingSeconds = 0;
+      hasStarted = false;
       render();
       if (toggle) {
-        toggle.textContent = "Continue";
+        toggle.textContent = "Start again";
       }
       if (note) {
         note.textContent = "Boundary reached. Continue, pause, or stop—you choose.";
       }
+      announce("Focus timer boundary reached.");
     };
 
     const tick = () => {
@@ -634,9 +653,11 @@
     };
 
     const start = () => {
+      const isResume = hasStarted && remainingSeconds !== 0;
       if (remainingSeconds === 0) {
         remainingSeconds = selectedSeconds;
       }
+      hasStarted = true;
       deadline = Date.now() + remainingSeconds * 1000;
       timerId = window.setInterval(tick, 250);
       if (toggle) {
@@ -645,14 +666,24 @@
       if (note) {
         note.textContent = "You only need to stay with this moment.";
       }
+      announce(
+        `Timer ${isResume ? "resumed" : "started"}. ${remainingLabel()}.`,
+      );
     };
 
-    const resetTimer = () => {
+    const resetTimer = (announcement = "") => {
       pause();
       remainingSeconds = selectedSeconds;
+      hasStarted = false;
       render();
+      if (toggle) {
+        toggle.textContent = "Start";
+      }
       if (note) {
         note.textContent = "Starting is the win.";
+      }
+      if (announcement) {
+        announce(announcement);
       }
     };
 
@@ -662,6 +693,7 @@
           title.textContent = button.getAttribute("data-focus-task") || "Focus session";
         }
         resetTimer();
+        announce("");
         dialog.showModal();
       });
     });
@@ -672,7 +704,7 @@
         durationButtons.forEach((candidate) => {
           candidate.setAttribute("aria-pressed", String(candidate === button));
         });
-        resetTimer();
+        resetTimer(`Timer set to ${selectedSeconds / 60} minutes.`);
       });
     });
 
@@ -685,14 +717,22 @@
         if (note) {
           note.textContent = "Paused. Return when you are ready.";
         }
+        announce(`Timer paused. ${remainingLabel()}.`);
       }
     });
-    reset?.addEventListener("click", resetTimer);
+    reset?.addEventListener("click", () => {
+      resetTimer();
+      announce(`Timer reset. ${remainingLabel()}.`);
+    });
     dialog.querySelector("[data-focus-close]")?.addEventListener("click", () => {
       pause();
       dialog.close();
+      announce("Focus timer stopped.");
     });
-    dialog.addEventListener("cancel", pause);
+    dialog.addEventListener("cancel", () => {
+      pause();
+      announce("Focus timer stopped.");
+    });
     render();
   };
 

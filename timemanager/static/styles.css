@@ -1,6 +1,12 @@
 :root {
-  --ink: #18302d;
-  --ink-soft: #526561;
+  --text-primary: #18302d;
+  --text-muted: #526561;
+  --placeholder-text: #63736f;
+  --control-border: #6f817c;
+  --control-disabled: #8c9894;
+  --focus-indicator: #b45436;
+  --ink: var(--text-primary);
+  --ink-soft: var(--text-muted);
   --forest: #173f3a;
   --forest-hover: #0d322e;
   --mint: #d9eee7;
@@ -19,7 +25,6 @@
   --radius-md: 18px;
   --radius-sm: 12px;
   --content-width: 1180px;
-  --focus-ring: 0 0 0 4px rgb(232 123 89 / 25%);
   font-family:
     "Aptos", "Inter", "SF Pro Text", "Segoe UI", system-ui, -apple-system,
     sans-serif;
@@ -61,13 +66,19 @@ button {
   color: inherit;
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: var(--placeholder-text);
+  opacity: 1;
+}
+
 a {
   color: var(--forest);
   text-underline-offset: 0.2em;
 }
 
 :focus-visible {
-  outline: 2px solid var(--coral);
+  outline: 3px solid var(--focus-indicator);
   outline-offset: 3px;
 }
 
@@ -334,7 +345,7 @@ a {
 .capture-form input,
 .stacked-form input {
   width: 100%;
-  border: 1px solid var(--line);
+  border: 1px solid var(--control-border);
   border-radius: 12px;
   background: white;
   color: var(--ink);
@@ -347,16 +358,9 @@ a {
   font-size: 1rem;
 }
 
-.capture-form input::placeholder,
-.stacked-form input::placeholder {
-  color: #82908d;
-}
-
 .capture-form input:focus,
 .stacked-form input:focus {
-  border-color: var(--coral);
-  box-shadow: var(--focus-ring);
-  outline: 0;
+  border-color: var(--focus-indicator);
 }
 
 .capture-actions,
@@ -396,7 +400,7 @@ a {
 }
 
 .secondary-button {
-  border: 1px solid var(--line);
+  border: 1px solid var(--control-border);
   background: var(--surface);
   color: var(--ink);
 }
@@ -565,7 +569,7 @@ a {
 .task-check span {
   width: 1.25rem;
   height: 1.25rem;
-  border: 2px solid #8c9a96;
+  border: 2px solid var(--control-border);
   border-radius: 50%;
   transition: border 120ms ease, background 120ms ease;
 }
@@ -709,7 +713,7 @@ a {
   min-width: 0;
   min-height: 40px;
   padding: 0.55rem 0.65rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--control-border);
   border-radius: 9px;
   background: white;
   color: var(--ink);
@@ -717,13 +721,12 @@ a {
 }
 
 .remember-form input:focus {
-  border-color: var(--coral);
-  box-shadow: var(--focus-ring);
-  outline: 0;
+  border-color: var(--focus-indicator);
 }
 
 .remember-form input:disabled,
 .remember-form button:disabled {
+  border-color: var(--control-disabled);
   cursor: not-allowed;
   opacity: 0.55;
 }
@@ -768,7 +771,7 @@ a {
 .remember-check span {
   width: 1rem;
   height: 1rem;
-  border: 2px solid #8c9a96;
+  border: 2px solid var(--control-border);
   border-radius: 50%;
 }
 
@@ -1267,7 +1270,6 @@ body.low-capacity .capture-card {
 
   .now-card {
     position: static;
-    grid-row: 1;
   }
 }
 
@@ -1480,7 +1482,7 @@ body.low-capacity .capture-card {
   width: 100%;
   min-height: 44px;
   padding: 0.65rem 0.75rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--control-border);
   border-radius: 10px;
   background: white;
   color: var(--ink);
@@ -1518,8 +1520,7 @@ body.low-capacity .capture-card {
 }
 
 .workspace-title input:focus {
-  border-bottom-color: var(--coral);
-  outline: 0;
+  border-bottom-color: var(--focus-indicator);
 }
 
 .workspace-card {
@@ -1852,5 +1853,11 @@ body.low-capacity .capture-card {
 @media (prefers-reduced-motion: reduce) {
   .newly-added {
     animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
   }
 }

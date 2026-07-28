@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from threading import Thread
 
 import pytest
@@ -73,6 +74,88 @@ def test_remember_is_beside_quick_capture_and_clears_checked_items(page, live_ur
     assert capture_box is not None
     assert remember_box is not None
     assert remember_box["y"] > capture_box["y"]
+
+
+def test_mobile_today_dom_and_visual_focus_order_agree(page, live_url):
+    page.set_viewport_size({"width": 390, "height": 844})
+    _register(page, live_url)
+    page.get_by_placeholder("What do you need to remember?").fill("Prepare report")
+    page.get_by_role("button", name="Add to today").click()
+    page.get_by_title("Make this today's highlight").click()
+
+    main_column = page.locator(".day-grid > .main-column")
+    now_card = page.locator(".day-grid > .now-card")
+    assert page.evaluate(
+        """
+        () => {
+          const main = document.querySelector(".day-grid > .main-column");
+          const now = document.querySelector(".day-grid > .now-card");
+          return Boolean(
+            main.compareDocumentPosition(now) & Node.DOCUMENT_POSITION_FOLLOWING
+          );
+        }
+        """
+    )
+    focus_buttons = page.locator("[data-focus-task]")
+    assert focus_buttons.count() == 2
+
+    for width, height in ((320, 800), (390, 844), (768, 900)):
+        page.set_viewport_size({"width": width, "height": height})
+        main_box = main_column.bounding_box()
+        now_box = now_card.bounding_box()
+        first_focus_box = focus_buttons.nth(0).bounding_box()
+        second_focus_box = focus_buttons.nth(1).bounding_box()
+        assert main_box is not None
+        assert now_box is not None
+        assert first_focus_box is not None
+        assert second_focus_box is not None
+        assert main_box["y"] < now_box["y"]
+        assert first_focus_box["y"] < second_focus_box["y"]
+        assert (
+            now_card.evaluate(
+                "(element) => getComputedStyle(element).gridRowStart"
+            )
+            == "auto"
+        )
+
+    page.set_viewport_size({"width": 390, "height": 844})
+    expect(page.get_by_role("navigation", name="Primary views")).to_be_hidden()
+    expect(page.get_by_role("navigation", name="Main navigation")).to_be_visible()
+
+
+def test_focus_timer_announces_only_meaningful_transitions(page, live_url):
+    _register(page, live_url)
+    page.get_by_placeholder("What do you need to remember?").fill("Prepare report")
+    page.get_by_role("button", name="Add to today").click()
+    page.get_by_title("Make this today's highlight").click()
+    page.get_by_role("button", name="Start focus").click()
+
+    dialog = page.get_by_role("dialog", name="Prepare report")
+    expect(dialog).to_be_visible()
+    display = page.get_by_role("timer", name="Time remaining")
+    assert display.get_attribute("aria-live") is None
+    status = page.locator("[data-timer-status]")
+    expect(status).to_have_attribute("aria-live", "polite")
+    expect(status).to_have_attribute("aria-atomic", "true")
+
+    dialog.get_by_role("button", name="15 min").click()
+    expect(status).to_have_text("Timer set to 15 minutes.")
+    dialog.get_by_role("button", name="Start", exact=True).click()
+    expect(status).to_have_text("Timer started. 15 minutes remaining.")
+    page.wait_for_timeout(1100)
+    expect(status).to_have_text("Timer started. 15 minutes remaining.")
+    expect(display).not_to_have_text("15:00")
+
+    dialog.get_by_role("button", name="Pause").click()
+    expect(status).to_have_text(re.compile(r"Timer paused\. 14:5\d remaining\."))
+    dialog.get_by_role("button", name="Continue").click()
+    expect(status).to_have_text(re.compile(r"Timer resumed\. 14:5\d remaining\."))
+    dialog.get_by_role("button", name="Pause").click()
+    dialog.get_by_role("button", name="Reset").click()
+    expect(status).to_have_text("Timer reset. 15 minutes remaining.")
+    dialog.get_by_role("button", name="Close focus timer").click()
+    expect(dialog).to_be_hidden()
+    expect(status).to_have_text("Focus timer stopped.")
 
 
 def test_synthetic_prototype_is_keyboard_operable_and_responsive(page, live_url):

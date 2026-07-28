@@ -4,7 +4,12 @@
     <p class="eyebrow">One thing at a time</p>
     <h2 id="focus-title" data-focus-title>Focus session</h2>
     <p class="focus-intention">For now, this is the only task that matters.</p>
-    <div class="timer-display" data-timer-display aria-live="polite">05:00</div>
+    <div
+      class="timer-display"
+      role="timer"
+      aria-label="Time remaining"
+      data-timer-display
+    >05:00</div>
     <div class="duration-options" aria-label="Focus duration">
       <button type="button" data-duration="5" aria-pressed="true">5 min</button>
       <button type="button" data-duration="15" aria-pressed="false">15 min</button>
@@ -17,3 +22,4 @@
     <p class="timer-note" data-timer-note>Starting is the win.</p>
   </div>
 </dialog>
+<p class="sr-only" aria-live="polite" aria-atomic="true" data-timer-status></p>

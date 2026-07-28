@@ -34,8 +34,11 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
 - explicit task prerequisites, external waits, optional follow-up tasks, and
   reversible blocker overrides separated from Today placement;
 - Low Capacity display mode;
-- a 5/15/25-minute client-side focus timer;
-- responsive desktop/mobile presentation;
+- a 5/15/25-minute client-side focus timer with non-chattering assistive
+  announcements;
+- responsive desktop/mobile presentation with matching mobile visual and
+  sequential focus order;
+- tested functional-control, placeholder, and focus-indicator contrast tokens;
 - installable PWA manifest, icons, service worker, and offline shell.
 
 Self-service account restore, credential recovery, Google Calendar,

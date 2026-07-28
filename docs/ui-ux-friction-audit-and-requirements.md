@@ -4,10 +4,10 @@
   requirements; not yet participant-usability validated
 - Updated: 2026-07-28
 - Audited commit: `3cea2d1eff1b4d7fbb75e7c3b5bb576fd1910d92`
-- Current implementation revalidation: 87 automated tests on 2026-07-28;
-  UX-001 and UX-002 are implemented with automated Chromium and
-  JavaScript-disabled coverage, three P0 implementation findings remain open,
-  and manual and participant gates remain unverified
+- Current implementation revalidation: 91 automated tests on 2026-07-28;
+  UX-001 through UX-005 are implemented with automated contrast, Chromium, and
+  JavaScript-disabled coverage; manual accessibility, broader-browser,
+  real-device, and participant gates remain unverified
 
 ## 1. Purpose
 
@@ -111,13 +111,16 @@ measured functional colour tokens remained unchanged, the countdown still
 updated a polite live region every second, and mobile CSS still moved a
 focusable card ahead of its DOM position.
 
-The current implementation adds immediate browser-local draft persistence and
-server-confirmed Drop recovery and passes all 87 automated tests. Coverage
-includes reload, Back, page close/reopen, failed and delayed requests, sign-out,
-expiry, stale and concurrent-tab revisions, and JavaScript-disabled Drop and
-Undo. Contrast, timer announcements, and mobile focus order remain unchanged.
-Neither revalidation replaces participant evidence, attended screen-reader
-sessions, real-device checks, or broader-browser manual verification.
+The current implementation adds immediate browser-local draft persistence,
+server-confirmed Drop recovery, tested functional contrast tokens, a non-live
+timer display with transition-only announcements, and matching mobile Today
+DOM and visual order. Automated coverage includes reload, Back, page
+close/reopen, failed and delayed requests, sign-out, expiry, stale and
+concurrent-tab revisions, JavaScript-disabled Drop and Undo, contrast
+thresholds, timer status stability while seconds change, and responsive card
+order. This revalidation does not replace participant evidence, attended
+screen-reader sessions, real-device checks, 200% zoom, forced-colors review, or
+broader-browser manual verification.
 
 ### 2.4 Implemented versus proposed
 
@@ -251,7 +254,7 @@ The isolated synthetic browser session found:
 
 ### 4.4 Contrast measurements
 
-Calculated from the current CSS colors:
+Calculated from the CSS colors at the audited commit:
 
 | Element or state | Measured ratio |
 | --- | ---: |
@@ -270,6 +273,14 @@ control boundaries and authored focus states, and at least 4.5:1 for ordinary
 text such as non-incidental placeholder text. The existing dark primary text and
 white-on-forest primary controls are strong; the lighter control tokens require
 revision.
+
+The current implementation replaces the failing functional colors with
+separate focus-indicator, control-boundary, disabled-control, placeholder,
+primary-text, and muted-text tokens. Automated calculations gate the focus and
+active-control tokens at 3:1 or better against every supported adjacent
+surface, and placeholder text at 4.5:1 or better against its supported input
+surfaces. The weakest gated ratios are 3.39:1 for the control boundary, 4.07:1
+for the focus indicator, and 4.53:1 for placeholder text.
 
 ## 5. Evaluation scales
 
@@ -380,6 +391,9 @@ Priority reflects implementation order; severity reflects user impact.
   appropriate. Verify focus against every adjacent surface, not only white.
 - **How to validate:** Add automated color-token checks and conduct keyboard,
   200% zoom, high-contrast/forced-colors, and real-display review.
+- **Implementation status:** Implemented on 2026-07-28 with semantic functional
+  tokens and automated contrast calculations. Keyboard, 200% zoom,
+  forced-colors, and real-display verification remain open.
 
 ### UX-004: The live countdown may be announced every second
 
@@ -399,6 +413,11 @@ Priority reflects implementation order; severity reflects user impact.
   remaining`, and `Boundary reached`.
 - **How to validate:** Run NVDA/Firefox, NVDA/Chrome, and VoiceOver/Safari
   sessions through start, pause, resume, duration change, boundary, and close.
+- **Implementation status:** Implemented on 2026-07-28. The visible countdown
+  is a non-live named timer; a separate atomic polite region announces only
+  meaningful transitions. Chromium automation covers start, duration change,
+  ticking without repeated status changes, pause, reset, and close. Attended
+  screen-reader and boundary verification remain open.
 
 ### UX-005: Mobile visual and keyboard focus order diverge
 
@@ -421,6 +440,11 @@ Priority reflects implementation order; severity reflects user impact.
 - **How to validate:** Tab and reverse-tab at 320 px, 390 px, tablet, desktop,
   200% zoom, and with a screen magnifier. No focused control may be fully
   obscured.
+- **Implementation status:** Implemented on 2026-07-28 by removing the CSS grid
+  reassignment that moved the start-smaller card ahead of its DOM position.
+  Chromium automation gates DOM order, rendered mobile order, focus-button
+  order, and the single visible breakpoint-specific navigation. Manual
+  reverse-tab, zoom, magnifier, and obscured-focus checks remain open.
 
 ### UX-006: Today does not express the intended return sequence clearly
 

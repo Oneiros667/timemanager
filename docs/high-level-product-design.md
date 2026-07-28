@@ -9,7 +9,10 @@ Updated: 2026-07-28
 Timemanager is currently a **partial Phase 1 local pilot**. The application
 implements registration/login, local SQLite task persistence, Today and Later
 capture, one daily highlight, completion/restoring, server-confirmed Drop with
-newest-ten recovery, a Low Capacity view, and a client-side focus timer.
+newest-ten recovery, a Low Capacity view, and a client-side focus timer with
+transition-only assistive announcements. Functional-control, placeholder, and
+focus-indicator contrast have automated thresholds, and mobile Today no longer
+reorders a focusable card ahead of its DOM position.
 Persistence now uses SQLAlchemy Core and ordered Alembic revisions with stable
 public identifiers, installation provenance, and pre-migration SQLite
 recovery. A versioned operator CLI can export one account's current

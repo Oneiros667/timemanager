@@ -140,17 +140,15 @@ originally run against commit `3cea2d1`. UX-001's interrupted-draft
 implementation and automated Chromium gate are now complete in the current
 source. Its manual accessibility, broader-browser, and participant-usability
 evidence remains open. UX-002's Drop recovery implementation and automated
-no-JavaScript gate are also complete. Three P0 implementation findings remain
-open:
+no-JavaScript gate are also complete. The remaining three P0 implementation
+findings now have automated coverage: functional control, placeholder, and
+focus-indicator contrast meet their documented thresholds; the focus countdown
+is non-live and announces only meaningful transitions; and mobile Today visual
+and sequential focus order agree.
 
-- functional control, placeholder, and focus-indicator contrast remains below
-  the documented thresholds;
-- the focus countdown remains an every-second polite live region; and
-- mobile visual order and sequential focus order still diverge.
-
-These are implementation and verification findings, not participant-usability
-evidence. Participant validation, attended screen-reader checks, real-device
-touch checks, and the complete Phase 1 day-loop gate remain unverified.
+Manual accessibility verification remains open. Participant validation,
+attended screen-reader checks, 200% zoom, forced-colors, real-device touch
+checks, and the complete Phase 1 day-loop gate remain unverified.
 
 ### Ranked development slices and current status
 
@@ -158,7 +156,7 @@ touch checks, and the complete Phase 1 day-loop gate remain unverified.
 | --- | --- | --- | --- | --- |
 | 1 | Implemented; manual validation remains | Preserve interrupted task and project drafts | P0 data-loss risk in the exact interruption scenario the product is intended to support | Automated Chromium coverage passes for reload, Back, page close/reopen, failed and delayed saves, expiry, sign-out, and stale and concurrent-tab revisions; manual cross-browser, accessibility, and participant gates remain |
 | 2 | Implemented; manual validation remains | Make Drop server-confirmed and recoverable | P0 destructive-action and recovery risk | Named server confirmation, dropped timestamp, newest-ten account-scoped recovery, restore-to-Later default, separate Add-to-Today, CSRF/ownership enforcement, and migration/transfer coverage pass automated tests; manual touch, keyboard, and participant gates remain |
-| 3 | Not started | Close the remaining P0 accessibility blockers | Contrast, timer announcements, and mobile focus order can prevent predictable operation and would invalidate later participant evidence | Applicable contrast thresholds pass; timer announces meaningful transitions rather than every second; visual and sequential focus order agree at supported breakpoints; manual assistive-technology evidence is recorded |
+| 3 | Implemented; manual validation remains | Close the remaining P0 accessibility blockers | Contrast, timer announcements, and mobile focus order can prevent predictable operation and would invalidate later participant evidence | Automated contrast, timer-transition, and mobile-order gates pass; manual keyboard, zoom, forced-colors, screen-reader, and real-device evidence remains |
 | 4 | Not started | Complete minimum safe Low Capacity behavior | The current partial mode can hide every route to a startable task | Show the highlight or, without mutation, the first active Today task; retain compact Remember/Capture, hidden count, and Show full Today; no hidden work changes |
 | 5 | Not started | Close milestone 1.2 discovery and validation | This is the remaining functional contract in the ordered plan once the safety interlock is clear | Later exposes a lightweight project collection and archive; assignment and creation are distinct; return context, ownership, CSRF, revision, browser/accessibility, and participant gates pass |
 
@@ -226,13 +224,35 @@ Today restoration, migration backfill, and current and v4 transfer round trips.
 Manual touch, full keyboard, broader-browser, and participant-usability checks
 remain open.
 
+### Implemented third slice: P0 accessibility blockers
+
+Functional colors now use separate semantic tokens for primary and muted text,
+placeholder text, active and disabled control boundaries, and focus
+indicators. Automated calculations gate active controls and authored focus at
+3:1 or better across supported adjacent surfaces and placeholder text at 4.5:1
+or better across supported input surfaces.
+
+The visible focus countdown is now a named, non-live timer. A separate atomic
+polite status announces start, resume, pause, reset, duration changes,
+boundary, and close without changing every second. Mobile Today no longer
+moves the start-smaller card ahead of its source position, so DOM, rendered,
+and focus-button order agree.
+
+Automated coverage gates the functional color thresholds, timer semantics and
+status stability, and mobile card and navigation order; Chromium exercises the
+interactive and responsive checks. Manual keyboard, reverse-tab, 200% zoom,
+forced-colors, magnifier, real-device, NVDA, VoiceOver, and timer-boundary
+checks remain open, as does participant validation.
+
 ### Work held behind the interlock
 
 - Review/Reset remains after P0 closure and milestone 1.2's functional gate.
   Validate stale-plan and recovery choices with synthetic scenarios before
   committing to the persistent interaction.
-- Same-device focus persistence remains after accessible timer semantics.
-  Cross-device continuation remains outside the current sync contract.
+- Same-device focus persistence remains behind Low Capacity and milestone 1.2
+  in the ranked development order; its accessible-timer precondition is now
+  implemented. Cross-device continuation remains outside the current sync
+  contract.
 - Fixed commitments, Last Done, Phase 2 integrations, hosted accounts, native
   clients, optional AI, Day Context, and Quick Help retain their documented
   milestone and release gates. Documentation recency is not authority to change
