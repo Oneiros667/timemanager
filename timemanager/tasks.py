@@ -1004,19 +1004,7 @@ def set_task_project(task_id: int):
     _require_current_revision(task)
     database = get_db()
     choice = request.form.get("project_id", "")
-    if choice == "new":
-        title = _clean_field("project_title", 180, required=True)
-        project_id = database.execute(
-            sa.insert(projects)
-            .values(
-                public_id=new_public_id(),
-                origin_installation_id=local_installation_id(database),
-                user_id=g.user["id"],
-                title=title,
-            )
-            .returning(projects.c.id)
-        ).scalar_one()
-    elif choice:
+    if choice:
         try:
             project_id = int(choice)
         except ValueError:
@@ -1042,6 +1030,54 @@ def set_task_project(task_id: int):
     database.commit()
     flash("Project updated.", "success")
     return redirect(url_for("tasks.task_detail", task_id=task["id"]))
+
+
+@blueprint.post("/tasks/<int:task_id>/promote-to-project")
+@login_required
+def promote_task_to_project(task_id: int):
+    task = _owned_task(task_id)
+    if "revision" not in request.form:
+        abort(400, description="Current task revision is required.")
+    _require_current_revision(task)
+    if task["project_id"] is not None:
+        abort(409, description="This task already belongs to a project.")
+    if request.form.get("confirm") != "1":
+        abort(400, description="Project conversion requires confirmation.")
+
+    project_title = _clean_field("project_title", 180, required=True)
+    database = get_db()
+    project_id = database.execute(
+        sa.insert(projects)
+        .values(
+            public_id=new_public_id(),
+            origin_installation_id=local_installation_id(database),
+            user_id=g.user["id"],
+            title=project_title,
+            desired_outcome=task["definition_of_done"],
+        )
+        .returning(projects.c.id)
+    ).scalar_one()
+    updated_task_id = database.execute(
+        sa.update(task_table)
+        .where(
+            task_table.c.id == task_id,
+            task_table.c.user_id == g.user["id"],
+            task_table.c.revision == task["revision"],
+        )
+        .values(
+            project_id=project_id,
+            project_position=0,
+            revision=task_table.c.revision + 1,
+            updated_at=sa.func.current_timestamp(),
+        )
+        .returning(task_table.c.id)
+    ).scalar_one_or_none()
+    if updated_task_id is None:
+        database.rollback()
+        abort(409, description="The task changed while creating the project.")
+    database.commit()
+    flash("Project created. The original task is its first task.", "success")
+    return redirect(url_for("tasks.project_detail", project_id=project_id))
 
 
 @blueprint.post("/components/<int:component_id>/promote")

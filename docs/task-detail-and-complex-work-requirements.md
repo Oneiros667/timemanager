@@ -1,6 +1,7 @@
 # Task detail and complex-work requirements
 
-Status: implemented Phase 1 engineering slice; usability evidence unverified
+Status: core Phase 1 engineering slice implemented; project discovery and
+usability evidence incomplete
 
 Updated: 2026-07-28
 
@@ -102,6 +103,13 @@ which project will be created, and which components will become separate tasks.
 The conversion is explicit and reversible where no later conflicting edits
 make automatic reversal ambiguous.
 
+The implemented conversion creates a project with an editable, pre-filled
+project name and retains the captured record as its first task. The preview
+states that Today placement, task detail, steps, and blockers remain on that
+task; no component is promoted automatically. The task’s definition of done
+initially supplies the project’s desired outcome and remains editable in both
+places.
+
 ## Task detail
 
 Task detail is a contextual view reached from Today, Later, Review, or a
@@ -164,6 +172,28 @@ promote it to a project task through an explicit preview.
 Project progress is described using concrete task and outcome state. The first
 implementation does not use completion percentages, velocity, streaks, or
 claims that task-count progress equals outcome progress.
+
+### Current project discovery gap
+
+Individual project workspaces, task conversion, and assignment to an active
+project are implemented. Project collection and lifecycle navigation are not:
+
+- there is no project index or collection route;
+- projects have no navigation entry point from Today or Later;
+- users can reach a project only through a linked task, an immediate
+  conversion/promotion redirect, or a direct URL they already know;
+- existing-project assignment appears only in the task workspace and only
+  offers active projects;
+- creation and assignment share one progressively disclosed task section,
+  making the two actions easy to conflate; and
+- completed and dropped projects cannot be browsed or restored through an
+  archive view.
+
+The next interface slice should expose a lightweight collection from Later
+rather than introduce a mandatory fifth primary destination. It should list
+active projects with desired outcome and next-ready task, keep completed and
+dropped projects in a collapsed archive, preserve return context, and present
+**Add to existing project** separately from **Turn into a new project**.
 
 ## Dependencies, blockers, and ordering
 

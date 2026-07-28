@@ -56,6 +56,8 @@ The following behavior is implemented:
   notes, and ordered components;
 - lightweight projects, preferred ordering, next-ready computation,
   prerequisites, external waits, follow-up tasks, and explicit overrides;
+- explicit task-to-project conversion that preserves the task’s details,
+  relationships, and Today placement as the first project task;
 - workflow/readiness state kept separate from active/overflow Today placement;
 - v4 account transfer with v1/v2/v3 import compatibility, Remember items, and
   atomic relationship validation;
@@ -84,8 +86,34 @@ capability:
 | --- | --- | --- |
 | Low Capacity | CSS hides secondary Today content and stores a browser preference | No per-account state, current-time/commitment view, critical-item routing, smallest-action selection, or Reset |
 | Focus | A non-persisted countdown can start, pause, continue, and reset | No session intention record, distraction capture, transition protection, next commitment, or actual-time history |
-| Complex work | Task/project workspaces, components, order, blockers, readiness, and relationship transfer | Five-participant prototype gate plus manual screen-reader and contrast review remain unverified |
+| Complex work | Task/project workspaces, conversion, existing-project assignment, components, order, blockers, readiness, and relationship transfer | No project collection/index, project navigation entry point, or completed/dropped project archive; assignment remains nested in task detail; five-participant prototype gate plus manual screen-reader and contrast review remain unverified |
 | Backup and portability | Operator `instance/` backup, automatic pre-migration recovery, and versioned account/task CLI export/import | No self-service flow, credential recovery, full-account-type coverage, full operational restore rehearsal, or hosted adapter |
+
+### Known project-workflow functional gaps
+
+The current project data model and individual project workspace are
+implemented, but the surrounding navigation is incomplete:
+
+- there is no `/projects` collection route or other place to browse projects;
+- no primary or contextual navigation control exposes a project list;
+- a project is discoverable only through a linked task, the redirect after
+  task conversion or component promotion, or a previously known direct URL;
+- assigning a captured task to an existing project is implemented only inside
+  task detail, nested under the project disclosure, and candidates are limited
+  to active projects;
+- the same disclosure presents both creating a new project and assigning an
+  existing one, so the two distinct actions are not sufficiently visible;
+- completed and dropped projects have no browsable archive or restoration
+  entry point; and
+- project pages return to Today rather than preserving the user’s originating
+  Later or task context.
+
+Closing this gap should add a lightweight project collection reachable from
+Later, show each active project’s desired outcome and next-ready task, provide
+a collapsed completed/dropped archive, and present **Add to existing project**
+and **Turn into a new project** as separate task actions. This is a
+discoverability and navigation slice, not authority to add Projects as another
+mandatory primary destination or to expand whole projects into Today.
 
 ## Findings that require decisions
 
@@ -233,7 +261,7 @@ never prove guardianship. The detailed topology and release evidence are in
 | 0.3 | Add export, restore, and migration-fixture foundations | Completed 2026-07-24 | Export/import round trip is idempotent and tested; secrets are excluded |
 | 1.1 | Enforce a deliberately small active Today plan | Completed 2026-07-24 | One highlight plus the chosen optional-task limit; overflow remains recoverable |
 | 1.2a | Add task detail, next action, definition of done, and short components | Partial — implemented 2026-07-28; validation open | Capture remains title-only; added structure is optional, editable, owned, portable, and accessible |
-| 1.2b | Add lightweight projects, ordering, dependencies, and external waiting | Partial — implemented 2026-07-28; validation open | One shallow hierarchy; readiness is separate from Today placement; blockers never silently rearrange Today |
+| 1.2b | Add lightweight projects, ordering, dependencies, and external waiting | Partial — core model implemented 2026-07-28; discovery, navigation, archive, and validation open | One shallow hierarchy; projects and existing-project assignment are discoverable; readiness is separate from Today placement; blockers never silently rearrange Today |
 | 1.3 | Add Review and consequence-aware Reset/recovery | Not started | No silent rollover; stale items can be kept, renegotiated, delegated, replaced, or dropped |
 | 1.4 | Add manually entered fixed commitments and transition boundaries | Not started | Fixed and flexible objects remain distinct; next commitment stays visible |
 | 1.5 | Complete Low Capacity semantics | Not started | Same underlying data; critical commitments, one action, capture, and Reset remain available |

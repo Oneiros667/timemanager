@@ -25,6 +25,8 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
   notes, and ordered steps;
 - lightweight project workspaces with preferred ordering and one next-ready
   task;
+- one-confirmation task-to-project conversion that preserves the original task
+  as the project’s first task;
 - explicit task prerequisites, external waits, optional follow-up tasks, and
   reversible blocker overrides separated from Today placement;
 - Low Capacity display mode;
@@ -34,9 +36,12 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
 
 Self-service account restore, credential recovery, Google Calendar,
 trusted-person sessions, hosted PostgreSQL accounts, local-to-online migration,
-and native mobile clients are not implemented yet. The implemented complex-work
-interaction remains a plausible design whose five-participant usability gate
-has not yet been run. Intended and gated scope is documented in the
+native mobile clients, and a browsable project index/archive are not implemented
+yet. Existing-project assignment is available only from task detail and only
+lists active projects, so project discovery remains a known functional gap.
+The implemented complex-work interaction remains a plausible design whose
+five-participant usability gate has not yet been run. Intended and gated scope
+is documented in the
 [high-level product design](docs/high-level-product-design.md).
 
 ## Local account topology

@@ -40,7 +40,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         SESSION_COOKIE_SECURE=False,
         MAX_CONTENT_LENGTH=64 * 1024,
         ENABLE_PROTOTYPES=os.environ.get("TIMEMANAGER_ENABLE_PROTOTYPES") == "1",
-        STATIC_ASSET_VERSION="6",
+        STATIC_ASSET_VERSION="7",
     )
 
     if test_config is None:

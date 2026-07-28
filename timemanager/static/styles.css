@@ -1534,6 +1534,34 @@ body.low-capacity .capture-card {
   font-weight: 750;
 }
 
+.workspace-card[open] > summary {
+  margin-bottom: 1rem;
+}
+
+.project-conversion-preview {
+  padding: 1rem;
+  border: 1px solid #bcd8ce;
+  border-radius: 12px;
+  background: var(--mint-soft);
+}
+
+.project-conversion-preview h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.project-conversion-preview p {
+  margin: 0 0 0.85rem;
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+}
+
+.existing-project-choice {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
 .start-card {
   display: grid;
   gap: 0.8rem;

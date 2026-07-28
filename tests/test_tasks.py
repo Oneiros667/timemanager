@@ -600,19 +600,28 @@ def test_project_dependencies_waits_and_unblocking_do_not_change_today(app, clie
     with app.app_context():
         rows = (
             get_db()
-            .execute(sa.select(tasks.c.id, tasks.c.title).order_by(tasks.c.id))
+            .execute(
+                sa.select(tasks.c.id, tasks.c.title, tasks.c.revision).order_by(
+                    tasks.c.id
+                )
+            )
             .mappings()
             .all()
         )
     by_title = {row["title"]: row["id"] for row in rows}
+    revision_by_title = {row["title"]: row["revision"] for row in rows}
 
     response = _post_with_csrf(
         client,
-        f"/tasks/{by_title['Approve design']}/project",
-        {"project_id": "new", "project_title": "Launch website"},
+        f"/tasks/{by_title['Approve design']}/promote-to-project",
+        {
+            "revision": str(revision_by_title["Approve design"]),
+            "project_title": "Launch website",
+            "confirm": "1",
+        },
         page=f"/tasks/{by_title['Approve design']}",
     )
-    assert b"Project updated" in response.data
+    assert b"Project created" in response.data
     with app.app_context():
         project_id = get_db().execute(sa.select(projects.c.id)).scalar_one()
 
@@ -736,6 +745,95 @@ def test_promoting_steps_preserves_their_original_preferred_order(app, client):
             .all()
         )
     assert titles == ["Move house", "Pack", "Book van", "Return keys"]
+
+
+def test_task_can_be_turned_into_a_project_without_losing_task_state(app, client):
+    register(client)
+    _post_with_csrf(
+        client,
+        "/tasks",
+        {"title": "Plan the launch", "placement": "today"},
+    )
+    with app.app_context():
+        task = get_db().execute(sa.select(tasks)).mappings().one()
+
+    missing_revision = _post_with_csrf(
+        client,
+        f"/tasks/{task['id']}/promote-to-project",
+        {"project_title": "No revision", "confirm": "1"},
+        page=f"/tasks/{task['id']}",
+    )
+    assert missing_revision.status_code == 400
+
+    _post_with_csrf(
+        client,
+        f"/tasks/{task['id']}/details",
+        {
+            "revision": str(task["revision"]),
+            "title": task["title"],
+            "next_action": "List the launch tasks",
+            "definition_of_done": "The launch is complete",
+            "notes": "Keep the first version small",
+        },
+        page=f"/tasks/{task['id']}",
+    )
+    with app.app_context():
+        task = get_db().execute(sa.select(tasks)).mappings().one()
+
+    _post_with_csrf(
+        client,
+        f"/tasks/{task['id']}/components",
+        {"revision": str(task["revision"]), "title": "List launch tasks"},
+        page=f"/tasks/{task['id']}",
+    )
+    with app.app_context():
+        task = get_db().execute(sa.select(tasks)).mappings().one()
+
+    stale = _post_with_csrf(
+        client,
+        f"/tasks/{task['id']}/promote-to-project",
+        {
+            "revision": str(task["revision"] - 1),
+            "project_title": "Stale project",
+            "confirm": "1",
+        },
+        page=f"/tasks/{task['id']}",
+    )
+    assert stale.status_code == 409
+    with app.app_context():
+        assert get_db().execute(
+            sa.select(sa.func.count()).select_from(projects)
+        ).scalar_one() == 0
+
+    response = _post_with_csrf(
+        client,
+        f"/tasks/{task['id']}/promote-to-project",
+        {
+            "revision": str(task["revision"]),
+            "project_title": "Website launch",
+            "confirm": "1",
+        },
+        page=f"/tasks/{task['id']}",
+    )
+
+    assert b"Project created" in response.data
+    assert b"Website launch" in response.data
+    assert b"Plan the launch" in response.data
+    with app.app_context():
+        project = get_db().execute(sa.select(projects)).mappings().one()
+        promoted_task = get_db().execute(sa.select(tasks)).mappings().one()
+        component = get_db().execute(sa.select(task_components)).mappings().one()
+
+    assert project["title"] == "Website launch"
+    assert project["desired_outcome"] == "The launch is complete"
+    assert promoted_task["project_id"] == project["id"]
+    assert promoted_task["project_position"] == 0
+    assert promoted_task["today_placement"] == "active"
+    assert promoted_task["planned_date"] == date.today().isoformat()
+    assert promoted_task["next_action"] == "List the launch tasks"
+    assert promoted_task["notes"] == "Keep the first version small"
+    assert component["task_id"] == promoted_task["id"]
+    assert component["title"] == "List launch tasks"
 
 
 def test_task_and_project_relationships_are_account_scoped(app, client):

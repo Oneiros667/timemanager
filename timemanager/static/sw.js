@@ -1,9 +1,9 @@
-const CACHE_NAME = "timemanager-shell-v6";
+const CACHE_NAME = "timemanager-shell-v7";
 const SHELL_ASSETS = [
   "/offline",
   "/manifest.webmanifest",
-  "/static/styles.css?v=6",
-  "/static/app.js?v=6",
+  "/static/styles.css?v=7",
+  "/static/app.js?v=7",
   "/static/icons/icon.svg",
   "/static/icons/icon-192.png",
   "/static/icons/icon-512.png"

@@ -132,6 +132,25 @@ def test_capture_task_workspace_autosave_and_rapid_steps(page, live_url):
     expect(page.get_by_role("dialog", name="Prepare report")).to_be_visible()
 
 
+def test_task_can_be_turned_into_a_project_in_one_confirmed_flow(page, live_url):
+    _register(page, live_url)
+    page.get_by_placeholder("What do you need to remember?").fill("Plan the launch")
+    page.get_by_role("button", name="Add to Later").click()
+    page.get_by_role("link", name="Add details").click()
+
+    page.locator("summary").filter(has_text="Turn into a project").click()
+    project_name = page.get_by_label("Project name")
+    expect(project_name).to_have_value("Plan the launch")
+    project_name.fill("Website launch")
+    page.get_by_role("button", name="Turn into a project").click()
+
+    expect(page.get_by_label("Project title")).to_have_value("Website launch")
+    expect(
+        page.locator(".next-ready-card").get_by_role("link", name="Plan the launch")
+    ).to_be_visible()
+    assert "/projects/" in page.url
+
+
 def test_inline_edit_retains_list_context(page, live_url):
     _register(page, live_url)
     page.get_by_placeholder("What do you need to remember?").fill("Draft report")

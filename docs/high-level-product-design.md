@@ -21,6 +21,9 @@ Task detail, ordered components, lightweight projects, preferred task order,
 prerequisites, external waits, next-ready computation, and separate Today
 placement are now implemented as a local-pilot slice. Its synthetic prototype
 and evaluation materials exist, but no participant findings have been recorded.
+The local pilot has no project collection, navigation entry point, or
+completed/dropped archive, and existing-project assignment remains nested in
+task detail.
 Self-service restore and credential recovery, Google Calendar, assisted
 planning for guardians and trusted people, the Phase 3 hosted release,
 local-to-online migration, AI, and native mobile applications remain
@@ -431,7 +434,12 @@ The Phase 3 hosted release has four primary destinations:
 
 Task detail and Focus are contextual views reached from Today, Later, or Review.
 Projects are initially lightweight outcome groupings inside task detail, not a
-separate dashboard. Search is a utility, not a fifth place the user must check.
+separate primary destination. A lightweight collection reached from Later may
+support project discovery without adding another place the user must routinely
+check. The current local pilot has individual project routes but no collection,
+navigation entry point, or completed/dropped archive; existing-project
+assignment is nested in task detail. Search is a utility, not a fifth place the
+user must check.
 
 ## Feature catalogue and phasing
 
@@ -444,7 +452,7 @@ Statuses describe the current repository, not the intended milestone scope.
 | Highlight plus small active plan | Phase 1 | Implemented | Learned capacity limit | Supported method; plausible interface |
 | Three-item Remember cues | Phase 1 | Implemented | Usability validation | Plausible context-switching aid |
 | Manual next action and definition of done | Phase 1 | Partial | Suggested decomposition | Supported foundation |
-| Short task components and lightweight projects | Phase 1 | Partial | Richer project views | Supported decomposition; plausible interface |
+| Short task components and lightweight projects | Phase 1 | Partial — model/workspaces implemented; collection, navigation, and archive missing | Project discovery and richer project views | Supported decomposition; plausible interface |
 | Dependencies and external waiting | Phase 1 | Partial | Richer dependency analysis | Supported readiness question; plausible state model |
 | Flexible focus session | Phase 1 | Partial | Stronger blocking and AI body doubling | Supported elements; experiential options |
 | Assisted planning | Phase 2 | Blocked by Phase 1 | Richer household and support controls | Plausible/experiential; privacy-sensitive |
