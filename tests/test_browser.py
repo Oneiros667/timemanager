@@ -296,21 +296,71 @@ def test_capture_task_workspace_autosave_and_rapid_steps(page, live_url):
 
 def test_task_can_be_turned_into_a_project_in_one_confirmed_flow(page, live_url):
     _register(page, live_url)
+    page.on("dialog", lambda dialog: dialog.accept())
     page.get_by_placeholder("What do you need to remember?").fill("Plan the launch")
     page.get_by_role("button", name="Add to Later").click()
     page.get_by_role("link", name="Add details").click()
 
-    page.locator("summary").filter(has_text="Turn into a project").click()
+    page.locator("summary").filter(has_text="Turn into a new project").click()
     project_name = page.get_by_label("Project name")
     expect(project_name).to_have_value("Plan the launch")
     project_name.fill("Website launch")
-    page.get_by_role("button", name="Turn into a project").click()
+    page.get_by_role("button", name="Turn into a new project").click()
 
     expect(page.get_by_label("Project title")).to_have_value("Website launch")
     expect(
         page.locator(".next-ready-card").get_by_role("link", name="Plan the launch")
     ).to_be_visible()
     assert "/projects/" in page.url
+    outcome = page.get_by_label("Outcome")
+    with page.expect_response(
+        lambda response: "/projects/" in response.url
+        and response.url.endswith("/details")
+        and response.request.method == "POST"
+    ):
+        outcome.fill("Customers can use the release")
+        outcome.blur()
+    expect(page.get_by_text("Saved", exact=True)).to_be_visible()
+
+    page.locator(".workspace-back").click()
+    expect(page.get_by_text("Current view · Later", exact=True)).to_be_visible()
+    page.get_by_role("link", name="View projects").click()
+    expect(page.get_by_text("Current view · Projects", exact=True)).to_be_visible()
+    active_project = page.locator(".project-collection-card").filter(
+        has_text="Website launch"
+    )
+    expect(active_project.get_by_text("Customers can use the release")).to_be_visible()
+    expect(active_project.get_by_text("Plan the launch", exact=True)).to_be_visible()
+    page.set_viewport_size({"width": 320, "height": 800})
+    assert page.evaluate(
+        "document.documentElement.scrollWidth <= window.innerWidth"
+    )
+    page.set_viewport_size({"width": 1280, "height": 900})
+
+    active_project.get_by_role("link", name="Website launch").click()
+    page.locator(".workspace-back").click()
+    expect(page.get_by_text("Current view · Projects", exact=True)).to_be_visible()
+    page.get_by_role("link", name="Back to Later").click()
+
+    page.get_by_placeholder("What do you need to remember?").fill(
+        "Write the launch email"
+    )
+    page.get_by_role("button", name="Add to Later").click()
+    page.get_by_role("link", name="Add details").click()
+    expect(
+        page.locator("summary").filter(has_text="Add to an existing project")
+    ).to_be_visible()
+    expect(
+        page.locator("summary").filter(has_text="Turn into a new project")
+    ).to_be_visible()
+    page.locator("summary").filter(has_text="Add to an existing project").click()
+    page.get_by_label("Existing project").select_option(label="Website launch")
+    page.get_by_role("button", name="Add to existing project").click()
+    expect(page.get_by_text("Part of", exact=False)).to_contain_text(
+        "Website launch"
+    )
+    page.locator(".workspace-back").click()
+    expect(page.get_by_text("Current view · Later", exact=True)).to_be_visible()
 
 
 def test_inline_edit_retains_list_context(page, live_url):
@@ -515,8 +565,8 @@ def test_inline_and_project_drafts_restore_in_their_existing_context(page, live_
     expect(restored_editor.get_by_text("Saved", exact=True)).to_be_visible()
 
     page.get_by_role("link", name="Plan the launch", exact=True).click()
-    page.locator("summary").filter(has_text="Turn into a project").click()
-    page.get_by_role("button", name="Turn into a project").click()
+    page.locator("summary").filter(has_text="Turn into a new project").click()
+    page.get_by_role("button", name="Turn into a new project").click()
     outcome = page.get_by_label("Outcome")
     outcome.fill("The first release is available")
     page.reload()

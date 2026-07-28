@@ -3,13 +3,14 @@
 {% block title %}Later · Timemanager{% endblock %}
 
 {% block content %}
-  <section class="day-heading">
+  <section class="day-heading view-heading-with-actions">
     <div>
       <p class="eyebrow">Current view · Later</p>
       <h1>Later</h1>
       <p>New captures and work saved for later, outside today’s active plan.</p>
     </div>
     <div class="header-actions">
+      <a class="quiet-button" href="{{ url_for('tasks.project_collection') }}">View projects</a>
       <a class="quiet-button" href="{{ url_for('tasks.recently_dropped') }}">Recently dropped</a>
       <a class="secondary-button" href="{{ url_for('tasks.today') }}">View Today</a>
     </div>

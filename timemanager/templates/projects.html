@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Projects · Timemanager{% endblock %}
+
+{% block content %}
+  <section class="day-heading view-heading-with-actions">
+    <div>
+      <p class="eyebrow">Current view · Projects</p>
+      <h1>Projects</h1>
+      <p>Keep an outcome and its next ready task visible without changing where any task lives.</p>
+    </div>
+    <div class="header-actions">
+      <a class="secondary-button" href="{{ url_for('tasks.later') }}">Back to Later</a>
+    </div>
+  </section>
+
+  <section class="task-section" aria-labelledby="active-projects-heading">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Open outcomes</p>
+        <h2 id="active-projects-heading">Active projects</h2>
+      </div>
+      <span>{{ active_projects|length }}</span>
+    </div>
+    {% if active_projects %}
+      <div class="project-collection">
+        {% for project in active_projects %}
+          <article class="project-collection-card">
+            <div>
+              <h3>
+                <a href="{{ url_for('tasks.project_detail', project_id=project.id, return_to=request.full_path) }}">{{ project.title }}</a>
+              </h3>
+              {% if project.desired_outcome %}
+                <p>{{ project.desired_outcome }}</p>
+              {% else %}
+                <p class="muted-copy">No outcome written yet.</p>
+              {% endif %}
+            </div>
+            <div class="project-next-ready">
+              <p class="eyebrow">Next ready</p>
+              {% if project.next_ready %}
+                <a href="{{ url_for('tasks.task_detail', task_id=project.next_ready.id, return_to=request.full_path) }}">{{ project.next_ready.title }}</a>
+                {% if project.next_ready.next_action %}<small>Next: {{ project.next_ready.next_action }}</small>{% endif %}
+              {% else %}
+                <span>No ready task</span>
+              {% endif %}
+            </div>
+            <p class="project-counts">
+              {{ project.ready_count }} ready ·
+              {{ project.waiting_count }} waiting ·
+              {{ project.done_count }} done
+            </p>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="calm-empty-state">
+        <h3>No active projects</h3>
+        <p>Turn a task into a project when an outcome needs more than one step.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <details class="workspace-card project-archive">
+    <summary>Project archive ({{ archived_projects|length }})</summary>
+    {% if archived_projects %}
+      <div class="project-collection">
+        {% for project in archived_projects %}
+          <article class="project-collection-card archived-project-card">
+            <div>
+              <p class="eyebrow">{{ project.state|capitalize }}</p>
+              <h3>
+                <a href="{{ url_for('tasks.project_detail', project_id=project.id, return_to=request.full_path) }}">{{ project.title }}</a>
+              </h3>
+              {% if project.desired_outcome %}<p>{{ project.desired_outcome }}</p>{% endif %}
+            </div>
+            <form action="{{ url_for('tasks.set_project_state', project_id=project.id) }}" method="post">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="revision" value="{{ project.revision }}">
+              <input type="hidden" name="state" value="active">
+              <input type="hidden" name="redirect_to" value="{{ request.full_path }}">
+              <button class="secondary-button compact-button" type="submit">Restore project</button>
+            </form>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted-copy">No completed or dropped projects.</p>
+    {% endif %}
+  </details>
+{% endblock %}

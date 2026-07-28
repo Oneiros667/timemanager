@@ -36,6 +36,30 @@ def _task_snapshot(app) -> list[dict]:
         return [dict(row) for row in rows]
 
 
+def _insert_project(
+    database,
+    user_id: int,
+    title: str,
+    *,
+    desired_outcome: str = "",
+    state: str = "active",
+) -> int:
+    return int(
+        database.execute(
+            sa.insert(projects)
+            .values(
+                public_id=new_public_id(),
+                origin_installation_id=local_installation_id(database),
+                user_id=user_id,
+                title=title,
+                desired_outcome=desired_outcome,
+                state=state,
+            )
+            .returning(projects.c.id)
+        ).scalar_one()
+    )
+
+
 def test_capture_to_today_and_tasks(app, client):
     register(client)
 
@@ -994,6 +1018,315 @@ def test_task_can_be_turned_into_a_project_without_losing_task_state(app, client
     assert promoted_task["notes"] == "Keep the first version small"
     assert component["task_id"] == promoted_task["id"]
     assert component["title"] == "List launch tasks"
+
+
+def test_project_collection_is_scoped_and_read_only_with_next_ready_and_archive(
+    app,
+    client,
+):
+    register(client)
+    other_user_id = create_user(
+        app,
+        "Other",
+        "other@example.com",
+        generate_password_hash("other password"),
+    )
+    with app.app_context():
+        database = get_db()
+        user_id = database.execute(
+            sa.select(users.c.id).where(users.c.email == "alex@example.com")
+        ).scalar_one()
+        active_id = _insert_project(
+            database,
+            user_id,
+            "Release the guide",
+            desired_outcome="The guide is available to readers",
+        )
+        _insert_project(
+            database,
+            user_id,
+            "Completed project",
+            desired_outcome="The completed outcome",
+            state="completed",
+        )
+        _insert_project(
+            database,
+            user_id,
+            "Dropped project",
+            state="dropped",
+        )
+        _insert_project(
+            database,
+            other_user_id,
+            "Another account project",
+            state="completed",
+        )
+        for position, title, workflow_status, state in (
+            (0, "Draft the guide", "open", "active"),
+            (1, "Wait for review", "waiting", "active"),
+            (2, "Choose a topic", "done", "done"),
+        ):
+            database.execute(
+                sa.insert(tasks).values(
+                    public_id=new_public_id(),
+                    origin_installation_id=local_installation_id(database),
+                    user_id=user_id,
+                    title=title,
+                    state=state,
+                    workflow_status=workflow_status,
+                    today_placement="unplanned",
+                    project_id=active_id,
+                    project_position=position,
+                )
+            )
+        database.commit()
+    before = _task_snapshot(app)
+
+    response = client.get("/projects")
+
+    assert response.status_code == 200
+    assert b"Current view \xc2\xb7 Projects" in response.data
+    assert b"Release the guide" in response.data
+    assert b"The guide is available to readers" in response.data
+    assert b"Draft the guide" in response.data
+    assert b"1 ready \xc2\xb7" in response.data
+    assert b"1 waiting \xc2\xb7" in response.data
+    assert b"1 done" in response.data
+    assert b"Project archive (2)" in response.data
+    assert b"Completed project" in response.data
+    assert b"Dropped project" in response.data
+    assert b"Another account project" not in response.data
+    assert b'<details class="workspace-card project-archive">' in response.data
+    assert b'<details class="workspace-card project-archive" open>' not in response.data
+    assert _task_snapshot(app) == before
+
+    later = client.get("/later")
+    assert b'href="/projects"' in later.data
+    assert b"View projects" in later.data
+
+    detail = client.get(f"/projects/{active_id}?return_to=/later")
+    assert b'href="/later"' in detail.data
+    assert b'name="return_to" value="/later"' in detail.data
+
+    unsafe_return = client.get(
+        f"/projects/{active_id}?return_to=//example.com/leave"
+    )
+    assert b'href="/projects"' in unsafe_return.data
+    assert b'name="return_to" value="/projects"' in unsafe_return.data
+    assert b'href="//example.com/leave"' not in unsafe_return.data
+
+
+def test_archived_project_restore_is_explicit_revisioned_and_task_safe(app, client):
+    register(client)
+    other_user_id = create_user(
+        app,
+        "Other",
+        "other@example.com",
+        generate_password_hash("other password"),
+    )
+    with app.app_context():
+        database = get_db()
+        user_id = database.execute(
+            sa.select(users.c.id).where(users.c.email == "alex@example.com")
+        ).scalar_one()
+        archived_id = _insert_project(
+            database,
+            user_id,
+            "Paused move",
+            desired_outcome="Everything is in the new home",
+            state="dropped",
+        )
+        foreign_id = _insert_project(
+            database,
+            other_user_id,
+            "Private project",
+            state="dropped",
+        )
+        linked_task_id = database.execute(
+            sa.insert(tasks)
+            .values(
+                public_id=new_public_id(),
+                origin_installation_id=local_installation_id(database),
+                user_id=user_id,
+                title="Book the moving van",
+                state="active",
+                workflow_status="open",
+                today_placement="unplanned",
+                project_id=archived_id,
+                project_position=0,
+            )
+            .returning(tasks.c.id)
+        ).scalar_one()
+        standalone_task_id = database.execute(
+            sa.insert(tasks)
+            .values(
+                public_id=new_public_id(),
+                origin_installation_id=local_installation_id(database),
+                user_id=user_id,
+                title="Choose a new project",
+                state="inbox",
+                workflow_status="inbox",
+                today_placement="unplanned",
+            )
+            .returning(tasks.c.id)
+        ).scalar_one()
+        database.commit()
+    before = _task_snapshot(app)
+
+    assert client.post(
+        f"/projects/{archived_id}/state",
+        data={"revision": "1", "state": "active"},
+    ).status_code == 400
+
+    stale = _post_with_csrf(
+        client,
+        f"/projects/{archived_id}/state",
+        {"revision": "0", "state": "active", "redirect_to": "/projects"},
+        page="/projects",
+    )
+    assert stale.status_code == 409
+
+    archived_detail = client.get(f"/projects/{archived_id}")
+    assert b"Project \xc2\xb7 Dropped" in archived_detail.data
+    assert b"This project is dropped" in archived_detail.data
+    assert b"Restore project" in archived_detail.data
+    assert b"data-autosave-form" not in archived_detail.data
+    assert b"Add project task" not in archived_detail.data
+
+    blocked_edit = _post_with_csrf(
+        client,
+        f"/projects/{archived_id}/details",
+        {
+            "revision": "1",
+            "title": "Changed title",
+            "desired_outcome": "",
+            "notes": "",
+        },
+        page=f"/projects/{archived_id}",
+    )
+    assert blocked_edit.status_code == 409
+    blocked_add = _post_with_csrf(
+        client,
+        f"/projects/{archived_id}/tasks",
+        {"revision": "1", "title": "Unexpected task"},
+        page=f"/projects/{archived_id}",
+    )
+    assert blocked_add.status_code == 409
+    blocked_assignment = _post_with_csrf(
+        client,
+        f"/tasks/{standalone_task_id}/project",
+        {"revision": "1", "project_id": str(archived_id)},
+        page=f"/tasks/{standalone_task_id}",
+    )
+    assert blocked_assignment.status_code == 400
+    foreign_restore = _post_with_csrf(
+        client,
+        f"/projects/{foreign_id}/state",
+        {"revision": "1", "state": "active"},
+        page="/projects",
+    )
+    assert foreign_restore.status_code == 404
+    assert _task_snapshot(app) == before
+
+    token = csrf_token(client, "/projects")
+    restored = client.post(
+        f"/projects/{archived_id}/state",
+        data={
+            "_csrf_token": token,
+            "revision": "1",
+            "state": "active",
+            "redirect_to": "/projects",
+        },
+        follow_redirects=False,
+    )
+
+    assert restored.status_code == 302
+    assert restored.headers["Location"] == "/projects"
+    with app.app_context():
+        database = get_db()
+        project = database.execute(
+            sa.select(projects).where(projects.c.id == archived_id)
+        ).mappings().one()
+        linked_task = database.execute(
+            sa.select(tasks).where(tasks.c.id == linked_task_id)
+        ).mappings().one()
+    assert project["state"] == "active"
+    assert project["revision"] == 2
+    assert dict(linked_task) == before[0]
+    assert _task_snapshot(app) == before
+
+
+def test_project_assignment_and_creation_are_separate_and_return_to_context(
+    app,
+    client,
+):
+    register(client)
+    _post_with_csrf(
+        client,
+        "/tasks",
+        {"title": "Write the launch email", "placement": "later"},
+    )
+    with app.app_context():
+        database = get_db()
+        task = database.execute(sa.select(tasks)).mappings().one()
+        project_id = _insert_project(
+            database,
+            task["user_id"],
+            "Launch",
+            desired_outcome="Customers can use the release",
+        )
+        database.commit()
+
+    detail = client.get(f"/tasks/{task['id']}?return_to=/later")
+
+    assert detail.status_code == 200
+    assert b"Add to an existing project" in detail.data
+    assert b"Turn into a new project" in detail.data
+    assert b"Add to existing project" in detail.data
+    assert detail.data.count(b'name="return_to" value="/later"') == 2
+
+    token = csrf_token(client, f"/tasks/{task['id']}?return_to=/later")
+    assigned = client.post(
+        f"/tasks/{task['id']}/project",
+        data={
+            "_csrf_token": token,
+            "revision": str(task["revision"]),
+            "project_id": str(project_id),
+            "return_to": "/later",
+        },
+        follow_redirects=False,
+    )
+
+    assert assigned.status_code == 302
+    assert assigned.headers["Location"] == (
+        f"/tasks/{task['id']}?return_to=/later"
+    )
+    with app.app_context():
+        updated = get_db().execute(
+            sa.select(tasks).where(tasks.c.id == task["id"])
+        ).mappings().one()
+    assert updated["project_id"] == project_id
+    assert updated["project_position"] == 0
+    assert updated["revision"] == task["revision"] + 1
+
+    before_noop = dict(updated)
+    token = csrf_token(client, f"/tasks/{task['id']}?return_to=/later")
+    noop = client.post(
+        f"/tasks/{task['id']}/project",
+        data={
+            "_csrf_token": token,
+            "revision": str(updated["revision"]),
+            "project_id": str(project_id),
+            "return_to": "/later",
+        },
+        follow_redirects=False,
+    )
+    assert noop.status_code == 302
+    with app.app_context():
+        after_noop = get_db().execute(
+            sa.select(tasks).where(tasks.c.id == task["id"])
+        ).mappings().one()
+    assert dict(after_noop) == before_noop
 
 
 def test_task_and_project_relationships_are_account_scoped(app, client):

@@ -76,25 +76,58 @@
     </form>
   </section>
 
-  <details class="workspace-card">
-    <summary>{% if project %}Project{% else %}Turn into a project{% endif %}</summary>
-    {% if project %}
-      <p>Part of <a href="{{ url_for('tasks.project_detail', project_id=project.id) }}">{{ project.title }}</a>.</p>
+  {% if project %}
+    <details class="workspace-card">
+      <summary>Project</summary>
+      <p>
+        Part of
+        <a href="{{ url_for('tasks.project_detail', project_id=project.id, return_to=request.full_path) }}">{{ project.title }}</a>{% if project.state != 'active' %}, a {{ project.state }} project{% endif %}.
+      </p>
       <form action="{{ url_for('tasks.set_task_project', task_id=task.id) }}" method="post" class="stacked-inline-form" data-confirm="Update this task’s project?">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="revision" value="{{ task.revision }}" data-task-revision>
-        <label>
-          <span>Project</span>
-          <select name="project_id">
-            <option value="">No project</option>
-            {% for candidate in candidate_projects %}
-              <option value="{{ candidate.id }}" {% if candidate.id == project.id %}selected{% endif %}>{{ candidate.title }}</option>
-            {% endfor %}
-          </select>
-        </label>
-        <button class="secondary-button compact-button" type="submit">Update project</button>
+        <input type="hidden" name="return_to" value="{{ return_to }}">
+        {% if project.state == 'active' %}
+          <label>
+            <span>Project</span>
+            <select name="project_id">
+              <option value="">No project</option>
+              {% for candidate in candidate_projects %}
+                <option value="{{ candidate.id }}" {% if candidate.id == project.id %}selected{% endif %}>{{ candidate.title }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <button class="secondary-button compact-button" type="submit">Update project</button>
+        {% else %}
+          <input type="hidden" name="project_id" value="">
+          <button class="secondary-button compact-button" type="submit">Remove project link</button>
+        {% endif %}
       </form>
-    {% else %}
+    </details>
+  {% else %}
+    {% if candidate_projects %}
+      <details class="workspace-card">
+        <summary>Add to an existing project</summary>
+        <form action="{{ url_for('tasks.set_task_project', task_id=task.id) }}" method="post" class="stacked-inline-form" data-confirm="Add this task to the selected project?">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="revision" value="{{ task.revision }}" data-task-revision>
+          <input type="hidden" name="return_to" value="{{ return_to }}">
+          <label>
+            <span>Existing project</span>
+            <select name="project_id" required>
+              <option value="">Choose a project</option>
+              {% for candidate in candidate_projects %}
+                <option value="{{ candidate.id }}">{{ candidate.title }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <button class="secondary-button compact-button" type="submit">Add to existing project</button>
+        </form>
+      </details>
+    {% endif %}
+
+    <details class="workspace-card">
+      <summary>Turn into a new project</summary>
       <div class="project-conversion-preview">
         <h3>Create the project around this task</h3>
         <p>
@@ -105,34 +138,16 @@
           <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="revision" value="{{ task.revision }}" data-task-revision>
           <input type="hidden" name="confirm" value="1">
+          <input type="hidden" name="return_to" value="{{ return_to }}">
           <label>
             <span>Project name</span>
             <input name="project_title" maxlength="180" value="{{ task.title }}" required>
           </label>
-          <button class="primary-button compact-button" type="submit">Turn into a project</button>
+          <button class="primary-button compact-button" type="submit">Turn into a new project</button>
         </form>
       </div>
-      {% if candidate_projects %}
-        <div class="existing-project-choice">
-          <p class="muted-copy">Or add this task to an existing project.</p>
-          <form action="{{ url_for('tasks.set_task_project', task_id=task.id) }}" method="post" class="stacked-inline-form" data-confirm="Add this task to the selected project?">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-            <input type="hidden" name="revision" value="{{ task.revision }}" data-task-revision>
-            <label>
-              <span>Existing project</span>
-              <select name="project_id" required>
-                <option value="">Choose a project</option>
-                {% for candidate in candidate_projects %}
-                  <option value="{{ candidate.id }}">{{ candidate.title }}</option>
-                {% endfor %}
-              </select>
-            </label>
-            <button class="secondary-button compact-button" type="submit">Add to project</button>
-          </form>
-        </div>
-      {% endif %}
-    {% endif %}
-  </details>
+    </details>
+  {% endif %}
 
   <details class="workspace-card" {% if task.saved_blocker_summary %}open{% endif %}>
     <summary>Needs and waiting</summary>

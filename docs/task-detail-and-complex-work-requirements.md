@@ -1,6 +1,6 @@
 # Task detail and complex-work requirements
 
-Status: core Phase 1 engineering slice implemented; project discovery and
+Status: core Phase 1 engineering slice and project discovery implemented;
 usability evidence incomplete
 
 Updated: 2026-07-28
@@ -24,11 +24,12 @@ state model are plausible product-design choices that require usability
 validation. They must not be presented as clinically validated.
 
 The local pilot now implements title-only capture, task and project workspaces,
-components, preferred ordering, prerequisites, external waits, readiness, and
-separate Today placement through migrations `0004` and `0005`. Export format v3
-preserves the relationships and import retains v1/v2 compatibility. This is
-implementation evidence, not usability or clinical validation: the synthetic
-prototype exists, but the required five participant sessions have not been run.
+components, preferred ordering, prerequisites, external waits, readiness,
+project collection/archive navigation, and separate Today placement through
+migrations `0004` and `0005`. Export format v3 preserves the relationships and
+import retains v1/v2 compatibility. This is implementation evidence, not
+usability or clinical validation: the synthetic prototype exists, but the
+required five participant sessions have not been run.
 
 ## Product decisions
 
@@ -173,30 +174,28 @@ Project progress is described using concrete task and outcome state. The first
 implementation does not use completion percentages, velocity, streaks, or
 claims that task-count progress equals outcome progress.
 
-### Current project discovery gap
+### Implemented project discovery slice
 
-Individual project workspaces, task conversion, and assignment to an active
-project are implemented. Project collection and lifecycle navigation are not:
+Later now links to an account-scoped project collection rather than adding a
+mandatory fifth primary destination. The collection:
 
-- there is no project index or collection route;
-- projects have no navigation entry point from Today or Later;
-- users can reach a project only through a linked task, an immediate
-  conversion/promotion redirect, or a direct URL they already know;
-- existing-project assignment appears only in the task workspace and only
-  offers active projects;
-- creation and assignment share one progressively disclosed task section,
-  making the two actions easy to conflate; and
-- completed and dropped projects cannot be browsed or restored through an
-  archive view.
+- lists active projects with their desired outcome, deterministic next-ready
+  task, and concrete ready/waiting/done counts;
+- keeps completed and dropped projects in a collapsed archive;
+- restores an archived project only through a CSRF-protected, revision-checked
+  action;
+- leaves archived project structure read-only until the project is restored;
+- preserves linked task state, placement, ordering, and revisions when a
+  project is restored;
+- preserves a validated local return path between Later, task detail, project
+  detail, and the collection; and
+- presents **Add to an existing project** separately from **Turn into a new
+  project** in task detail.
 
-The next milestone 1.2 interface slice should expose a lightweight collection
-from Later rather than introduce a mandatory fifth primary destination. The
-current P0 safety/accessibility interlock and minimum safe Low Capacity behavior
-take implementation precedence; that risk-based ordering does not remove this
-requirement from the 1.2 exit gate. The collection should list active projects
-with desired outcome and next-ready task, keep completed and dropped projects in
-a collapsed archive, preserve return context, and present **Add to existing
-project** separately from **Turn into a new project**.
+Automated server and browser coverage verifies this implementation contract.
+Manual screen-reader, keyboard, zoom, forced-colors, and real-device checks for
+the new collection remain required, and the five-participant usability gate has
+not been run.
 
 ## Dependencies, blockers, and ordering
 
@@ -404,6 +403,7 @@ Deliver:
 - task-component promotion;
 - internal prerequisites and external waiting;
 - computed readiness and one next-ready task;
+- account-scoped project collection, archive, and explicit restoration;
 - explicit dependency override and lifecycle behavior; and
 - versioned account-transfer support for the new relationships.
 

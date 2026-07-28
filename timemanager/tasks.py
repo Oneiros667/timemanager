@@ -176,6 +176,17 @@ def _safe_return_path(value: str | None, fallback: str) -> str:
     return fallback
 
 
+def _project_detail_path(project_id: int, return_to: str | None = None) -> str:
+    return url_for(
+        "tasks.project_detail",
+        project_id=project_id,
+        return_to=_safe_return_path(
+            return_to,
+            url_for("tasks.project_collection"),
+        ),
+    )
+
+
 def _owned_project(project_id: int):
     project = (
         get_db()
@@ -191,6 +202,11 @@ def _owned_project(project_id: int):
     if project is None:
         abort(404)
     return project
+
+
+def _require_active_project(project) -> None:
+    if project["state"] != "active":
+        abort(409, description="Restore this project before changing it.")
 
 
 def _owned_component(component_id: int):
@@ -923,7 +939,10 @@ def task_detail(task_id: int):
         wait=wait,
         candidate_tasks=candidate_tasks,
         candidate_projects=candidate_projects,
-        return_to=request.args.get("return_to", url_for("tasks.today")),
+        return_to=_safe_return_path(
+            request.args.get("return_to"),
+            url_for("tasks.today"),
+        ),
     )
 
 
@@ -1169,15 +1188,28 @@ def set_task_project(task_id: int):
     task = _owned_task(task_id)
     _require_current_revision(task)
     database = get_db()
+    destination = url_for(
+        "tasks.task_detail",
+        task_id=task["id"],
+        return_to=_safe_return_path(
+            request.form.get("return_to"),
+            url_for("tasks.today"),
+        ),
+    )
     choice = request.form.get("project_id", "")
     if choice:
         try:
             project_id = int(choice)
         except ValueError:
             abort(400)
-        _owned_project(project_id)
+        selected_project = _owned_project(project_id)
+        if selected_project["state"] != "active":
+            abort(400, description="Tasks can only be added to active projects.")
     else:
         project_id = None
+    if project_id == task["project_id"]:
+        flash("Project unchanged.", "success")
+        return redirect(destination)
     position = (
         _next_project_position(database, project_id)
         if project_id is not None
@@ -1195,7 +1227,7 @@ def set_task_project(task_id: int):
     )
     database.commit()
     flash("Project updated.", "success")
-    return redirect(url_for("tasks.task_detail", task_id=task["id"]))
+    return redirect(destination)
 
 
 @blueprint.post("/tasks/<int:task_id>/promote-to-project")
@@ -1243,7 +1275,12 @@ def promote_task_to_project(task_id: int):
         abort(409, description="The task changed while creating the project.")
     database.commit()
     flash("Project created. The original task is its first task.", "success")
-    return redirect(url_for("tasks.project_detail", project_id=project_id))
+    return redirect(
+        _project_detail_path(
+            project_id,
+            request.form.get("return_to"),
+        )
+    )
 
 
 @blueprint.post("/components/<int:component_id>/promote")
@@ -1550,7 +1587,11 @@ def _project_task_groups(database, project_id: int) -> dict[str, list[dict]]:
                 task_table.c.user_id == g.user["id"],
                 task_table.c.project_id == project_id,
             )
-            .order_by(task_table.c.project_position, task_table.c.created_at)
+            .order_by(
+                task_table.c.project_position,
+                task_table.c.created_at,
+                task_table.c.id,
+            )
         )
         .mappings()
         .all()
@@ -1567,6 +1608,41 @@ def _project_task_groups(database, project_id: int) -> dict[str, list[dict]]:
     return groups
 
 
+@blueprint.get("/projects")
+@login_required
+def project_collection():
+    database = get_db()
+    project_rows = (
+        database.execute(
+            sa.select(projects)
+            .where(projects.c.user_id == g.user["id"])
+            .order_by(projects.c.created_at.desc(), projects.c.id.desc())
+        )
+        .mappings()
+        .all()
+    )
+    active_projects = []
+    archived_projects = []
+    for row in project_rows:
+        project = dict(row)
+        if project["state"] == "active":
+            groups = _project_task_groups(database, project["id"])
+            project["next_ready"] = (
+                groups["ready"][0] if groups["ready"] else None
+            )
+            project["ready_count"] = len(groups["ready"])
+            project["waiting_count"] = len(groups["waiting"])
+            project["done_count"] = len(groups["done"])
+            active_projects.append(project)
+        else:
+            archived_projects.append(project)
+    return render_template(
+        "projects.html",
+        active_projects=active_projects,
+        archived_projects=archived_projects,
+    )
+
+
 @blueprint.get("/projects/<int:project_id>")
 @login_required
 def project_detail(project_id: int):
@@ -1577,6 +1653,10 @@ def project_detail(project_id: int):
         project=project,
         groups=groups,
         next_ready=groups["ready"][0] if groups["ready"] else None,
+        return_to=_safe_return_path(
+            request.args.get("return_to"),
+            url_for("tasks.project_collection"),
+        ),
     )
 
 
@@ -1584,6 +1664,7 @@ def project_detail(project_id: int):
 @login_required
 def update_project_details(project_id: int):
     project = _owned_project(project_id)
+    _require_active_project(project)
     if _revision_conflict(project):
         return (
             jsonify(
@@ -1618,7 +1699,7 @@ def update_project_details(project_id: int):
     database.commit()
     return _save_response(
         project,
-        url_for("tasks.project_detail", project_id=project_id),
+        _project_detail_path(project_id, request.form.get("return_to")),
     )
 
 
@@ -1626,6 +1707,7 @@ def update_project_details(project_id: int):
 @login_required
 def add_project_task(project_id: int):
     project = _owned_project(project_id)
+    _require_active_project(project)
     _require_current_revision(project)
     title = _clean_field("title", 180, required=True)
     database = get_db()
@@ -1663,13 +1745,16 @@ def add_project_task(project_id: int):
             ),
             201,
         )
-    return redirect(url_for("tasks.project_detail", project_id=project_id))
+    return redirect(
+        _project_detail_path(project_id, request.form.get("return_to"))
+    )
 
 
 @blueprint.post("/projects/<int:project_id>/tasks/<int:task_id>/move")
 @login_required
 def move_project_task(project_id: int, task_id: int):
     project = _owned_project(project_id)
+    _require_active_project(project)
     _require_current_revision(project)
     task = _owned_task(task_id)
     if task["project_id"] != project_id:
@@ -1722,7 +1807,9 @@ def move_project_task(project_id: int, task_id: int):
                 )
             )
         database.commit()
-    return redirect(url_for("tasks.project_detail", project_id=project_id))
+    return redirect(
+        _project_detail_path(project_id, request.form.get("return_to"))
+    )
 
 
 @blueprint.post("/projects/<int:project_id>/state")
@@ -1730,9 +1817,16 @@ def move_project_task(project_id: int, task_id: int):
 def set_project_state(project_id: int):
     project = _owned_project(project_id)
     _require_current_revision(project)
+    destination = _safe_return_path(
+        request.form.get("redirect_to"),
+        _project_detail_path(project_id, request.form.get("return_to")),
+    )
     state = request.form.get("state")
     if state not in ("active", "completed", "dropped"):
         abort(400)
+    if state == project["state"]:
+        flash("Project unchanged.", "success")
+        return redirect(destination)
     if state == "completed":
         remaining = get_db().execute(
             sa.select(sa.func.count())
@@ -1745,19 +1839,30 @@ def set_project_state(project_id: int):
         ).scalar_one()
         if remaining:
             flash("The project still has open tasks.", "error")
-            return redirect(url_for("tasks.project_detail", project_id=project_id))
+            return redirect(destination)
         if request.form.get("confirm") != "1":
             abort(400)
     database = get_db()
-    database.execute(
+    updated_project_id = database.execute(
         sa.update(projects)
-        .where(projects.c.id == project_id)
+        .where(
+            projects.c.id == project_id,
+            projects.c.user_id == g.user["id"],
+            projects.c.revision == project["revision"],
+        )
         .values(
             state=state,
             revision=projects.c.revision + 1,
             updated_at=sa.func.current_timestamp(),
         )
-    )
+        .returning(projects.c.id)
+    ).scalar_one_or_none()
+    if updated_project_id is None:
+        database.rollback()
+        abort(409, description="The project changed before its state was updated.")
     database.commit()
-    flash("Project updated.", "success")
-    return redirect(url_for("tasks.project_detail", project_id=project["id"]))
+    if state == "active" and project["state"] != "active":
+        flash("Project restored.", "success")
+    else:
+        flash("Project updated.", "success")
+    return redirect(destination)

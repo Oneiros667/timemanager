@@ -29,6 +29,9 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
   drafts, including explicit handling of stale server revisions;
 - lightweight project workspaces with preferred ordering and one next-ready
   task;
+- a lightweight project collection reached from Later, with active outcomes,
+  next-ready tasks, and a collapsed completed/dropped archive with explicit
+  restoration;
 - one-confirmation task-to-project conversion that preserves the original task
   as the project’s first task;
 - explicit task prerequisites, external waits, optional follow-up tasks, and
@@ -45,9 +48,7 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
 
 Self-service account restore, credential recovery, Google Calendar,
 trusted-person sessions, hosted PostgreSQL accounts, local-to-online migration,
-native mobile clients, and a browsable project index/archive are not implemented
-yet. Existing-project assignment is available only from task detail and only
-lists active projects, so project discovery remains a known functional gap.
+and native mobile clients are not implemented yet.
 The implemented complex-work interaction remains a plausible design whose
 five-participant usability gate has not yet been run. Intended and gated scope
 is documented in the

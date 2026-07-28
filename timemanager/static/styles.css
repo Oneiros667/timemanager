@@ -227,6 +227,11 @@ a {
   margin-bottom: 2rem;
 }
 
+.day-heading .header-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .day-heading h1,
 .auth-intro h1 {
   max-width: 760px;
@@ -1378,6 +1383,14 @@ body.low-capacity .remember-card {
     align-items: flex-start;
   }
 
+  .day-heading .header-actions {
+    justify-content: flex-start;
+  }
+
+  .view-heading-with-actions {
+    flex-direction: column;
+  }
+
   .day-heading h1 {
     font-size: clamp(2.1rem, 11vw, 3rem);
   }
@@ -1424,6 +1437,11 @@ body.low-capacity .remember-card {
 
   .task-row {
     grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .archived-project-notice {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .task-row .task-actions {
@@ -1651,10 +1669,101 @@ body.low-capacity .remember-card {
   font-size: 0.86rem;
 }
 
-.existing-project-choice {
+.project-collection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 0.8rem;
+}
+
+.project-collection-card {
+  display: grid;
+  gap: 1rem;
+  align-content: space-between;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+}
+
+.project-collection-card h3,
+.archived-project-heading h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+}
+
+.project-collection-card h3 {
+  font-size: 1.25rem;
+}
+
+.project-collection-card h3 a,
+.project-next-ready > a {
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
+.project-collection-card p {
+  margin: 0.35rem 0 0;
+}
+
+.project-next-ready {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: var(--mint-soft);
+}
+
+.project-next-ready small {
+  color: var(--ink-soft);
+}
+
+.project-counts {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+
+.calm-empty-state {
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+}
+
+.calm-empty-state h3,
+.calm-empty-state p {
+  margin: 0;
+}
+
+.calm-empty-state p {
+  margin-top: 0.25rem;
+  color: var(--ink-soft);
+}
+
+.project-archive {
+  max-width: none;
   margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--line);
+}
+
+.archived-project-card {
+  background: var(--surface-muted);
+}
+
+.archived-project-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.archived-project-notice h2,
+.archived-project-notice p,
+.archived-project-heading p {
+  margin: 0;
+}
+
+.archived-project-heading h1 {
+  font-size: clamp(2rem, 7vw, 3.5rem);
+  letter-spacing: -0.04em;
 }
 
 .start-card {

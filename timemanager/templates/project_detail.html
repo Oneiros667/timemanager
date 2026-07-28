@@ -3,42 +3,77 @@
 {% block title %}{{ project.title }} · Timemanager{% endblock %}
 
 {% block content %}
-  <a class="text-button workspace-back" href="{{ url_for('tasks.today') }}">← Back to Today</a>
-  <form
-    class="workspace-heading autosave-workspace"
-    action="{{ url_for('tasks.update_project_details', project_id=project.id) }}"
-    method="post"
-    data-autosave-form
-    data-draft-scope="project:{{ project.public_id }}:workspace"
-  >
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-    <input type="hidden" name="revision" value="{{ project.revision }}" data-revision data-project-revision>
-    <p class="eyebrow">Project</p>
-    <label class="workspace-title"><span class="sr-only">Project title</span><input name="title" maxlength="180" value="{{ project.title }}" required></label>
-    <label class="outcome-field"><span>Outcome</span><textarea name="desired_outcome" maxlength="1000" rows="2">{{ project.desired_outcome }}</textarea></label>
-    <label><span>Notes</span><textarea name="notes" maxlength="4000" rows="2">{{ project.notes }}</textarea></label>
-    <button class="secondary-button compact-button no-js-save" type="submit">Save</button>
-    <span class="save-state" aria-live="polite" data-save-state>Saved</span>
-  </form>
+  <a class="text-button workspace-back" href="{{ return_to }}">← Back</a>
+  {% if project.state == 'active' %}
+    <form
+      class="workspace-heading autosave-workspace"
+      action="{{ url_for('tasks.update_project_details', project_id=project.id) }}"
+      method="post"
+      data-autosave-form
+      data-draft-scope="project:{{ project.public_id }}:workspace"
+    >
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="revision" value="{{ project.revision }}" data-revision data-project-revision>
+      <input type="hidden" name="return_to" value="{{ return_to }}">
+      <p class="eyebrow">Project · Active</p>
+      <label class="workspace-title"><span class="sr-only">Project title</span><input name="title" maxlength="180" value="{{ project.title }}" required></label>
+      <label class="outcome-field"><span>Outcome</span><textarea name="desired_outcome" maxlength="1000" rows="2">{{ project.desired_outcome }}</textarea></label>
+      <label><span>Notes</span><textarea name="notes" maxlength="4000" rows="2">{{ project.notes }}</textarea></label>
+      <button class="secondary-button compact-button no-js-save" type="submit">Save</button>
+      <span class="save-state" aria-live="polite" data-save-state>Saved</span>
+    </form>
+  {% else %}
+    <header class="workspace-heading archived-project-heading">
+      <p class="eyebrow">Project · {{ project.state|capitalize }}</p>
+      <h1>{{ project.title }}</h1>
+      {% if project.desired_outcome %}
+        <div><strong>Outcome</strong><p>{{ project.desired_outcome }}</p></div>
+      {% endif %}
+      {% if project.notes %}
+        <div><strong>Notes</strong><p>{{ project.notes }}</p></div>
+      {% endif %}
+    </header>
+  {% endif %}
 
-  <article class="workspace-card next-ready-card">
-    <p class="eyebrow">Next ready</p>
-    {% if next_ready %}
-      <h2><a href="{{ url_for('tasks.task_detail', task_id=next_ready.id, return_to=request.path) }}">{{ next_ready.title }}</a></h2>
-      {% if next_ready.next_action %}<p>Next: {{ next_ready.next_action }}</p>{% endif %}
-    {% else %}
-      <h2>No ready task</h2>
-      <p>Add a task, resolve a blocker, or decide whether the outcome is complete.</p>
-    {% endif %}
-  </article>
+  {% if project.state != 'active' %}
+    <aside class="workspace-card archived-project-notice">
+      <div>
+        <h2>This project is {{ project.state }}</h2>
+        <p>Its linked tasks have not been moved or changed.</p>
+      </div>
+      <form action="{{ url_for('tasks.set_project_state', project_id=project.id) }}" method="post">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="revision" value="{{ project.revision }}" data-project-revision>
+        <input type="hidden" name="state" value="active">
+        <input type="hidden" name="return_to" value="{{ return_to }}">
+        <button class="secondary-button compact-button" type="submit">Restore project</button>
+      </form>
+    </aside>
+  {% endif %}
 
-  <form class="rapid-entry workspace-card" action="{{ url_for('tasks.add_project_task', project_id=project.id) }}" method="post" data-rapid-entry>
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-    <input type="hidden" name="revision" value="{{ project.revision }}" data-project-revision>
-    <label><span>Add project task</span><input name="title" maxlength="180" placeholder="Type a task, then press Enter" required autocomplete="off"></label>
-    <button class="secondary-button compact-button" type="submit">Add task</button>
-    <span class="save-state" aria-live="polite" data-rapid-status></span>
-  </form>
+  {% if project.state == 'active' %}
+    <article class="workspace-card next-ready-card">
+      <p class="eyebrow">Next ready</p>
+      {% if next_ready %}
+        <h2><a href="{{ url_for('tasks.task_detail', task_id=next_ready.id, return_to=request.full_path) }}">{{ next_ready.title }}</a></h2>
+        {% if next_ready.next_action %}<p>Next: {{ next_ready.next_action }}</p>{% endif %}
+      {% else %}
+        <h2>No ready task</h2>
+        <p>Add a task, resolve a blocker, or decide whether the outcome is complete.</p>
+      {% endif %}
+    </article>
+  {% endif %}
+
+  {% if project.state == 'active' %}
+    <form class="rapid-entry workspace-card" action="{{ url_for('tasks.add_project_task', project_id=project.id) }}" method="post" data-rapid-entry>
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="revision" value="{{ project.revision }}" data-project-revision>
+      <input type="hidden" name="return_to" value="{{ return_to }}">
+      <label><span>Add project task</span><input name="title" maxlength="180" placeholder="Type a task, then press Enter" required autocomplete="off"></label>
+      <button class="secondary-button compact-button" type="submit">Add task</button>
+      <span class="save-state" aria-live="polite" data-rapid-status></span>
+    </form>
+  {% endif %}
 
   {% for key, heading in [('ready', 'Ready'), ('waiting', 'Waiting'), ('done', 'Done')] %}
     <section class="project-group">
@@ -48,13 +83,13 @@
           {% for task in groups[key] %}
             <article>
               <div>
-                <a href="{{ url_for('tasks.task_detail', task_id=task.id, return_to=request.path) }}">{{ task.title }}</a>
+                <a href="{{ url_for('tasks.task_detail', task_id=task.id, return_to=request.full_path) }}">{{ task.title }}</a>
                 {% if task.blocker_summary %}<small>{{ task.blocker_summary }}</small>{% elif task.dependency_override and task.saved_blocker_summary %}<small>Can start anyway · {{ task.saved_blocker_summary }}</small>{% endif %}
               </div>
-              {% if key != 'done' %}
+              {% if key != 'done' and project.state == 'active' %}
                 <span class="reorder-controls">
-                  {% if not loop.first %}<form action="{{ url_for('tasks.move_project_task', project_id=project.id, task_id=task.id) }}" method="post"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="revision" value="{{ project.revision }}" data-project-revision><input type="hidden" name="direction" value="up"><button type="submit" aria-label="Move {{ task.title }} up">↑</button></form>{% endif %}
-                  <form action="{{ url_for('tasks.move_project_task', project_id=project.id, task_id=task.id) }}" method="post"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="revision" value="{{ project.revision }}" data-project-revision><input type="hidden" name="direction" value="down"><button type="submit" aria-label="Move {{ task.title }} down">↓</button></form>
+                  {% if not loop.first %}<form action="{{ url_for('tasks.move_project_task', project_id=project.id, task_id=task.id) }}" method="post"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="revision" value="{{ project.revision }}" data-project-revision><input type="hidden" name="return_to" value="{{ return_to }}"><input type="hidden" name="direction" value="up"><button type="submit" aria-label="Move {{ task.title }} up">↑</button></form>{% endif %}
+                  <form action="{{ url_for('tasks.move_project_task', project_id=project.id, task_id=task.id) }}" method="post"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="revision" value="{{ project.revision }}" data-project-revision><input type="hidden" name="return_to" value="{{ return_to }}"><input type="hidden" name="direction" value="down"><button type="submit" aria-label="Move {{ task.title }} down">↓</button></form>
                 </span>
               {% endif %}
             </article>
@@ -64,17 +99,17 @@
     </section>
   {% endfor %}
 
-  {% if not groups.ready and not groups.waiting %}
+  {% if project.state == 'active' and not groups.ready and not groups.waiting %}
     <section class="workspace-card">
       <h2>Is the outcome achieved?</h2>
       <div class="focus-controls">
         <form action="{{ url_for('tasks.set_project_state', project_id=project.id) }}" method="post" data-confirm="Confirm that the project outcome was achieved?">
-          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="revision" value="{{ project.revision }}" data-project-revision><input type="hidden" name="state" value="completed"><input type="hidden" name="confirm" value="1">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="revision" value="{{ project.revision }}" data-project-revision><input type="hidden" name="return_to" value="{{ return_to }}"><input type="hidden" name="state" value="completed"><input type="hidden" name="confirm" value="1">
           <button class="primary-button" type="submit">Outcome achieved</button>
         </form>
         <button class="secondary-button" type="button" data-focus-rapid-entry>Add another task</button>
         <form action="{{ url_for('tasks.set_project_state', project_id=project.id) }}" method="post">
-          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="revision" value="{{ project.revision }}" data-project-revision><input type="hidden" name="state" value="active">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="revision" value="{{ project.revision }}" data-project-revision><input type="hidden" name="return_to" value="{{ return_to }}"><input type="hidden" name="state" value="active">
           <button class="quiet-button" type="submit">Keep project open</button>
         </form>
       </div>
