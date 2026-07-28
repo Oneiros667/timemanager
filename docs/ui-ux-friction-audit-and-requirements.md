@@ -4,6 +4,8 @@
   requirements; not yet participant-usability validated
 - Updated: 2026-07-28
 - Audited commit: `3cea2d1eff1b4d7fbb75e7c3b5bb576fd1910d92`
+- Current-source revalidation: `47000ad` on 2026-07-28; all five P0 findings
+  remain open
 
 ## 1. Purpose
 
@@ -93,6 +95,21 @@ results:
 
 These results validate current implementation behavior only. They are not
 participant-usability evidence.
+
+The full isolated automated suite was re-run at `47000ad`:
+
+```text
+PYTHONDONTWRITEBYTECODE=1 uv run pytest
+72 passed in 19.32s
+```
+
+Current source inspection confirmed that task/project drafts still exist only
+in page memory, Drop is still accepted immediately by the server, the measured
+functional colour tokens remain unchanged, the countdown still updates a polite
+live region every second, and mobile CSS still moves a focusable card ahead of
+its DOM position. This current-source revalidation does not replace the
+isolated browser reproductions above, participant evidence, attended
+screen-reader sessions, or real-device checks.
 
 ### 2.4 Implemented versus proposed
 

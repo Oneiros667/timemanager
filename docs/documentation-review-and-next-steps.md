@@ -25,10 +25,13 @@ operational view of what is implemented, partial, blocked, and gated by further
 evidence.
 
 No broken local Markdown links, anchors, or reference definitions were found in
-the review. The automated suite now covers server-side account isolation,
+the review. A current-source revalidation at commit `47000ad` passed all 72
+automated tests on 2026-07-28. The suite covers server-side account isolation,
 schema upgrades, migration recovery, export/import behavior, and
-representative real-browser complex-work flows. Complete timer and
-service-worker behavior still need broader browser coverage.
+representative real-browser complex-work flows. This does not close the UI
+audit's open immediate-refresh draft, JavaScript-disabled Drop, contrast,
+assistive-technology timer, or complete mobile focus-order findings. Complete
+timer and service-worker behavior still need broader browser coverage.
 
 ## Confirmed implementation baseline
 
@@ -114,6 +117,104 @@ a collapsed completed/dropped archive, and present **Add to existing project**
 and **Turn into a new project** as separate task actions. This is a
 discoverability and navigation slice, not authority to add Projects as another
 mandatory primary destination or to expand whole projects into Today.
+
+## Current priority interlock
+
+The numbered milestone sequence remains authoritative, but it is subject to a
+risk-based implementation interlock. Confirmed risk of data loss, an
+inaccessible operation, or an unrecoverable destructive action must be resolved
+before the next ordinary roadmap item. This does not renumber Phase 1 or mark a
+later milestone complete.
+
+The [UI/UX friction audit](ui-ux-friction-audit-and-requirements.md) was
+originally run against commit `3cea2d1`. Current source and the 72-test
+revalidation at `47000ad` confirm that all five P0 findings remain open:
+
+- interrupted task or project autosave can lose unsaved text on immediate
+  navigation or refresh;
+- Drop relies on client-side confirmation and has no ordinary end-user recovery
+  surface;
+- functional control, placeholder, and focus-indicator contrast remains below
+  the documented thresholds;
+- the focus countdown remains an every-second polite live region; and
+- mobile visual order and sequential focus order still diverge.
+
+These are implementation and verification findings, not participant-usability
+evidence. Participant validation, attended screen-reader checks, real-device
+touch checks, and the complete Phase 1 day-loop gate remain unverified.
+
+### Ranked next development slices
+
+| Rank | Slice | Why now | Smallest coherent exit gate |
+| --- | --- | --- | --- |
+| 1 | Preserve interrupted task and project drafts | Current P0 data-loss risk in the exact interruption scenario the product is intended to support | Account-, object-, form-, and revision-scoped drafts survive refresh, Back, failed or delayed saves, and unresolved navigation without silently overwriting newer server data |
+| 2 | Make Drop server-confirmed and recoverable | Current P0 destructive action can remove work from every ordinary view without a usable no-JavaScript confirmation or recovery path | Named server confirmation, dropped timestamp, newest-ten account-scoped recovery, restore-to-Later default, separate Add-to-Today, CSRF/ownership enforcement, and migration/transfer coverage |
+| 3 | Close the remaining P0 accessibility blockers | Contrast, timer announcements, and mobile focus order can prevent predictable operation and would invalidate later participant evidence | Applicable contrast thresholds pass; timer announces meaningful transitions rather than every second; visual and sequential focus order agree at supported breakpoints; manual assistive-technology evidence is recorded |
+| 4 | Complete minimum safe Low Capacity behavior | The current partial mode can hide every route to a startable task | Show the highlight or, without mutation, the first active Today task; retain compact Remember/Capture, hidden count, and Show full Today; no hidden work changes |
+| 5 | Close milestone 1.2 discovery and validation | This is the remaining functional contract in the ordered plan once the safety interlock is clear | Later exposes a lightweight project collection and archive; assignment and creation are distinct; return context, ownership, CSRF, revision, browser/accessibility, and participant gates pass |
+
+### Recommended next slice: interrupted-draft preservation
+
+The next implementation should be limited to durable interruption recovery for
+the existing task-detail, project-detail, and inline autosave forms.
+
+In scope:
+
+- define account-, object-, form-, and revision-scoped draft identity, expiry,
+  restoration, and clearing rules;
+- preserve field values synchronously before the delayed network save;
+- retain the exact draft after a failed or delayed request;
+- restore a valid matching draft after refresh or navigation;
+- distinguish `Unsaved`, `Saving`, `Saved`, and `Could not save` without relying
+  on colour alone;
+- clear only the draft acknowledged by the server when no newer local edit
+  exists;
+- warn or preserve while navigation has unresolved changes;
+- fail safely when the saved server revision has changed; and
+- keep authenticated personal text outside the public service-worker cache.
+
+Out of scope:
+
+- a server-side draft table or export format;
+- general offline mutation or cross-device synchronization;
+- focus persistence;
+- Drop recovery or general Undo;
+- project collection, Review, or Reset; and
+- caching authenticated pages or drafts in the service worker.
+
+Likely implementation and verification surfaces are `timemanager/static/app.js`,
+the task/project/inline form templates, sign-out handling where needed, and
+`tests/test_browser.py`, `tests/test_tasks.py`, and `tests/test_pwa.py`.
+
+The slice is complete only when automated browser coverage exercises immediate
+reload, Back, failed and delayed fetches, successful acknowledgement, account
+switching, and multi-tab revision conflict. Manual checks must cover
+close/reopen, offline return, keyboard focus, screen-reader save states, and
+inspection of Cache Storage. The full suite, coverage, compile check, and
+`git diff --check` must pass.
+
+### Work held behind the interlock
+
+- Server-confirmed Drop recovery may proceed after the product owner resolves
+  the older-than-ten retention question below.
+- Review/Reset remains after P0 closure and milestone 1.2's functional gate.
+  Validate stale-plan and recovery choices with synthetic scenarios before
+  committing to the persistent interaction.
+- Same-device focus persistence remains after accessible timer semantics.
+  Cross-device continuation remains outside the current sync contract.
+- Fixed commitments, Last Done, Phase 2 integrations, hosted accounts, native
+  clients, optional AI, Day Context, and Quick Help retain their documented
+  milestone and release gates. Documentation recency is not authority to change
+  that order.
+
+### Remaining product-owner decision
+
+The newest ten dropped tasks must be available in the ordinary account-scoped
+recovery surface. Before implementing that slice, decide whether older
+soft-deleted records remain available through a deeper archive, remain only in
+export/retention storage, or are removed under a separately approved retention
+rule. Until that decision, retain older records and do not introduce irreversible
+purging by assumption.
 
 ## Findings that require decisions
 
@@ -264,8 +365,8 @@ never prove guardianship. The detailed topology and release evidence are in
 | 1.2b | Add lightweight projects, ordering, dependencies, and external waiting | Partial — core model implemented 2026-07-28; discovery, navigation, archive, and validation open | One shallow hierarchy; projects and existing-project assignment are discoverable; readiness is separate from Today placement; blockers never silently rearrange Today |
 | 1.3 | Add Review and consequence-aware Reset/recovery | Not started | No silent rollover; stale items can be kept, renegotiated, delegated, replaced, or dropped |
 | 1.4 | Add manually entered fixed commitments and transition boundaries | Not started | Fixed and flexible objects remain distinct; next commitment stays visible |
-| 1.5 | Complete Low Capacity semantics | Not started | Same underlying data; critical commitments, one action, capture, and Reset remain available |
-| 1.6 | Extend focus into an optional bounded session record | Not started | Intention, boundary, interruption-tolerant actuals, and next-step outcome are user-controlled |
+| 1.5 | Complete Low Capacity semantics | Partial — browser-local display slice exists; completion work not started | Same underlying data; critical commitments, one action, capture, and Reset remain available |
+| 1.6 | Extend focus into an optional bounded session record | Partial — client countdown exists; persisted-session work not started | Intention, boundary, interruption-tolerant actuals, and next-step outcome are user-controlled |
 | 1.7 | Add generic Last Done activities and execution history | Not started | Manual create/log/query/correct/export passes exactness, privacy, time, and medication-safety criteria |
 | 1.8 | Validate the complete non-AI day loop | Not started | Browser/accessibility tests plus recorded user-research evidence |
 | 2.1 | Implement the notification attention/privacy contract | Blocked by 1.8 | Independent importance/privacy; private default; Sensitive payload and device views contain no details |

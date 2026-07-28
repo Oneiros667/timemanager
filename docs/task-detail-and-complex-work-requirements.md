@@ -189,11 +189,14 @@ project are implemented. Project collection and lifecycle navigation are not:
 - completed and dropped projects cannot be browsed or restored through an
   archive view.
 
-The next interface slice should expose a lightweight collection from Later
-rather than introduce a mandatory fifth primary destination. It should list
-active projects with desired outcome and next-ready task, keep completed and
-dropped projects in a collapsed archive, preserve return context, and present
-**Add to existing project** separately from **Turn into a new project**.
+The next milestone 1.2 interface slice should expose a lightweight collection
+from Later rather than introduce a mandatory fifth primary destination. The
+current P0 safety/accessibility interlock and minimum safe Low Capacity behavior
+take implementation precedence; that risk-based ordering does not remove this
+requirement from the 1.2 exit gate. The collection should list active projects
+with desired outcome and next-ready task, keep completed and dropped projects in
+a collapsed archive, preserve return context, and present **Add to existing
+project** separately from **Turn into a new project**.
 
 ## Dependencies, blockers, and ordering
 
