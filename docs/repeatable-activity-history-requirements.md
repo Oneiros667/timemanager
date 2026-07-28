@@ -480,8 +480,11 @@ private merely because the target is Standard.
 - many-to-many execution/tag relationship.
 
 No structured medication-name, strength, dose, diagnosis, prescriber,
-interaction, refill, or treatment-purpose field is part of the generic model.
-The user-authored activity title remains generic free text.
+interaction, refill, or treatment-purpose field is part of the generic Last
+Done model. The user-authored activity title remains generic free text.
+Structured private medication profiles and regimen versions are a separate
+deferred Phase 4 capability defined in
+[Private medication context and schedule support requirements](medication-context-support-requirements.md).
 
 ## Task integration
 
@@ -558,6 +561,28 @@ The integration must:
 
 This future integration does not change the first Last Done implementation or
 authorise health interpretation.
+
+## Future private medication-context integration
+
+The deferred Phase 4
+[Medication Context feature](medication-context-support-requirements.md) may
+associate a generic Last Done activity and its executions with a private,
+structured medication profile.
+
+The integration must:
+
+- keep the generic activity/execution contract useful without a medication
+  profile;
+- reference the profile and regimen version rather than copying private
+  medicine fields into generic activity records;
+- preserve schedule as expectation and execution as explicit user report;
+- never infer that a missing execution is a missed dose;
+- never use a strength, dose, or schedule to recommend the next dose;
+- keep the structured profile always Sensitive; and
+- require a field-level disclosure preview before any external use.
+
+This is the separate product decision anticipated by the medication-safety
+requirements below. It does not expand the first Last Done implementation.
 
 ## Privacy and security requirements
 
@@ -649,10 +674,14 @@ instructions or an appropriate healthcare professional without generating
 medicine-specific advice. Guidance on missed doses varies by medicine, and
 taking doses too close together may increase risk.
 
-Adding structured medication fields, adherence analytics, dose guidance,
-clinical decision support, or caregiver medication management requires a new
-product decision plus medical-device/regulatory, clinical-safety, privacy, and
-security review.
+Structured medication profiles are now defined as a separate deferred Phase 4
+product direction in the
+[Medication Context requirements](medication-context-support-requirements.md);
+they remain outside the generic Last Done model and require their stated
+medical-device/regulatory, clinical-safety, privacy, security, identity, and
+jurisdiction gates. Adherence analytics, dose guidance, clinical decision
+support, and caregiver medication management still require separate product
+decisions.
 
 ## Offline, time, and failure behavior
 

@@ -71,10 +71,14 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
   defines future mood, energy, focus, activity, caffeine, food, exercise,
   distraction, interruption, and environment logging as a factual,
   Sensitive-by-default timeline with non-causal summaries.
+- [Private medication context and schedule support requirements](medication-context-support-requirements.md)
+  defines an optional private medication list, versioned user-recorded schedule,
+  exact identity/formulation matching, explicit execution semantics, and
+  clinically reviewed non-dose support boundaries.
 - [Future Quick Help, mood, energy, and focus support](quick-help-mood-energy-design.md)
   defines a deferred user-invoked reset surface, the supplied lunchtime-slump
-  scenario, medication and urgent-help boundaries, Day Context integration,
-  and non-AI/AI release gates.
+  scenario, private medication and Day Context integration, urgent-help
+  boundaries, and non-AI/AI release gates.
 
 ## Reading the evidence labels
 

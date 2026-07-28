@@ -29,6 +29,13 @@ capability records mood, energy, focus ability, activities, and disruptions so
 the user can inspect what happened without reconstructing the day from memory.
 Quick Help remains usable without saving or disclosing that history.
 
+The user may also add a private
+[Medication Context profile and schedule](medication-context-support-requirements.md).
+Quick Help may use explicitly selected medication context to choose exact,
+current, clinically reviewed support content. It must not treat a schedule as
+proof of ingestion or turn that context into model-generated dose, missed-dose,
+interaction, or treatment advice.
+
 ## Evidence and status boundary
 
 The feature is a **plausible product-design hypothesis**. Its exact prompts,
@@ -76,10 +83,11 @@ because it cites a source.
    medication, activity, or disruption context belongs to Day Context, is
    **Sensitive** by default, and follows the strongest applicable privacy
    classification.
-8. Quick Help does not give dose, missed-dose, interaction, supplement,
-   caffeine, treatment, or medication-timing advice. It never recommends
-   taking more, taking less, skipping, doubling, stopping, or changing a
-   medicine.
+8. Quick Help may show clinically reviewed, source-provenanced, non-dose
+   support matched through the Medication Context rules. It does not generate
+   dose, missed-dose, interaction, supplement, caffeine, treatment, or
+   medication-timing advice and never recommends taking more, taking less,
+   skipping, doubling, stopping, or changing a medicine.
 9. Quick Help does not diagnose a "crash", dehydration, low blood sugar,
    depression, mania, anxiety, burnout, or another cause from sparse context.
 10. Severe physical symptoms, possible self-harm or harm to others, severe
@@ -156,9 +164,11 @@ Examples of useful context are:
 - whether they want to use a previously saved personal playbook.
 
 Medication names, doses, diagnoses, detailed symptom histories, and full task
-history are not required for the ordinary productivity route. If the user's
-text already contains health details, the system treats the whole interaction
-as Sensitive rather than asking for more.
+history are not required for the ordinary productivity route. The user may
+explicitly select the minimum fields from a private Medication Context profile
+when medication-specific reviewed support is relevant. If the user's text
+already contains health details, the system treats the whole interaction as
+Sensitive rather than asking for more.
 
 ### 3. Safety route before suggestions
 
@@ -254,6 +264,16 @@ For this scenario, Quick Help should:
 - show the reviewed urgent route for symptoms such as chest pain, fainting,
   serious breathing difficulty, or a fast or irregular heartbeat.
 
+If the user has a private Medication Context profile:
+
+- the saved 05:30 schedule remains a plan and does not prove the medicine was
+  taken;
+- a linked explicit execution may be reported as logged;
+- the profile may select lisdexamfetamine-specific support only when identity,
+  formulation, population, jurisdiction, and content currency match; and
+- unsupported or ambiguous matching falls back to generic support plus the
+  medicine-information/pharmacist/prescriber route.
+
 ### Illustrative response shape
 
 The following is a content-review candidate, not approved shipped copy:
@@ -287,7 +307,9 @@ That feature lets the user explicitly record:
 - food, caffeine, exercise, rest, and other user-selected activities;
 - distractions, interruptions, task switches, emotional or social events, and
   environmental changes;
-- existing Last Done executions and confirmed focus outcomes by reference; and
+- existing Last Done executions and confirmed focus outcomes by reference;
+- a private medication schedule in the planned lane and explicit medication
+  executions as separately labelled events; and
 - the user's own editable belief that an event may have helped, made something
   harder, had no noticeable effect, or remains unclear.
 
@@ -372,6 +394,8 @@ When free-text AI is enabled:
   needed for the response;
 - do not attach task history, Day Context history, medication history,
   calendar, helper data, or AI memory by default;
+- disclose and preview every selected Medication Context field for the current
+  request;
 - keep credentials server-side and issue only short-lived client
   authorization;
 - show which parts are reviewed source content and which parts were generated;
@@ -448,6 +472,8 @@ uncited generated answer.
 ### Safety
 
 - Medication prompts never produce a dose or treatment change.
+- Medication-specific support renders only through an exact, current,
+  clinically reviewed Medication Context rule; unsupported cases fail closed.
 - Caffeine, interaction, supplement, adverse-reaction, and recurring-effect
   questions use the approved human/source route rather than free model advice.
 - Urgent physical, mental-health, self-harm, harm-to-others, and safeguarding
@@ -492,11 +518,13 @@ uncited generated answer.
    review.
 6. Integrate opt-in Day Context check-ins only after its export, deletion,
    retention, account-isolation, and Sensitive-data gates are complete.
-7. Consider optional AI phrasing only after the non-AI flow and safety layer
+7. Integrate private Medication Context only after its profile, identity,
+   content, clinical-safety, and privacy gates pass.
+8. Consider optional AI phrasing only after the non-AI flow and safety layer
    pass their gates.
-8. Consider user-authored personal playbooks only after Day Context capture,
+9. Consider user-authored personal playbooks only after Day Context capture,
    timeline, and interpretation behavior are usability-tested.
-9. Treat passive sensing, automatic health inference, clinician/helper access,
+10. Treat passive sensing, automatic health inference, clinician/helper access,
    and medicine-response analysis as separate future decisions, not incremental
    settings.
 

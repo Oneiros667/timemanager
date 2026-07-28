@@ -89,7 +89,8 @@ The following product-design capabilities are not implemented:
 - Last Done tracked activities, schedules, occurrences, or execution history;
 - Google Calendar integration;
 - guardian or trusted-person assistance;
-- hosted accounts, local-to-online migration, native applications, or AI.
+- hosted accounts, local-to-online migration, native applications, AI, Day
+  Context, Medication Context, or Quick Help.
 
 The following behavior is partial and must not be described as the full proposed
 capability:
@@ -254,9 +255,9 @@ checks remain open, as does participant validation.
   implemented. Cross-device continuation remains outside the current sync
   contract.
 - Fixed commitments, Last Done, Phase 2 integrations, hosted accounts, native
-  clients, optional AI, Day Context, and Quick Help retain their documented
-  milestone and release gates. Documentation recency is not authority to change
-  that order.
+  clients, optional AI, Day Context, Medication Context, and Quick Help retain
+  their documented milestone and release gates. Documentation recency is not
+  authority to change that order.
 
 ### Resolved dropped-task retention decision
 
@@ -283,6 +284,10 @@ The resolved boundary is:
 - medication-labelled histories are intentional health-data processing and
   require an applicable lawful basis/condition, privacy assessment, security
   controls, and jurisdiction review before hosted release;
+- structured private medication profiles and schedules are a separate deferred
+  Phase 4 capability with clinical-safety, identity, content, privacy,
+  security, regulatory, and jurisdiction gates defined in the
+  [Medication Context requirements](medication-context-support-requirements.md);
 - users may enter sensitive information in private free-text tasks and tracked
   activities, so all such content is treated as potentially sensitive and
   private by default;

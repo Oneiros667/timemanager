@@ -33,6 +33,8 @@ The feature complements:
 
 - [Last Done](repeatable-activity-history-requirements.md), which records
   explicit executions of repeatable activities;
+- [Medication Context](medication-context-support-requirements.md), which may
+  hold a private medication profile and versioned user-recorded schedule;
 - [Quick Help](quick-help-mood-energy-design.md), which helps choose one small
   action and reassess; and
 - the existing Today, Low Capacity, task, and focus flows, which must remain
@@ -82,7 +84,8 @@ settled by this product note.
    them or infer that a planned activity occurred.
 9. Caffeine, food, exercise, sleep, medication, and symptom records never
    produce dose, intake-limit, interaction, dietary, treatment, or causal
-   advice.
+   advice. Approved medication-specific support uses the separate Medication
+   Context content and privacy gates.
 10. Day Context provides exact timelines, counts, and transparent
     co-occurrence summaries. It does not produce hidden scores, diagnoses,
     adherence measures, or treatment-effect estimates.
@@ -236,7 +239,7 @@ irrelevant categories and create neutral custom events.
 | Attention disruption | Distraction, interruption, unexpected context switch | User-recorded event, not passive app surveillance |
 | Emotional or social context | Difficult interaction, supportive interaction, conflict, unexpected news, worry | Neutral user wording; no sentiment or relationship inference |
 | Environment | Noise, crowding, lighting, temperature, location change, connectivity problem | User observation; no automatic sensor collection |
-| Medication or symptom context | Link to a Sensitive generic Last Done execution or add a private note | No structured dose advice, adherence inference, or treatment analysis |
+| Medication or symptom context | Link to a Sensitive generic Last Done execution, private Medication Context record, or add a private note | Schedule and execution remain distinct; no dose advice, adherence inference, or treatment analysis |
 | Custom | Any user-owned label | Remains subject to the Sensitive and non-causal boundaries |
 
 The first screen should show no more than the user's six favourite event types.
@@ -317,6 +320,22 @@ Requirements:
 
 No source becomes Day Context or AI input merely because it exists elsewhere
 in the account.
+
+### Medication Context
+
+A private medication schedule may appear only in the separate **planned** lane.
+An explicit linked Last Done execution may appear as an event that the user
+says happened.
+
+- The profile and regimen version remain authoritative for schedule details.
+- Day Context references rather than copies medication fields.
+- A schedule slot, notification, or missing execution never becomes a taken or
+  missed event.
+- Medication identity may select reviewed support only through the Medication
+  Context rules.
+- Day Context proximity and summaries never estimate treatment effect.
+- Only records selected in a field-level disclosure preview may enter Quick
+  Help or an AI request.
 
 ## Capture surfaces and reminders
 
@@ -527,6 +546,8 @@ aggregate use must be disclosed and approved before implementation.
   less.
 - Logging medicine does not verify ingestion, calculate adherence, or advise
   another dose.
+- A saved medication schedule does not authorise Day Context to interpret
+  timing, missed doses, interactions, or treatment effect.
 - Logging exercise does not set a fitness target or treat more activity as
   inherently better.
 - Mood and focus labels do not trigger a diagnosis or automatic crisis score.
@@ -635,8 +656,10 @@ jurisdiction review.
 7. Add user-configured reminders only after interruption burden is acceptable.
 8. Add transparent descriptive summaries and user-authored hypotheses only
    after sufficient usability and interpretation testing.
-9. Integrate optional Quick Help context selection and personal playbooks.
-10. Consider AI phrasing only after per-request Sensitive-data preview and the
+9. Integrate private Medication Context only after its separate profile,
+   identity, content, and privacy gates pass.
+10. Integrate optional Quick Help context selection and personal playbooks.
+11. Consider AI phrasing only after per-request Sensitive-data preview and the
     non-AI flow pass their gates.
 
 Calendar outcomes, hosted sync, helper/clinician sharing, passive sensing,
