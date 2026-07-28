@@ -35,15 +35,18 @@
           >Later</a>
         </nav>
         <div class="header-actions">
-          <button
-            class="quiet-button mode-toggle"
-            type="button"
-            aria-pressed="false"
-            data-mode-toggle
-          >
-            <span aria-hidden="true">◐</span>
-            <span data-mode-label>Low capacity</span>
-          </button>
+          {% if request.endpoint == 'tasks.today' %}
+            <button
+              class="quiet-button mode-toggle"
+              type="button"
+              aria-controls="low-capacity-today"
+              aria-pressed="false"
+              data-mode-toggle
+            >
+              <span aria-hidden="true">◐</span>
+              <span data-mode-label>Low capacity Today</span>
+            </button>
+          {% endif %}
           <form action="{{ url_for('auth.logout') }}" method="post" data-clear-drafts>
             <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
             <button class="quiet-button" type="submit">Sign out</button>

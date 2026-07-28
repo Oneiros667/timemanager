@@ -154,11 +154,20 @@
     }
 
     const label = toggle.querySelector("[data-mode-label]");
-    const applyMode = (enabled) => {
+    const fullTodayButtons = document.querySelectorAll("[data-show-full-today]");
+    const announcement = document.querySelector("[data-mode-status]");
+    const summary = document.querySelector("[data-low-capacity-message]");
+    const modeMessage = summary?.dataset.lowCapacityMessage
+      || "Low capacity Today view. Hidden work was not changed.";
+
+    const applyMode = (enabled, announce = true) => {
       document.body.classList.toggle("low-capacity", enabled);
       toggle.setAttribute("aria-pressed", String(enabled));
       if (label) {
-        label.textContent = enabled ? "Standard view" : "Low capacity";
+        label.textContent = enabled ? "Show full Today" : "Low capacity Today";
+      }
+      if (announce && announcement) {
+        announcement.textContent = enabled ? modeMessage : "Full Today view shown.";
       }
     };
 
@@ -168,16 +177,27 @@
     } catch (_error) {
       enabled = false;
     }
-    applyMode(enabled);
+    applyMode(enabled, enabled);
 
-    toggle.addEventListener("click", () => {
-      enabled = !enabled;
+    const setMode = (nextEnabled, { focusToggle = false } = {}) => {
+      enabled = nextEnabled;
       applyMode(enabled);
       try {
         window.localStorage.setItem("timemanager-low-capacity", String(enabled));
       } catch (_error) {
         // The view still works when storage is unavailable.
       }
+      if (focusToggle) {
+        toggle.focus();
+      }
+    };
+
+    toggle.addEventListener("click", () => {
+      setMode(!enabled);
+    });
+
+    fullTodayButtons.forEach((button) => {
+      button.addEventListener("click", () => setMode(false, { focusToggle: true }));
     });
   };
 

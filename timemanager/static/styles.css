@@ -1233,12 +1233,91 @@ body.low-capacity .low-capacity-secondary {
   display: none;
 }
 
-body.low-capacity .day-grid {
-  grid-template-columns: minmax(0, 1fr) 320px;
+.low-capacity-view {
+  display: none;
+}
+
+body.low-capacity .low-capacity-view {
+  display: block;
+}
+
+body.low-capacity .low-capacity-summary {
+  display: flex;
+}
+
+.low-capacity-summary {
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid #bcd8ce;
+  border-radius: var(--radius-md);
+  background: var(--mint-soft);
+}
+
+.low-capacity-summary h2,
+.low-capacity-task-card h2,
+.low-capacity-empty h2 {
+  margin: 0.15rem 0 0.3rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.low-capacity-summary h2 {
+  font-size: 1.45rem;
+}
+
+.low-capacity-summary p:last-child,
+.low-capacity-task-card p:last-child {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
+.low-capacity-task-section {
+  margin-top: 1rem;
+}
+
+.low-capacity-task-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1.3rem;
+  border: 1px solid #bcd8ce;
+  border-radius: var(--radius-md);
+  background: var(--mint);
+  box-shadow: var(--shadow-soft);
+}
+
+.low-capacity-task-card h2 {
+  font-size: 1.4rem;
+}
+
+.low-capacity-empty {
+  margin: 0;
+}
+
+.low-capacity-empty h2 {
+  font-size: 1.2rem;
 }
 
 body.low-capacity .capture-card {
   border-color: #bcd8ce;
+}
+
+body.low-capacity .today-start-grid {
+  gap: 1rem;
+  margin-bottom: 0;
+}
+
+body.low-capacity .capture-card,
+body.low-capacity .remember-card {
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  box-shadow: none;
 }
 
 @media (max-width: 860px) {
@@ -1263,7 +1342,6 @@ body.low-capacity .capture-card {
   }
 
   .day-grid,
-  body.low-capacity .day-grid,
   .today-start-grid {
     grid-template-columns: 1fr;
   }
@@ -1312,6 +1390,14 @@ body.low-capacity .capture-card {
   .remember-card,
   .task-section {
     padding: 1rem;
+  }
+
+  body.low-capacity .low-capacity-summary {
+    align-items: flex-start;
+  }
+
+  .low-capacity-task-card {
+    grid-template-columns: 1fr;
   }
 
   .capture-form {

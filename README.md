@@ -33,7 +33,9 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
   as the project’s first task;
 - explicit task prerequisites, external waits, optional follow-up tasks, and
   reversible blocker overrides separated from Today placement;
-- Low Capacity display mode;
+- a Today-scoped Low Capacity view that shows the existing highlight or the
+  first unblocked active Today task without changing task state, with a hidden
+  unfinished-work count and a full-Today escape;
 - a 5/15/25-minute client-side focus timer with non-chattering assistive
   announcements;
 - responsive desktop/mobile presentation with matching mobile visual and

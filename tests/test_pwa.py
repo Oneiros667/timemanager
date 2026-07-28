@@ -29,9 +29,9 @@ def test_service_worker_controls_the_app_shell(app, client):
     assert response.mimetype == "application/javascript"
     assert response.headers["Service-Worker-Allowed"] == "/"
     assert b"/offline" in response.data
-    assert b"timemanager-shell-v10" in response.data
-    assert b"/static/styles.css?v=10" in response.data
-    assert b"/static/app.js?v=10" in response.data
+    assert b"timemanager-shell-v11" in response.data
+    assert b"/static/styles.css?v=11" in response.data
+    assert b"/static/app.js?v=11" in response.data
     assert f"?v={app.config['STATIC_ASSET_VERSION']}".encode() in response.data
     assert b"await cache.put(event.request, response.clone())" in response.data
 
@@ -39,7 +39,7 @@ def test_service_worker_controls_the_app_shell(app, client):
     assert offline.status_code == 200
     assert b"Connection paused" in offline.data
     assert b"Nothing has been marked late or missed." in offline.data
-    assert b"/static/styles.css?v=10" in offline.data
+    assert b"/static/styles.css?v=11" in offline.data
 
 
 def test_pages_link_manifest_and_include_security_headers(client):
@@ -50,9 +50,9 @@ def test_pages_link_manifest_and_include_security_headers(client):
     assert "default-src 'self'" in response.headers["Content-Security-Policy"]
 
     response = register(client)
-    assert b"/static/styles.css?v=10" in response.data
-    assert b"/static/app.js?v=10" in response.data
-    assert b"Low capacity" in response.data
+    assert b"/static/styles.css?v=11" in response.data
+    assert b"/static/app.js?v=11" in response.data
+    assert b"Low capacity Today" in response.data
     assert response.data.count(b"Quick capture") == 1
     assert b'data-draft-account="' in response.data
     assert b"data-clear-drafts" in response.data

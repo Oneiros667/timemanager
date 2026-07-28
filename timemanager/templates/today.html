@@ -15,12 +15,87 @@
     </a>
   </section>
 
+  <p class="sr-only" aria-live="polite" aria-atomic="true" data-mode-status></p>
+  <section
+    id="low-capacity-today"
+    class="low-capacity-view low-capacity-summary"
+    aria-labelledby="low-capacity-heading"
+    data-low-capacity-message="Low capacity Today view. {{ low_capacity_hidden_count }} unfinished Today {% if low_capacity_hidden_count == 1 %}item is{% else %}items are{% endif %} hidden. Nothing was changed."
+  >
+    <div>
+      <p class="eyebrow">Today view</p>
+      <h2 id="low-capacity-heading">Low capacity</h2>
+      <p data-hidden-today-count="{{ low_capacity_hidden_count }}">
+        {{ low_capacity_hidden_count }} unfinished Today
+        {% if low_capacity_hidden_count == 1 %}item is{% else %}items are{% endif %}
+        hidden. Nothing was changed.
+      </p>
+    </div>
+    <button class="secondary-button compact-button" type="button" data-show-full-today>
+      Show full Today
+    </button>
+  </section>
+
   <div class="today-start-grid">
     {% include "_capture_card.html" %}
     {% include "_remember_card.html" %}
   </div>
 
-  <div class="day-grid">
+  <section
+    class="low-capacity-view low-capacity-task-section"
+    aria-labelledby="low-capacity-action-heading"
+  >
+    {% if low_capacity_task %}
+      <article
+        class="low-capacity-task-card"
+        data-low-capacity-task
+        data-low-capacity-task-id="{{ low_capacity_task.id }}"
+        data-low-capacity-kind="{% if low_capacity_task.is_highlight %}highlight{% else %}fallback{% endif %}"
+      >
+        <div>
+          <p class="eyebrow">
+            {% if low_capacity_task.is_highlight %}Today’s highlight{% else %}One active Today task{% endif %}
+          </p>
+          <h2 id="low-capacity-action-heading">
+            <a class="task-title-link" href="{{ url_for('tasks.task_detail', task_id=low_capacity_task.id, return_to=request.full_path) }}">
+              {{ low_capacity_task.title }}
+            </a>
+          </h2>
+          <p>
+            {% if low_capacity_task.blocker_summary %}{{ low_capacity_task.blocker_summary }}
+            {% elif low_capacity_task.next_action %}Next: {{ low_capacity_task.next_action }}
+            {% elif low_capacity_task.project_title %}Project: {{ low_capacity_task.project_title }}
+            {% else %}Ready when you are.{% endif %}
+          </p>
+        </div>
+        <button
+          class="focus-button primary-button"
+          type="button"
+          data-focus-task="{{ low_capacity_task.title }}"
+        >
+          Start focus
+        </button>
+      </article>
+    {% else %}
+      <div class="empty-card low-capacity-empty" data-low-capacity-empty>
+        <div class="empty-symbol" aria-hidden="true">○</div>
+        <div>
+          <h2 id="low-capacity-action-heading">No actionable Today task right now</h2>
+          <p>
+            {% if low_capacity_hidden_count %}
+              Blocked and overflow tasks are still in the full Today view.
+              Nothing was changed.
+            {% else %}
+              There is no unfinished Today work to choose from. Show the full
+              view whenever you want the rest of Today’s context.
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+
+  <div class="day-grid low-capacity-secondary">
     <section class="main-column">
       <div class="section-heading">
         <div>

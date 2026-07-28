@@ -25,6 +25,17 @@ def _post_with_csrf(client, path: str, data: dict | None = None, page: str = "/t
     return client.post(path, data=payload, follow_redirects=True)
 
 
+def _task_snapshot(app) -> list[dict]:
+    with app.app_context():
+        rows = (
+            get_db()
+            .execute(sa.select(tasks).order_by(tasks.c.id))
+            .mappings()
+            .all()
+        )
+        return [dict(row) for row in rows]
+
+
 def test_capture_to_today_and_tasks(app, client):
     register(client)
 
@@ -73,6 +84,8 @@ def test_today_and_later_are_explicit_views_without_old_view_routes(client):
     today = client.get("/today")
     assert b"Current view \xc2\xb7 Today" in today.data
     assert b'href="/later"' in today.data
+    assert b"data-mode-toggle" in today.data
+    assert b"Low capacity Today" in today.data
     assert today.data.count(b'aria-current="page"') == 2
 
     later = client.get("/later")
@@ -84,10 +97,155 @@ def test_today_and_later_are_explicit_views_without_old_view_routes(client):
     assert b"Add a task" not in later.data
     assert b"Captured" in later.data
     assert b"Ready and waiting" in later.data
+    assert b"data-mode-toggle" not in later.data
     assert later.data.count(b'aria-current="page"') == 2
 
     assert client.get("/inbox").status_code == 404
     assert client.get("/tasks").status_code == 405
+
+
+def test_low_capacity_today_has_a_calm_empty_state_and_full_view_escape(client):
+    response = register(client)
+
+    assert b'data-hidden-today-count="0"' in response.data
+    assert b"data-low-capacity-empty" in response.data
+    assert b"No actionable Today task right now" in response.data
+    assert b"There is no unfinished Today work to choose from" in response.data
+    assert b"data-show-full-today" in response.data
+    assert b"Show full Today" in response.data
+    assert b"data-low-capacity-task-id" not in response.data
+
+
+def test_low_capacity_fallback_skips_blocked_overflow_and_completed_tasks(
+    app,
+    client,
+):
+    register(client)
+    for title in (
+        "Blocked first",
+        "Available second",
+        "Completed third",
+        "Overflow fourth",
+    ):
+        _post_with_csrf(
+            client,
+            "/tasks",
+            {"title": title, "placement": "today"},
+        )
+    _post_with_csrf(
+        client,
+        "/tasks",
+        {"title": "Unfinished prerequisite", "placement": "later"},
+    )
+
+    with app.app_context():
+        database = get_db()
+        rows = (
+            database.execute(
+                sa.select(tasks.c.id, tasks.c.title, tasks.c.user_id).order_by(
+                    tasks.c.id
+                )
+            )
+            .mappings()
+            .all()
+        )
+        by_title = {row["title"]: row for row in rows}
+        database.execute(
+            sa.insert(task_dependencies).values(
+                user_id=by_title["Blocked first"]["user_id"],
+                task_id=by_title["Blocked first"]["id"],
+                prerequisite_task_id=by_title["Unfinished prerequisite"]["id"],
+            )
+        )
+        database.execute(
+            sa.update(tasks)
+            .where(tasks.c.id == by_title["Available second"]["id"])
+            .values(
+                next_action="Open the working document",
+                revision=tasks.c.revision + 1,
+            )
+        )
+        database.commit()
+
+    _post_with_csrf(
+        client,
+        f"/tasks/{by_title['Completed third']['id']}/toggle",
+    )
+    before = _task_snapshot(app)
+
+    response = client.get("/today")
+
+    assert response.status_code == 200
+    assert response.data.count(b"data-low-capacity-task-id=") == 1
+    assert (
+        f'data-low-capacity-task-id="{by_title["Available second"]["id"]}"'.encode()
+        in response.data
+    )
+    assert b'data-low-capacity-kind="fallback"' in response.data
+    assert b"Next: Open the working document" in response.data
+    assert b'data-hidden-today-count="2"' in response.data
+    assert b"2 unfinished Today" in response.data
+    assert (
+        f'data-low-capacity-task-id="{by_title["Blocked first"]["id"]}"'.encode()
+        not in response.data
+    )
+    assert (
+        f'data-low-capacity-task-id="{by_title["Overflow fourth"]["id"]}"'.encode()
+        not in response.data
+    )
+    assert (
+        f'data-low-capacity-task-id="{by_title["Completed third"]["id"]}"'.encode()
+        not in response.data
+    )
+    assert _task_snapshot(app) == before
+
+    _post_with_csrf(
+        client,
+        f"/tasks/{by_title['Available second']['id']}/toggle",
+    )
+    before_blocked_only = _task_snapshot(app)
+
+    response = client.get("/today")
+
+    assert b"data-low-capacity-empty" in response.data
+    assert b"data-low-capacity-task-id" not in response.data
+    assert b'data-hidden-today-count="2"' in response.data
+    assert b"Blocked and overflow tasks are still in the full Today view" in response.data
+    assert _task_snapshot(app) == before_blocked_only
+
+
+def test_low_capacity_prefers_the_existing_highlight_without_mutation(app, client):
+    register(client)
+    for title in ("First active task", "Chosen highlight"):
+        _post_with_csrf(
+            client,
+            "/tasks",
+            {"title": title, "placement": "today"},
+        )
+    with app.app_context():
+        rows = (
+            get_db()
+            .execute(sa.select(tasks.c.id, tasks.c.title).order_by(tasks.c.id))
+            .mappings()
+            .all()
+        )
+    by_title = {row["title"]: row["id"] for row in rows}
+    _post_with_csrf(client, f"/tasks/{by_title['Chosen highlight']}/highlight")
+    before = _task_snapshot(app)
+
+    response = client.get("/today")
+
+    assert (
+        f'data-low-capacity-task-id="{by_title["Chosen highlight"]}"'.encode()
+        in response.data
+    )
+    assert b'data-low-capacity-kind="highlight"' in response.data
+    assert b'data-hidden-today-count="1"' in response.data
+    assert (
+        f'data-low-capacity-task-id="{by_title["First active task"]}"'.encode()
+        not in response.data
+    )
+    assert _task_snapshot(app) == before
 
 
 def test_empty_and_overlong_capture_are_rejected(app, client):

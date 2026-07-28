@@ -224,7 +224,11 @@ def today():
                 task_table.c.workflow_status.in_(("open", "waiting")),
                 task_table.c.today_placement.in_(("active", "overflow")),
             )
-            .order_by(task_table.c.is_highlight.desc(), task_table.c.created_at)
+            .order_by(
+                task_table.c.is_highlight.desc(),
+                task_table.c.created_at,
+                task_table.c.id,
+            )
         )
         .mappings()
         .all()
@@ -272,6 +276,17 @@ def today():
         for task in task_rows
         if not task["is_highlight"] and task["today_placement"] == "overflow"
     ]
+    low_capacity_fallback = next(
+        (
+            task
+            for task in optional_tasks
+            if task["workflow_status"] == "open"
+            and task["blocker_summary"] is None
+        ),
+        None,
+    )
+    low_capacity_task = highlight or low_capacity_fallback
+    low_capacity_hidden_count = len(task_rows) - int(low_capacity_task is not None)
 
     return render_template(
         "today.html",
@@ -281,6 +296,8 @@ def today():
         option_limit=TODAY_OPTION_LIMIT,
         overflow_tasks=overflow_tasks,
         completed=completed,
+        low_capacity_task=low_capacity_task,
+        low_capacity_hidden_count=low_capacity_hidden_count,
         later_count=later_count,
         remember_items=remember_rows,
     )

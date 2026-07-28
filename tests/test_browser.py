@@ -96,7 +96,7 @@ def test_mobile_today_dom_and_visual_focus_order_agree(page, live_url):
         }
         """
     )
-    focus_buttons = page.locator("[data-focus-task]")
+    focus_buttons = page.locator(".day-grid [data-focus-task]")
     assert focus_buttons.count() == 2
 
     for width, height in ((320, 800), (390, 844), (768, 900)):
@@ -121,6 +121,83 @@ def test_mobile_today_dom_and_visual_focus_order_agree(page, live_url):
     page.set_viewport_size({"width": 390, "height": 844})
     expect(page.get_by_role("navigation", name="Primary views")).to_be_hidden()
     expect(page.get_by_role("navigation", name="Main navigation")).to_be_visible()
+
+
+def test_low_capacity_today_view_persists_without_affecting_other_views(
+    page,
+    live_url,
+):
+    _register(page, live_url)
+    capture = page.get_by_placeholder("What do you need to remember?")
+    for title in ("First active task", "Second active task"):
+        capture.fill(title)
+        page.get_by_role("button", name="Add to today").click()
+
+    mode_toggle = page.locator("[data-mode-toggle]")
+    expect(mode_toggle).to_have_accessible_name("Low capacity Today")
+    mode_toggle.click()
+
+    low_capacity_task = page.locator("[data-low-capacity-task]")
+    expect(low_capacity_task).to_be_visible()
+    expect(low_capacity_task.get_by_text("First active task", exact=True)).to_be_visible()
+    expect(page.locator(".day-grid")).to_be_hidden()
+    expect(page.locator(".capture-card")).to_be_visible()
+    expect(page.locator(".remember-card")).to_be_visible()
+    expect(page.locator("[data-hidden-today-count]")).to_contain_text(
+        "1 unfinished Today item is hidden. Nothing was changed."
+    )
+    assert page.locator("[data-low-capacity-task]:visible").count() == 1
+    assert page.locator("[data-focus-task]:visible").count() == 1
+    assert (
+        page.evaluate(
+            "window.localStorage.getItem('timemanager-low-capacity')"
+        )
+        == "true"
+    )
+
+    page.reload()
+    expect(page.locator("[data-low-capacity-task]")).to_be_visible()
+    expect(page.locator("[data-mode-toggle]")).to_have_accessible_name(
+        "Show full Today"
+    )
+
+    page.locator("[data-low-capacity-task] .task-title-link").click()
+    page.wait_for_url(re.compile(rf"{re.escape(live_url)}/tasks/\d+.*"))
+    assert page.locator("[data-mode-toggle]").count() == 0
+    assert not page.locator("body").evaluate(
+        "(element) => element.classList.contains('low-capacity')"
+    )
+    page.locator(".workspace-back").click()
+    expect(page.locator("[data-low-capacity-task]")).to_be_visible()
+
+    page.get_by_role("link", name="View Later").click()
+    expect(page.get_by_text("Current view · Later", exact=True)).to_be_visible()
+    assert page.locator("[data-mode-toggle]").count() == 0
+    assert not page.locator("body").evaluate(
+        "(element) => element.classList.contains('low-capacity')"
+    )
+    assert (
+        page.evaluate(
+            "window.localStorage.getItem('timemanager-low-capacity')"
+        )
+        == "true"
+    )
+
+    page.get_by_role("link", name="View Today").click()
+    expect(page.locator("[data-low-capacity-task]")).to_be_visible()
+    page.locator("[data-show-full-today]").click()
+    expect(page.locator("[data-low-capacity-task]")).to_be_hidden()
+    expect(page.locator(".day-grid")).to_be_visible()
+    expect(page.locator("[data-mode-toggle]")).to_have_accessible_name(
+        "Low capacity Today"
+    )
+    expect(page.locator("[data-mode-toggle]")).to_be_focused()
+    assert (
+        page.evaluate(
+            "window.localStorage.getItem('timemanager-low-capacity')"
+        )
+        == "false"
+    )
 
 
 def test_focus_timer_announces_only_meaningful_transitions(page, live_url):
