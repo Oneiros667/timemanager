@@ -643,7 +643,7 @@ Any later sharing design requires:
 - expiry and immediate revocation;
 - visible access/change history;
 - no health-related sharing inferred from a general planning permission;
-- a separate child-data and unsafe-family review.
+- a separate health-data, privacy, and coercive-helper review.
 
 ### Export, retention, and deletion
 

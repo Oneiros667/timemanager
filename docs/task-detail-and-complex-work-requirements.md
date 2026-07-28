@@ -364,7 +364,7 @@ Milestone 1.2 does not include:
   completion;
 - calendar integration, reminders, or external notifications;
 - completion percentages, streaks, productivity scores, or earned rewards;
-- hosted sharing, guardian workspaces, or trusted-person proposals; or
+- hosted sharing or trusted-person proposals; or
 - treating a preferred order, expected response date, or planned date as a
   hard dependency.
 

@@ -8,9 +8,6 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
 
 ## Documents
 
-- [Timemanager Kids documentation](../docs_kids/README.md) is the specification
-  root for a proposed, separate guardian-operated application intended solely
-  for ages 8–17. It does not describe implemented real child-data behavior.
 - [High-level product design](high-level-product-design.md) translates the
   research into the proposed user journey, feature set, functional rules,
   information model, confirmed deployment path, scope, and delivery phases.
@@ -31,16 +28,9 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
   defines Last Done tracking, exact answer semantics, schedules, execution
   history, shared reflection markers, task/calendar links, privacy, and
   medication-safety gates.
-- [Assisted planning and guardian support](assisted-planning-and-guardian-support.md)
-  defines guardian-supported child planning and adult trusted-person support,
-  including permissions, proposals, privacy boundaries, and release gates.
-- [Guardian-supported calm-break prototype](calm-break-prototype.md) defines
-  the implemented synthetic same-device interaction, its non-punitive safety
-  contract, and the gates that block persistent use with real child data.
-- [School support and health-information sharing prototype](school-support-sharing-prototype.md)
-  defines the implemented field-level disclosure preview, separate teacher and
-  school-health roles, neutral feedback contract, and real-sharing release
-  gates.
+- [Adult trusted-person support](trusted-person-support.md) defines scoped
+  proposal-only planning assistance, focus companionship, disclosure previews,
+  privacy boundaries, and hosted-release gates.
 - [ADR 0001: Local PWA architecture](decisions/0001-local-pwa-architecture.md)
   records the accepted Flask, SQLite, server-rendered UI, authentication, and
   service-worker boundaries for the Phase 1 local pilot.
@@ -105,3 +95,9 @@ The most important distinction throughout is between an intervention that helps
 someone function and a treatment that reduces core ADHD symptoms. A planning
 tool can support the former; it should not claim the latter without clinical
 evidence and appropriate regulation.
+
+## Separate child product
+
+The proposed application for ages 8–17 is specified under
+[Timemanager Kids](../docs_kids/README.md). Child-product requirements are
+intentionally kept outside this adult documentation set.

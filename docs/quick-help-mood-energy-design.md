@@ -127,8 +127,8 @@ Quick Help must not become:
 - a feed of generic wellness content or an engagement surface that encourages
   repeated disclosure;
 - an adherence, calorie, hydration, sleep, mood, or productivity score;
-- a tool for a guardian, helper, employer, school, clinician, or insurer to
-  monitor the user;
+- a tool for a trusted person, employer, clinician, or insurer to monitor the
+  user;
 - evidence that a particular food, activity, medicine, routine, or suggestion
   caused a later change; or
 - a way to conceal cloud AI processing inside an otherwise local application.

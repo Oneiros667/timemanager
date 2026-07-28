@@ -49,9 +49,6 @@ a diagnostic tool, or a replacement for ADHD assessment or treatment.
 Self-service account restore, credential recovery, Google Calendar,
 trusted-person sessions, hosted PostgreSQL accounts, local-to-online migration,
 and native mobile clients are not implemented yet.
-Guardian-operated child accounts, school/carer communication, and medication
-sharing belong to a proposed separate child-support application; they are not
-features of this adult local pilot.
 The implemented complex-work interaction remains a plausible design whose
 five-participant usability gate has not yet been run. Manual screen-reader,
 keyboard, zoom, forced-colors, and real-device verification also remains open.
@@ -61,8 +58,8 @@ Intended and gated scope is documented in the
 ## Local account topology
 
 One trusted local installation may contain multiple isolated accounts. Sharing
-an installation does not create household, guardian, helper, or data-sharing
-permissions between those accounts.
+an installation does not create household, helper, or data-sharing permissions
+between those accounts.
 
 The installation operator can access the SQLite database and backups on disk.
 The local pilot is therefore not a privacy boundary against that operator and
@@ -196,8 +193,7 @@ public deployment. PWA installation on another device requires a trusted HTTPS
 origin.
 
 The synthetic complex-work prototype is disabled by default. To run a research
-session with browser-memory-only synthetic data, including the calm-break
-guardian/young-person interaction:
+session with browser-memory-only synthetic data:
 
 ```bash
 TIMEMANAGER_ENABLE_PROTOTYPES=1 uv run timemanager
@@ -205,11 +201,6 @@ TIMEMANAGER_ENABLE_PROTOTYPES=1 uv run timemanager
 
 Open <http://127.0.0.1:5000/prototypes/complex-work>. The route returns `404`
 when disabled and `Cache-Control: no-store` when enabled.
-The calm-break prototype is at
-<http://127.0.0.1:5000/prototypes/calm-break> and has the same boundaries.
-The school-support disclosure prototype is at
-<http://127.0.0.1:5000/prototypes/school-support-share>; it sends and stores
-nothing and must be used only with fictional scenarios.
 
 ## Verify
 

@@ -92,7 +92,7 @@ The following product-design capabilities are not implemented:
   application-managed general backup/restore flow;
 - Last Done tracked activities, schedules, occurrences, or execution history;
 - Google Calendar integration;
-- guardian or trusted-person assistance;
+- trusted-person assistance;
 - hosted accounts, local-to-online migration, native applications, AI, Day
   Context, Medication Context, or Quick Help.
 
@@ -382,8 +382,8 @@ matching the implemented registration and per-user ownership model.
 
 - Every user-owned object, query, mutation, export, deletion, restore, and
   hosted migration is scoped to one authenticated account.
-- Co-residency creates no household, guardian, helper, or sharing relationship.
-- Registration is not evidence of guardianship or trust.
+- Co-residency creates no household, helper, or sharing relationship.
+- Registration is not evidence of trust or permission.
 - The installation is limited to a trusted machine and local network; it is not
   a public multi-tenant service.
 - The installation operator can access the database, generated secret, and
@@ -407,43 +407,38 @@ The authoritative commercial structure is:
 - subscription per primary user;
 - monthly billing or discounted annual billing with the same entitlements;
 - web and future native-mobile access in the base subscription;
-- one guardian companion seat for a child or one trusted-support companion seat
-  for an adult;
+- one trusted-support companion seat;
 - a companion seat provides scoped support access, not an independent personal
   workspace; and
 - optional advanced or future capabilities may be transparent one-off
   purchases, but core, accessibility, privacy, safety, export, deletion, and
   companion access remain in the base subscription.
 
-Payment is never evidence of identity, age, guardianship, consent, or authority.
+Payment is never evidence of identity, trust, consent, or authority.
 Exact prices and other billing mechanics remain decisions for implementation.
 The authoritative detail is in the
 [high-level product design](high-level-product-design.md#commercial-model).
 
-### D5: Assisted-planning pilot topology
+### D5: Trusted-person pilot topology
 
 Priority: resolved in product design on 2026-07-24
 
 The approved topology separates interface validation from live shared
 relationships:
 
-- Phase 2 uses synthetic family, relationship, and task data with same-device
-  role simulation. It creates no remote invitations or persistent real child
-  or assistance workspaces.
+- Phase 2 uses synthetic adult relationship and task data with same-device role
+  simulation. It creates no remote invitations or persistent assistance
+  workspaces.
 - Supervised sessions may involve real participants under an approved protocol,
   but use synthetic scenarios. Consented, minimised, de-identified research
   notes remain outside Timemanager.
 - Real adult trusted-support relationships require a hosted, server-authorized
   pilot after authentication, authorization, audit, expiry, revocation,
   disclosure, and abuse-response gates pass.
-- Real child workspaces additionally require country-specific legal/privacy
-  approval, guardian-authority verification, a child-data impact assessment,
-  an unsafe-family/coercion threat model, child-visible privacy, and tested
-  deletion and incident-response procedures.
 
 Email, payment, local-account co-residency, and possession of an invitation
-never prove guardianship. The detailed topology and release evidence are in
-[Assisted planning and guardian support](assisted-planning-and-guardian-support.md#validation-and-release-topology).
+never prove trust or permission. The detailed topology and release evidence are
+in [Adult trusted-person support](trusted-person-support.md#validation-topology).
 
 ## Ordered execution plan
 
@@ -463,7 +458,7 @@ never prove guardianship. The detailed topology and release evidence are in
 | 1.8 | Validate the complete non-AI day loop | Not started | Browser/accessibility tests plus recorded user-research evidence |
 | 2.1 | Implement the notification attention/privacy contract | Blocked by 1.8 | Independent importance/privacy; private default; Sensitive payload and device views contain no details |
 | 2.2 | Add Google Calendar behind explicit confirmation | Blocked by 1.8 | Provenance, timezone, recurrence scope, conflicts, provider failures, and external-notification privacy boundaries are visible |
-| 2.3 | Prototype assisted planning under the approved topology | Blocked by 1.8 | Synthetic same-device roles, proposals, audit, expiry, revocation, disclosure previews, and safety gates pass |
+| 2.3 | Prototype adult trusted-person support | Blocked by 1.8 | Synthetic same-device roles, proposals, audit, expiry, revocation, disclosure previews, and safety gates pass |
 | 3 | Build hosted accounts and rehearse one-time migration | Blocked by phases 1-2 | Tenant isolation, production operations, and migration evidence pass |
 | 4 | Consider native clients and optional AI | Deferred | Separate validation and privacy/cost/safety approval |
 
@@ -493,12 +488,11 @@ each slice lands:
 - Low Capacity tests proving highlight-or-one-actionable-task presentation,
   trustworthy hidden counts, a full-view escape, preference persistence, and no
   task, highlight, ordering, placement, or revision mutation;
-- assisted-prototype tests proving that Phase 2 uses synthetic same-device
+- trusted-person prototype tests proving that Phase 2 uses synthetic same-device
   roles, sends no remote invitation, calls no external provider, and can reset
   the simulated workspace;
 - hosted assistance-gate tests proving that real adult relationships require
-  server authorization and that real child workspaces remain unavailable
-  without the applicable market and guardian-authority approval;
+  server authorization, explicit scope, expiry, revocation, and audit;
 - browser tests for capture, highlight limits, Low Capacity, focus boundaries,
   Reset, and offline navigation;
 - an assertion that authenticated task pages are never stored in the service
@@ -549,9 +543,6 @@ and current regulatory/API claims consistent with the cited primary sources:
 - [NICE NG87 recommendations](https://www.nice.org.uk/guidance/ng87/chapter/recommendations)
 - [Komatsu et al. CBT component network meta-analysis](https://pmc.ncbi.nlm.nih.gov/articles/PMC11683884/)
 - [BMJ ADHD interventions umbrella review](https://www.bmj.com/content/391/bmj-2025-085875)
-- [OAIC draft Children's Online Privacy Code status](https://www.oaic.gov.au/news/media-centre/oaic-releases-exposure-draft-of-the-childrens-online-privacy-code)
-- [ICO Children's Code introduction](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/childrens-information/childrens-code-guidance-and-resources/introduction-to-the-childrens-code/)
-- [European Commission safeguards for children's data](https://commission.europa.eu/law/law-topic/data-protection/information-business-and-organisations/legal-grounds-processing-data/are-there-any-specific-safeguards-data-about-children_en)
 - [ICO special-category and health-data guidance](https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/lawful-basis/special-category-data/what-is-special-category-data/)
 - [OpenAI API data controls](https://developers.openai.com/api/docs/guides/your-data#default-usage-policies-by-endpoint)
 

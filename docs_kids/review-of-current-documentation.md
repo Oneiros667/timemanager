@@ -6,7 +6,8 @@ Reviewed: 2026-07-28
 
 ## Review method
 
-Every Markdown document under `docs/` and `docs/decisions/` was reviewed for:
+Every Markdown document then present under `docs/` and `docs/decisions/` was
+reviewed for:
 
 - evidence population and whether it applies to children;
 - implemented adult behavior versus proposed behavior;
@@ -36,6 +37,11 @@ Timemanager Kids must be a separate product because ages 8–17 introduce:
 - a much stronger risk from covert monitoring, coercion, oversharing, and
   incorrect adult authority.
 
+Child-only source documents identified by this review were consolidated into
+`docs_kids/` and subsequently removed from the adult `docs/` root. The table
+records the source set and disposition rather than claiming that every path
+still exists.
+
 ## Document-by-document disposition
 
 | Existing document | Review result for Timemanager Kids |
@@ -56,9 +62,9 @@ Timemanager Kids must be a separate product because ages 8–17 introduce:
 | `medication-context-support-requirements.md` | Do not transplant the private adult design. Child medication requires guardian authority, prescriber/pharmacy source fidelity, school administration roles, child notice, clinical ownership, and market review. No dose advice remains reusable. |
 | `quick-help-mood-energy-design.md` | Adapt deliberate entry, few reversible choices, non-AI playbooks, uncertainty, and human-help routes. Do not reuse adult medication examples or treat it as crisis care. |
 | `ai-body-doubling-and-voice-design.md` | Defer AI and voice. Reuse only the principles that non-AI flows remain useful, external transfer is explicit, credentials stay server-side, and model suggestions cannot mutate data silently. |
-| `assisted-planning-and-guardian-support.md` | Use as the main predecessor for scoped roles, child-visible history, guardian verification, revocation, and market gating. Replace its 13+ initial pilot with an 8–17 product whose under-13 path is a separate release blocker. |
-| `calm-break-prototype.md` | Adopt the non-punitive calm-break safety contract. The existing implementation remains synthetic and stores nothing. |
-| `school-support-sharing-prototype.md` | Adopt separate teacher/health roles, field-level disclosure, neutral feedback, child signals, and separate-app topology. Real sharing remains blocked. |
+| Former `assisted-planning-and-guardian-support.md` | Child requirements were consolidated here; adult trusted-person requirements now live in [Adult trusted-person support](../docs/trusted-person-support.md). The former mixed document was removed. |
+| Former `calm-break-prototype.md` | The non-punitive calm-break contract was consolidated here and the child-only adult-root document was removed. The executable screen remains synthetic and stores nothing. |
+| Former `school-support-sharing-prototype.md` | Teacher/health roles, field-level disclosure, neutral feedback, and child signals were consolidated here. The child-only adult-root document was removed; real sharing remains blocked. |
 | `complex-work-prototype-walkthrough.md` | Reuse synthetic-data, task-based, same-device formative research mechanics. Create child-specific protocols before involving minors. |
 | `complex-work-prototype-findings-template.md` | Reuse observation, accessibility, and gate-result separation. Add assent, safeguarding, distress, and adult influence fields for child research. |
 

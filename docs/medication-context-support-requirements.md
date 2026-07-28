@@ -104,8 +104,8 @@ jurisdiction-specific release approval remain unresolved gates.
     reasoning.
 12. Medication schedule and history are always Sensitive in the first
     implementation. They cannot be reclassified as Standard.
-13. Medication data is excluded from helpers, guardians, calendars,
-    notification details, analytics content, and AI context by default.
+13. Medication data is excluded from trusted people, calendars, notification
+    details, analytics content, and AI context by default.
 14. Every external disclosure requires a specific preview and confirmation;
     adding a profile never grants ongoing AI or third-party access.
 15. The user can correct, version, export, and permanently delete the profile,
@@ -155,7 +155,7 @@ The first Medication Context implementation does not include:
 - automatic causation claims between medication and mood, energy, focus,
   appetite, sleep, heart rate, or another state;
 - automatic calendar writes;
-- clinician, helper, guardian, school, or employer access;
+- clinician, trusted-person, or employer access;
 - emergency identification or a promise that the stored list is complete; or
 - replacement for the current prescription label, Patient Information
   Leaflet, pharmacist, prescriber, or emergency medication list.
@@ -334,7 +334,7 @@ Quick Help must not generate or infer:
   supplement is safe with the user's medicine;
 - whether to change treatment because of mood, energy, focus, appetite, sleep,
   weight, blood pressure, heart rate, or another observation; or
-- advice for pregnancy, breastfeeding, childhood, older age, kidney/liver
+- advice for pregnancy, breastfeeding, older age, kidney/liver
   impairment, eating disorders, cardiovascular conditions, or another
   clinical circumstance unless a separately approved clinical product
   explicitly supports it.
@@ -450,7 +450,7 @@ Medication Context is private to the signed-in user by product default. It is:
 
 - always Sensitive;
 - hidden from notification and push-payload details;
-- excluded from assistance workspaces, guardians, trusted people, calendars,
+- excluded from assistance workspaces, trusted people, calendars,
   analytics content, advertising, and unrelated AI context;
 - protected by account and tenant isolation;
 - omitted from application/operational log content;
@@ -610,8 +610,8 @@ precisely.
   object existence.
 - Notifications, push payloads, service-worker caches, analytics, errors,
   traces, and operational logs contain no medication content.
-- Helpers, guardians, calendars, and unrelated AI contexts receive no
-  medication data.
+- Trusted people, calendars, and unrelated AI contexts receive no medication
+  data.
 - Every external request previews exact fields and requires confirmation.
 - Export contains only the signed-in user's selected data and no secrets.
 - Correction and deletion behave according to the disclosed retention and

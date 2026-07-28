@@ -137,7 +137,7 @@ Day Context must not become:
   reactions, or another urgent state;
 - a continuous questionnaire that interrupts the user's day;
 - a compliance score, streak, life score, or performance report;
-- a helper, parent, employer, school, clinician, or insurer dashboard;
+- a trusted-person, employer, clinician, or insurer dashboard;
 - automatic modification of Today, Low Capacity, focus duration, medication,
   meals, exercise, or calendar commitments; or
 - a prerequisite for using Quick Help, tasks, timers, or Last Done.

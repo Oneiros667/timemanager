@@ -35,8 +35,8 @@ and local return context is preserved. Its synthetic prototype and evaluation
 materials exist, but no participant findings have been recorded. Manual
 screen-reader, keyboard, zoom, forced-colors, and real-device verification also
 remains open.
-Self-service restore and credential recovery, Google Calendar, assisted
-planning for guardians and trusted people, the Phase 3 hosted release,
+Self-service restore and credential recovery, Google Calendar, adult
+trusted-person support, the Phase 3 hosted release,
 local-to-online migration, AI, and native mobile applications remain
 unimplemented.
 
@@ -48,7 +48,7 @@ These milestone names are authoritative across the project:
 | --- | --- | --- |
 | Phase 0 — Prototype validation | Interviews and clickable validation of the core day loop | Evidence unverified |
 | Phase 1 — Local pilot | Usable local PWA implementing and testing the non-integrated core | Partial |
-| Phase 2 — Integrated local pilot | Calendar, privacy-safe notifications, assisted-planning prototype, and complete-loop evaluation | Blocked by Phase 1 |
+| Phase 2 — Integrated local pilot | Calendar, privacy-safe notifications, adult trusted-person prototype, and complete-loop evaluation | Blocked by Phase 1 |
 | Phase 3 — Hosted release | Production hosted accounts, security, operations, migration, and authorised integrations | Blocked by Phases 1–2 |
 | Phase 4 — Later extensions | Native clients, optional AI, additional providers, and other deferred capabilities | Deferred |
 
@@ -116,7 +116,7 @@ The delivery direction is:
    Timemanager data into an online account;
 6. integrate Google Calendar first, with explicitly confirmed event creation
    and editing, and add other calendar providers later;
-7. validate an assisted-planning prototype in the Phase 2 integrated local
+7. validate an adult trusted-person prototype in the Phase 2 integrated local
    pilot using synthetic data and same-device role simulation;
 8. exclude AI decomposition, voice, AI body doubling, health-oriented Quick
    Help, Day Context state/event tracking, and structured medication context
@@ -128,8 +128,7 @@ fully offline. The core product remains designed so that AI is never required.
 
 ## Commercial model
 
-The Phase 3 hosted product uses a simple subscription per **primary user
-profile**: the child or adult whose own plan and data Timemanager manages.
+The Phase 3 hosted product uses a simple subscription per adult primary user.
 
 - A monthly subscription and a discounted annual subscription provide the same
   product entitlements; the annual option changes price and billing period, not
@@ -137,11 +136,9 @@ profile**: the child or adult whose own plan and data Timemanager manages.
 - The base subscription includes access to the web application and, when
   released in Phase 4, the native mobile applications. A primary user is not
   charged a separate platform subscription.
-- A child's primary-user subscription includes one guardian companion seat.
-- An adult's primary-user subscription includes one trusted-support companion
-  seat.
-- A companion seat grants only the approved guardian or trusted-support
-  permissions for that primary user. It does not include an independent
+- The subscription includes one trusted-support companion seat.
+- A companion seat grants only the permissions approved by the adult primary
+  user. It does not include an independent
   personal planning workspace; a companion who uses Timemanager for their own
   plan needs their own primary-user subscription.
 - Phase 1 local-pilot use has no payment dependency.
@@ -159,9 +156,9 @@ additional companion seats, and the first eligible one-off capabilities remain
 commercial decisions to make before billing launches.
 
 Payment establishes a billing relationship only. It is not proof of identity,
-age, guardianship, consent, or authority over another user. The product does
-not use advertising, behavioural profiling, data brokerage, or personal
-planning data as a revenue source.
+trust, consent, or authority over another user. The product does not use
+advertising, behavioural profiling, data brokerage, or personal planning data
+as a revenue source.
 
 The subscription structure is a product decision, not evidence that users will
 find its eventual price fair or sustainable. Research signals include both
@@ -184,8 +181,6 @@ The product should help the user:
 - stop, switch, or continue deliberately;
 - recover after an interruption, changed day, or absence without backlog debt;
 - learn from estimated and actual duration without being surveilled or graded;
-- let a guardian help a child record and orient around commitments without
-  turning the child into a monitored productivity project;
 - let an adult invite a partner, friend, or other trusted person to help with
   selected tasks, appointments, reminders, and check-ins;
 - trust that the system reflects current commitments.
@@ -469,7 +464,7 @@ Statuses describe the current repository, not the intended milestone scope.
 | Short task components and lightweight projects | Phase 1 | Partial — model, workspaces, collection, navigation, and archive implemented; validation open | Richer project views | Supported decomposition; plausible interface |
 | Dependencies and external waiting | Phase 1 | Partial | Richer dependency analysis | Supported readiness question; plausible state model |
 | Flexible focus session | Phase 1 | Partial | Stronger blocking and AI body doubling | Supported elements; experiential options |
-| Assisted planning | Phase 2 | Blocked by Phase 1 | Richer household and support controls | Plausible/experiential; privacy-sensitive |
+| Adult trusted-person support | Phase 2 | Blocked by Phase 1 | Additional scoped planning and focus-support controls | Plausible/experiential; privacy-sensitive |
 | Transition and leave-by cues | Phase 1 | Not started | Location/event-triggered cues | Plausible interface |
 | Recovery/reset without rollover | Phase 1 | Not started | Personalised recovery suggestions | Plausible product design |
 | Estimate versus actual | Phase 1 | Not started | Reference-class duration ranges | Supported mechanism; plausible algorithm |
@@ -522,8 +517,8 @@ Statuses describe the current repository, not the intended milestone scope.
 - **Experiment:** one temporary behavior change and a review date.
 - **Support session:** explicit invitation, shared intention, presence/check-in
   state, expiry, revocation, and the minimum task/session fields disclosed.
-- **Assistance workspace:** the supported person or child profile, its approved
-  helpers, the relationship type, permission scope, and audit history.
+- **Assistance workspace:** the adult owner, approved helpers, relationship
+  type, permission scope, and audit history.
 - **Assistance proposal:** a helper-created task, appointment, reminder, or
   assignment suggestion with its proposer, recipient, status, and explicit
   acceptance/rejection history.
@@ -558,8 +553,7 @@ external calendar writes are auditable user actions.
 - Conflicting external changes are shown for user resolution.
 - Assistance access is scoped, expires, is auditable, and can be revoked.
   Adult helpers cannot silently complete, drop, reschedule, or broaden access
-  to another adult's plan. Guardian support for a child follows the dedicated
-  child-safety and consent design.
+  to another adult's plan.
 - Recommendations expose the facts used and label inferred values.
 - AI-generated content is marked as suggested until accepted.
 - The product does not solicit, infer, categorise, or provide specialist
@@ -669,25 +663,18 @@ Other calendar providers should implement the same internal commitment boundary
 after the Google integration is stable; provider-specific objects must not leak
 into the core task model.
 
-### Assisted planning: guardians and trusted people
+### Adult trusted-person support
 
-Assisted planning is a Phase 2 prototype capability, not merely a body-doubling
-session. It has two distinct modes:
+Adult trusted-person support is a Phase 2 prototype capability, not merely a
+body-doubling session. An adult may invite a partner, friend, family member,
+coach, or other chosen helper to assist with selected planning work.
 
-- **Guardian-supported child planning:** a parent or legal guardian helps
-  record tasks, appointments, reminders, and transitions for a child.
-- **Adult trusted-person support:** an adult invites a partner, friend, family
-  member, coach, or other chosen helper to assist with selected planning work.
+The default helper action is a proposal for the adult to accept, adjust, or
+decline. Every scope is explicit, time-limited, auditable, and revocable.
+Health histories and private state/context records remain excluded by default.
 
-The product must distinguish these modes rather than assuming that a parent has
-the same authority over an adult's plan as a guardian may have in a child's
-workspace. The default adult helper action is a proposal for the adult to
-accept, adjust, or decline. Child support must be transparent, age-appropriate,
-and designed with guardian verification, data minimisation, and child privacy
-requirements before release.
-
-The detailed role, permission, workflow, privacy, and release-gate design is
-in [Assisted planning and guardian support](assisted-planning-and-guardian-support.md).
+The detailed role, permission, workflow, privacy, and release-gate design is in
+[Adult trusted-person support](trusted-person-support.md).
 
 ### Local-to-online data transfer
 
@@ -854,12 +841,11 @@ signals, not acceptable costs of higher task completion.
 
 - authenticated Google Calendar read plus confirmed event creation/editing;
 - fixed-event sync, provenance, caching, and conflict visibility;
-- guardian-child and adult-trusted-person assisted-planning prototype,
-  using synthetic data, same-device role simulation, scoped proposals, and
-  start/end check-ins;
+- adult trusted-person support prototype using synthetic data, same-device role
+  simulation, scoped proposals, and start/end check-ins;
 - supervised usability sessions may use real participants under an approved
   protocol, but participants interact with synthetic scenarios and create no
-  persistent child or assistance workspace;
+  persistent assistance workspace;
 - notification budget, independent importance/privacy controls, private
   previews, and staged leave-by cues;
 - short weekly review and one experiment;
@@ -872,17 +858,14 @@ signals, not acceptable costs of higher task completion.
 - authenticated hosted accounts and tenant isolation;
 - PostgreSQL persistence with production migration, backup, restore, monitoring,
   and recovery evidence;
-- monthly and discounted annual billing per primary user, including the
-  applicable single companion seat;
+- monthly and discounted annual billing per adult primary user, including one
+  trusted-support companion seat;
 - production Google authorization, event reads, and explicitly confirmed event
   creation/editing;
-- authenticated, expiring guardian/trusted-person invitations and server-side
+- authenticated, expiring trusted-person invitations and server-side
   permission enforcement;
 - stage real adult trusted-support relationships only after authorization,
   audit, expiry, revocation, disclosure, and abuse-response gates pass;
-- stage real child workspaces only in approved countries after guardian-
-  authority, child-data, privacy, unsafe-family, deletion, and incident-response
-  gates pass;
 - optional, user-previewed one-time migration from the local version;
 - backup, export, deletion, rate limiting, and operational recovery;
 - online PWA deployment with clear connectivity state;
@@ -915,7 +898,7 @@ signals, not acceptable costs of higher task completion.
 - automatic calendar rescheduling;
 - opaque AI prioritisation or silent task mutation;
 - public social feeds, leaderboards, or default sharing;
-- employer, school, clinician, or caregiver surveillance;
+- employer, clinician, or caregiver surveillance;
 - clinical diagnosis, treatment recommendations, or symptom-efficacy claims.
 
 ## Resolved product decisions
@@ -928,10 +911,10 @@ signals, not acceptable costs of higher task completion.
   Co-residency creates no sharing or assistance permission; the installation
   operator remains able to access the local database and backups.
 - The Phase 3 hosted release is the first production release.
-- The hosted commercial model is a monthly subscription per primary user, with
-  a discounted annual option providing the same entitlements. It includes web
-  access, future native mobile access, and one applicable guardian or
-  trusted-support companion seat.
+- The hosted commercial model is a monthly subscription per adult primary
+  user, with a discounted annual option providing the same entitlements. It
+  includes web access, future native mobile access, and one trusted-support
+  companion seat.
 - Optional advanced capabilities may later use transparent one-off purchases,
   but core functionality, accessibility, privacy, safety, export, deletion, and
   included companion access remain in the base subscription.
@@ -940,18 +923,13 @@ signals, not acceptable costs of higher task completion.
   account; the two installations do not remain synchronized.
 - Google Calendar is the first calendar provider and allows explicitly
   confirmed event creation/editing; other providers follow later.
-- Phase 2 assisted-planning validation uses synthetic data and same-device role
-  simulation. It creates no remote invitation or persistent real child or
-  assistance workspace.
+- Phase 2 trusted-person validation uses synthetic data and same-device role
+  simulation. It creates no remote invitation or persistent assistance
+  workspace.
 - Supervised Phase 2 sessions may involve real participants under an approved
   protocol, but use synthetic scenarios and keep consented, de-identified
   research notes outside Timemanager.
-- Real adult trusted-support relationships require a gated hosted pilot. Real
-  child workspaces additionally require country-specific guardian-authority,
-  child-data, privacy, and unsafe-family approval.
-- The first hosted guardian-supported child pilot uses a parent-managed profile
-  for children aged 13 and older; guardian editing is the default within that
-  child workspace.
+- Real adult trusted-support relationships require a gated hosted pilot.
 - Adult trusted helpers are proposal-only by default, with only explicit,
   narrow, time-limited delegation.
 - The Phase 1 local pilot and Phase 3 hosted release do not solicit, infer,
@@ -970,8 +948,8 @@ signals, not acceptable costs of higher task completion.
 - Timemanager does not promise privacy for notifications generated by an
   external calendar provider. Sensitive calendar writes require a disclosure
   preview and a privacy-safe external-title choice.
-- Worldwide availability is the product objective, subject to a country/region
-  child-data and privacy release gate before launch in each market.
+- Worldwide availability remains subject to applicable country/region privacy,
+  security, consumer-protection, and health-data release review.
 - AI decomposition, voice, AI body doubling, Day Context, Medication Context,
   and Quick Help are deferred to Phase 4. Day Context's factual-history,
   privacy, and interpretation gates are defined in

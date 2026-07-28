@@ -23,7 +23,7 @@ One Phase 1 local installation may contain multiple isolated local accounts.
 - Local accounts cannot discover, read, change, export, or migrate another
   account's data through the application.
 - Registration on the same installation does not establish a family,
-  guardianship, assistance, or trusted-person relationship.
+  assistance, or trusted-person relationship.
 - Cross-account sharing remains unavailable unless a separately approved
   assistance design explicitly provides it.
 - The installation is intended for a trusted machine and local network, not
