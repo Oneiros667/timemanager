@@ -263,6 +263,81 @@ def test_synthetic_prototype_is_keyboard_operable_and_responsive(page, live_url)
     assert page.get_by_text("Next ready", exact=True).is_visible()
 
 
+def test_calm_break_prototype_shows_custom_choices_without_saving(page, live_url):
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto(f"{live_url}/prototypes/calm-break")
+
+    expect(page.get_by_text("Synthetic prototype")).to_be_visible()
+    expect(
+        page.get_by_role("heading", name="A calm break", exact=True)
+    ).to_be_visible()
+    page.get_by_label("Another supportive option").fill("Sit with the dog")
+    page.get_by_text(
+        "I will show this plan before the break starts",
+        exact=False,
+    ).click()
+    page.get_by_role("button", name="Show the break plan").click()
+
+    expect(page.get_by_text("Listen to music", exact=True)).to_be_visible()
+    expect(page.get_by_text("Sit with the dog", exact=True)).to_be_visible()
+    expect(page.get_by_role("button", name="I’m ready")).to_be_focused()
+    page.get_by_role("button", name="I need help").click()
+    expect(
+        page.get_by_text("I need help. Nothing was saved or reported.")
+    ).to_be_visible()
+
+    page.reload()
+    expect(page.get_by_text("Sit with the dog", exact=True)).to_have_count(0)
+
+
+def test_school_share_prototype_enforces_role_scoped_disclosure(page, live_url):
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.goto(f"{live_url}/prototypes/school-support-share")
+
+    medication = page.get_by_label("Medication administration plan")
+    expect(medication).to_be_disabled()
+    page.get_by_label("The young person has seen", exact=False).check()
+    page.get_by_label("I confirm this exact recipient", exact=False).check()
+    page.get_by_role("button", name="Preview disclosure").click()
+    disclosure = page.get_by_role("region", name="Disclosure preview")
+    expect(disclosure.get_by_text("Class teacher", exact=True)).to_be_visible()
+    expect(
+        page.get_by_text("Medication administration plan", exact=True)
+    ).to_have_count(1)
+
+    page.get_by_label("School nurse or designated health professional").check()
+    expect(medication).to_be_enabled()
+    medication.check()
+    page.get_by_role("button", name="Preview disclosure").click()
+    expect(
+        disclosure.get_by_text("School health professional", exact=True)
+    ).to_be_visible()
+    expect(
+        page.get_by_text(
+            "It does not let school staff change a dose",
+            exact=False,
+        )
+    ).to_be_visible()
+    page.get_by_role("button", name="Confirm synthetic share").click()
+    expect(
+        page.get_by_text(
+            "No invitation, record, or message was created",
+            exact=False,
+        )
+    ).to_be_visible()
+
+    page.get_by_role("button", name="I’m overwhelmed").click()
+    expect(page.get_by_text("Your message:")).to_be_visible()
+    expect(page.get_by_text("I’m overwhelmed", exact=True)).to_have_count(2)
+    page.get_by_role("button", name="Confirm synthetic message").click()
+    expect(
+        page.get_by_text(
+            "No person was contacted and nothing was saved",
+            exact=False,
+        )
+    ).to_be_visible()
+
+
 def test_capture_task_workspace_autosave_and_rapid_steps(page, live_url):
     _register(page, live_url)
     page.get_by_placeholder("What do you need to remember?").fill("Prepare report")

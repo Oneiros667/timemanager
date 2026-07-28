@@ -1977,6 +1977,111 @@ body.low-capacity .remember-card {
   cursor: pointer;
 }
 
+.calm-break-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.calm-break-builder,
+.calm-break-preview {
+  align-self: start;
+}
+
+.calm-break-builder fieldset {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.calm-break-builder fieldset label,
+.consent-check {
+  align-items: start;
+  display: flex;
+  gap: 0.65rem;
+}
+
+.calm-break-builder input[type="checkbox"],
+.calm-break-builder input[type="radio"] {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+}
+
+.calm-break-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.school-share-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.school-share-builder,
+.school-share-preview {
+  align-self: start;
+}
+
+.school-share-builder fieldset {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.school-share-builder fieldset label {
+  align-items: start;
+  display: flex;
+  gap: 0.65rem;
+}
+
+.school-share-warning {
+  background: var(--surface-warm);
+  border-left: 0.25rem solid var(--accent);
+  border-radius: var(--radius-small);
+  padding: 0.8rem;
+}
+
+.school-share-summary {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.school-share-summary div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.school-share-summary dd {
+  margin: 0;
+}
+
+.school-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.school-feedback-card {
+  margin-top: 1rem;
+}
+
+.child-signal-card {
+  margin-top: 1rem;
+}
+
+.child-signal-options {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+@media (max-width: 760px) {
+  .calm-break-grid,
+  .school-share-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .prototype-task-row {
   margin-bottom: 0.6rem;
 }

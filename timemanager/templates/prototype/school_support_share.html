@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}School support sharing prototype · Timemanager{% endblock %}
+{% block body_class %}prototype-page school-share-page{% endblock %}
+
+{% block content %}
+  <section class="prototype-banner" role="note">
+    <div>
+      <p class="eyebrow">Synthetic prototype</p>
+      <h1>Share the minimum school support information</h1>
+      <p>Fictional details only. Nothing is sent or saved.</p>
+    </div>
+    <button class="secondary-button" type="button" data-school-reset>Reset scenario</button>
+  </section>
+
+  <div class="prototype-status sr-only" aria-live="polite" data-school-status></div>
+
+  <section class="school-share-grid">
+    <form class="workspace-card school-share-builder" data-school-share-form>
+      <p class="eyebrow">Guardian disclosure setup</p>
+      <h2>Who needs what information?</h2>
+      <p class="muted-copy">A recipient sees only the selected fields, for the selected purpose and time.</p>
+
+      <fieldset>
+        <legend>Recipient role</legend>
+        <label><input type="radio" name="recipient" value="Class teacher" checked> Class teacher</label>
+        <label><input type="radio" name="recipient" value="School health professional"> School nurse or designated health professional</label>
+      </fieldset>
+
+      <label>
+        <span>Purpose</span>
+        <select name="purpose">
+          <option>Classroom support and daily check-in</option>
+          <option>Medication administration at school</option>
+          <option>Temporary return-to-school support</option>
+        </select>
+      </label>
+
+      <fieldset>
+        <legend>Information to disclose</legend>
+        <label><input type="checkbox" name="field" value="Helpful classroom supports" checked> Helpful classroom supports</label>
+        <label><input type="checkbox" name="field" value="Guardian-approved condition summary"> Guardian-approved condition summary</label>
+        <label><input type="checkbox" name="field" value="Daily factual observations" checked> Daily factual observations</label>
+        <label data-medication-field><input type="checkbox" name="field" value="Medication administration plan"> Medication administration plan</label>
+      </fieldset>
+
+      <div class="school-share-warning" role="note" data-role-warning>
+        Classroom staff do not receive medication details in this prototype. Select the designated health-professional role for that purpose.
+      </div>
+
+      <label>
+        <span>Access ends</span>
+        <select name="expiry">
+          <option>At the end of this school week</option>
+          <option>In 30 days</option>
+          <option>At the end of the school term</option>
+        </select>
+      </label>
+
+      <label class="consent-check">
+        <input type="checkbox" name="child_informed" required>
+        <span>The young person has seen an age-appropriate explanation and knows how to raise a concern.</span>
+      </label>
+      <label class="consent-check">
+        <input type="checkbox" name="guardian_confirmed" required>
+        <span>I confirm this exact recipient, purpose, field list, and expiry.</span>
+      </label>
+
+      <button class="primary-button" type="submit">Preview disclosure</button>
+    </form>
+
+    <section class="workspace-card school-share-preview" aria-labelledby="disclosure-preview-title">
+      <p class="eyebrow">Disclosure preview</p>
+      <h2 id="disclosure-preview-title" data-school-preview-title>Nothing has been shared</h2>
+      <div data-school-empty>
+        <p>Select the smallest useful set of information to preview exactly what the recipient would receive.</p>
+      </div>
+      <div data-school-preview hidden>
+        <dl class="school-share-summary">
+          <div><dt>Recipient</dt><dd data-school-recipient></dd></div>
+          <div><dt>Purpose</dt><dd data-school-purpose></dd></div>
+          <div><dt>Access ends</dt><dd data-school-expiry></dd></div>
+        </dl>
+        <h3>Selected information</h3>
+        <ul data-school-fields></ul>
+        <p data-school-medication-note hidden>
+          Medication content is limited to the guardian-approved school administration plan. It does not let school staff change a dose, schedule, or prescriber instruction.
+        </p>
+        <div class="school-share-actions">
+          <button class="primary-button" type="button" data-school-confirm>Confirm synthetic share</button>
+          <button class="secondary-button" type="button" data-school-edit>Edit selection</button>
+        </div>
+        <p class="save-state" aria-live="polite" data-school-result></p>
+      </div>
+    </section>
+  </section>
+
+  <section class="workspace-card school-feedback-card">
+    <p class="eyebrow">Factual feedback design</p>
+    <h2>What the school may send back</h2>
+    <ul>
+      <li>Support offered and whether the child used it</li>
+      <li>Child’s own “okay / need help” response</li>
+      <li>A brief neutral observation and optional follow-up request</li>
+    </ul>
+    <p>No behaviour score, diagnosis, medication-effect inference, ranking, or “good/bad day” grade.</p>
+  </section>
+
+  <section class="workspace-card child-signal-card" aria-labelledby="child-signal-title">
+    <p class="eyebrow">Young person view</p>
+    <h2 id="child-signal-title">Tell a trusted adult what you need</h2>
+    <p>You do not have to explain everything. Choose the message that is closest.</p>
+    <div class="child-signal-options" data-child-signal-options>
+      <button class="secondary-button" type="button" data-child-signal="I’m overwhelmed">I’m overwhelmed</button>
+      <button class="secondary-button" type="button" data-child-signal="I need a quiet space">I need a quiet space</button>
+      <button class="secondary-button" type="button" data-child-signal="I can’t talk right now">I can’t talk right now</button>
+      <button class="secondary-button" type="button" data-child-signal="Please get my trusted adult">Please get my trusted adult</button>
+      <button class="quiet-button" type="button" data-child-signal="Something else — please check in with me">Something else</button>
+    </div>
+    <div data-child-signal-preview hidden>
+      <p><strong>Your message:</strong> <span data-child-signal-message></span></p>
+      <p>This would go only to the trusted adult shown for this place. You can cancel before sending.</p>
+      <div class="school-share-actions">
+        <button class="primary-button" type="button" data-child-signal-confirm>Confirm synthetic message</button>
+        <button class="secondary-button" type="button" data-child-signal-cancel>Cancel</button>
+      </div>
+    </div>
+    <p class="save-state" aria-live="polite" data-child-signal-result></p>
+    <p class="muted-copy">This prototype cannot contact anyone. If you are in immediate danger, get the attention of a nearby trusted adult or use the school’s emergency process.</p>
+  </section>
+
+  <script src="{{ url_for('static', filename='prototype-school-support-share.js', v=asset_version) }}" defer></script>
+{% endblock %}

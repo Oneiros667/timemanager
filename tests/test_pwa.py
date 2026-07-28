@@ -29,9 +29,9 @@ def test_service_worker_controls_the_app_shell(app, client):
     assert response.mimetype == "application/javascript"
     assert response.headers["Service-Worker-Allowed"] == "/"
     assert b"/offline" in response.data
-    assert b"timemanager-shell-v12" in response.data
-    assert b"/static/styles.css?v=12" in response.data
-    assert b"/static/app.js?v=12" in response.data
+    assert b"timemanager-shell-v14" in response.data
+    assert b"/static/styles.css?v=14" in response.data
+    assert b"/static/app.js?v=14" in response.data
     assert f"?v={app.config['STATIC_ASSET_VERSION']}".encode() in response.data
     assert b"await cache.put(event.request, response.clone())" in response.data
 
@@ -39,7 +39,7 @@ def test_service_worker_controls_the_app_shell(app, client):
     assert offline.status_code == 200
     assert b"Connection paused" in offline.data
     assert b"Nothing has been marked late or missed." in offline.data
-    assert b"/static/styles.css?v=12" in offline.data
+    assert b"/static/styles.css?v=14" in offline.data
 
 
 def test_pages_link_manifest_and_include_security_headers(client):
@@ -50,8 +50,8 @@ def test_pages_link_manifest_and_include_security_headers(client):
     assert "default-src 'self'" in response.headers["Content-Security-Policy"]
 
     response = register(client)
-    assert b"/static/styles.css?v=12" in response.data
-    assert b"/static/app.js?v=12" in response.data
+    assert b"/static/styles.css?v=14" in response.data
+    assert b"/static/app.js?v=14" in response.data
     assert b"Low capacity Today" in response.data
     assert response.data.count(b"Quick capture") == 1
     assert b'data-draft-account="' in response.data
@@ -60,6 +60,8 @@ def test_pages_link_manifest_and_include_security_headers(client):
 
 def test_complex_work_prototype_is_disabled_by_default(client):
     assert client.get("/prototypes/complex-work").status_code == 404
+    assert client.get("/prototypes/calm-break").status_code == 404
+    assert client.get("/prototypes/school-support-share").status_code == 404
 
 
 def test_complex_work_prototype_is_synthetic_and_no_store(app):
@@ -73,3 +75,29 @@ def test_complex_work_prototype_is_synthetic_and_no_store(app):
     assert b"Synthetic prototype" in response.data
     assert b"Reset scenario" in response.data
     assert b"prototype-complex-work.js" in response.data
+
+
+def test_calm_break_prototype_is_synthetic_and_no_store(app):
+    app.config["ENABLE_PROTOTYPES"] = True
+    client = app.test_client()
+
+    response = client.get("/prototypes/calm-break")
+
+    assert response.status_code == 200
+    assert response.headers["Cache-Control"] == "no-store"
+    assert b"Synthetic prototype" in response.data
+    assert b"No names or responses are saved" in response.data
+    assert b"prototype-calm-break.js" in response.data
+
+
+def test_school_support_share_prototype_is_synthetic_and_no_store(app):
+    app.config["ENABLE_PROTOTYPES"] = True
+    client = app.test_client()
+
+    response = client.get("/prototypes/school-support-share")
+
+    assert response.status_code == 200
+    assert response.headers["Cache-Control"] == "no-store"
+    assert b"Fictional details only" in response.data
+    assert b"Nothing has been shared" in response.data
+    assert b"prototype-school-support-share.js" in response.data

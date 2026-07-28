@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Calm break prototype · Timemanager{% endblock %}
+{% block body_class %}prototype-page calm-break-page{% endblock %}
+
+{% block content %}
+  <section class="prototype-banner" role="note">
+    <div>
+      <p class="eyebrow">Synthetic prototype</p>
+      <h1>Plan a calm break together</h1>
+      <p>No names or responses are saved. This is not a live child account.</p>
+    </div>
+    <button class="secondary-button" type="button" data-calm-reset>Reset scenario</button>
+  </section>
+
+  <div class="prototype-status sr-only" aria-live="polite" data-calm-status></div>
+
+  <section class="calm-break-grid">
+    <form class="workspace-card calm-break-builder" data-calm-builder>
+      <p class="eyebrow">Grown-up setup</p>
+      <h2>What could make this break helpful?</h2>
+      <p class="muted-copy">Choose supportive guidelines, then let the young person see and respond to the plan.</p>
+
+      <label>
+        <span>Why are we taking a break?</span>
+        <input name="reason" maxlength="180" value="We both need a calmer moment before we talk.">
+      </label>
+
+      <fieldset>
+        <legend>Calming options</legend>
+        <label><input type="checkbox" name="guideline" value="Try mindfulness, breathing, or grounding" checked> Try mindfulness, breathing, or grounding</label>
+        <label><input type="checkbox" name="guideline" value="Listen to music" checked> Allow music</label>
+        <label><input type="checkbox" name="guideline" value="Have water or a snack"> Have water or a snack</label>
+        <label><input type="checkbox" name="guideline" value="Use a quiet activity"> Use a quiet activity</label>
+      </fieldset>
+
+      <label>
+        <span>Another supportive option</span>
+        <input name="custom_guideline" maxlength="180" placeholder="For example: sit with the dog">
+      </label>
+
+      <fieldset>
+        <legend>When should we check in?</legend>
+        <label><input type="radio" name="check_in" value="When I feel ready" checked> When the young person feels ready</label>
+        <label><input type="radio" name="check_in" value="In about 10 minutes"> In about 10 minutes</label>
+        <label><input type="radio" name="check_in" value="At an agreed time"> At an agreed time</label>
+      </fieldset>
+
+      <label class="consent-check">
+        <input type="checkbox" name="visible_agreement" required>
+        <span>I will show this plan before the break starts and leave a way to ask for help.</span>
+      </label>
+      <button class="primary-button" type="submit">Show the break plan</button>
+    </form>
+
+    <section class="workspace-card calm-break-preview" aria-labelledby="young-person-view">
+      <p class="eyebrow">Young person view</p>
+      <h2 id="young-person-view">A calm break</h2>
+      <div data-calm-empty>
+        <p>The grown-up’s suggested plan will appear here before the break starts.</p>
+      </div>
+      <div data-calm-plan hidden>
+        <p data-calm-reason></p>
+        <h3>You can choose what helps</h3>
+        <ul data-calm-guidelines></ul>
+        <p><strong>Check in:</strong> <span data-calm-check-in></span></p>
+        <p>This is a pause, not a score or punishment. You can ask for help or say the plan does not feel okay.</p>
+        <div class="calm-break-actions" data-calm-actions>
+          <button class="primary-button" type="button" data-calm-response="I’m ready to take a break">I’m ready</button>
+          <button class="secondary-button" type="button" data-calm-response="I need help">I need help</button>
+          <button class="quiet-button" type="button" data-calm-response="I want to talk about the plan">Talk about the plan</button>
+        </div>
+        <p class="save-state" aria-live="polite" data-calm-response-status></p>
+      </div>
+    </section>
+  </section>
+
+  <script src="{{ url_for('static', filename='prototype-calm-break.js', v=asset_version) }}" defer></script>
+{% endblock %}

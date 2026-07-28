@@ -31,6 +31,13 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
 - [Assisted planning and guardian support](assisted-planning-and-guardian-support.md)
   defines guardian-supported child planning and adult trusted-person support,
   including permissions, proposals, privacy boundaries, and release gates.
+- [Guardian-supported calm-break prototype](calm-break-prototype.md) defines
+  the implemented synthetic same-device interaction, its non-punitive safety
+  contract, and the gates that block persistent use with real child data.
+- [School support and health-information sharing prototype](school-support-sharing-prototype.md)
+  defines the implemented field-level disclosure preview, separate teacher and
+  school-health roles, neutral feedback contract, and real-sharing release
+  gates.
 - [ADR 0001: Local PWA architecture](decisions/0001-local-pwa-architecture.md)
   records the accepted Flask, SQLite, server-rendered UI, authentication, and
   service-worker boundaries for the Phase 1 local pilot.
