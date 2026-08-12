@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reconcile Time Manager Evidence"
+  short_description: "Reconcile status, gates, and next work"
+  default_prompt: "Use $reconcile-time-manager-evidence to verify current project status and rank the next safe work."
