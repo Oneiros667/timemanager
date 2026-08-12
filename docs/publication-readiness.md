@@ -1,8 +1,8 @@
 # Publication-readiness audit
 
-Status: **BLOCKED FOR PUBLICATION**
+Status: **BLOCKED PENDING FINAL CANDIDATE SCANS AND OWNER VISIBILITY DECISION**
 
-Audit date: 2026-08-11
+Audit date: 2026-08-11; evidence updated 2026-08-12
 
 Audited checkout: branch `master`, starting HEAD
 `faed91edbc3a81e87becf1a5d95f15f0840b9f4d`, initially even with
@@ -13,9 +13,10 @@ Audited checkout: branch `master`, starting HEAD
 This audit covers the current tracked tree, reachable local Git history,
 application/security boundaries, documentation claims, committed assets,
 dependency metadata available in the locked local environment, and local
-verification. It does not authorize a visibility change, license the project,
-establish ownership, rewrite history, run hosted GitHub Actions, perform a
-penetration test, or complete manual accessibility/usability acceptance.
+verification, and the hosted GitHub Actions evidence recorded below. It does
+not authorize a visibility change, establish legal ownership, rewrite history,
+perform a penetration test, or complete manual accessibility/usability
+acceptance.
 
 The repository remains an early local Flask/SQLite pilot. It is not a public
 multi-tenant service, clinical product, completed child application, AI
@@ -36,15 +37,21 @@ self-service restore system.
   `SECURITY.md` for private security contact and other repository email-contact
   requirements.
 
-## Remaining publication blockers requiring external evidence or scoping
+## Publication scope and open validation gates
 
-1. **Hosted CI:** the committed GitHub Actions workflow has not run on the
-   publication candidate in GitHub.
-2. **Independent/manual gates:** independent security review, manual keyboard
-   and screen-reader review,
-   200%/400% zoom, forced-colors, real-device checks, and participant usability
-   testing have not been completed. Automated checks must not be described as
-   WCAG conformance or product validation.
+The proposed visibility change is **source-only publication** of the documented
+local development/pilot repository. It does not deploy the application, create
+a hosted service, establish production security, or validate accessibility,
+usability, or clinical outcomes.
+
+Independent security review and penetration testing remain required before an
+internet-facing deployment or production-security claim. Manual keyboard and
+screen-reader review, 200%/400% zoom, forced-colors, broader-browser and
+real-device checks, and participant usability testing remain required before
+the corresponding accessibility, compatibility, or validated-usability claims.
+These open gates do not block source-only publication while the README and this
+audit keep the limitations prominent and precise. Automated checks must not be
+described as WCAG conformance or product validation.
 
 ## Privacy and security findings
 
@@ -180,8 +187,16 @@ comments, Python 3.11, uv 0.12.3, `uv sync --locked`, the locked Playwright
 browser, temporary SQLite, repository/link checks, coverage, compilation,
 migration/CLI checks, and no service credentials or artifact uploads.
 
-The committed workflow is configuration only. It has not passed on GitHub for
-this local diff.
+The first hosted run on `313ae7dd98e7241174b1dbce1134e0d09eaa7866` failed
+before creating a job because the workflow used a runner-only context in
+job-level environment configuration. Commit
+`a51d3da26c2d59e710643a8f445c7e3586d71864` moved the temporary database path
+configuration onto the runner. GitHub Actions run `31603140723` then completed
+successfully on that exact commit. The retained run is
+<https://github.com/Oneiros667/timemanager/actions/runs/31603140723>.
+Repository hygiene, locked installation, Playwright browser installation, the
+coverage test suite, compilation, migration/operator commands, lock
+verification, and whitespace checks all passed.
 
 ## Local verification evidence
 
@@ -225,24 +240,23 @@ On 2026-08-12, after the owner selected Apache-2.0:
 
 No Ruff configuration or supported standalone formatter exists, so no Ruff or
 format claim is made. External-link reachability, Gitleaks/TruffleHog,
-Bandit/pip-audit, hosted GitHub Actions, broader browsers, manual accessibility,
-real-device, penetration, and participant checks were not run and remain open
-as described above.
+Bandit/pip-audit, broader browsers, manual accessibility, real-device,
+penetration, and participant checks were not run and remain open under the
+scope defined above.
 
 ## Exact pre-publication steps
 
 Completed owner-controlled steps are recorded above: Apache-2.0 was selected,
 reachable history was retained, ownership and redistribution authority were
 attested, a specific private security contact was designated, and the reviewed
-publication-preparation changes were committed as `880f6b23d24f`.
+publication-preparation changes were committed as `880f6b23d24f`. The contact
+and attestation update was committed as `313ae7dd98e`, and the corrected hosted
+workflow passed on `a51d3da26c2d`. The independent/manual gates are explicitly
+scoped above.
 
-1. Review and commit the designated security-contact and attestation update.
-2. Push without force while the repository remains private and obtain a passing
-   run of the exact committed workflow.
-3. Complete or explicitly scope the independent security and manual
-   accessibility/usability gates; keep uncompleted gates public and precise.
-4. Re-run current-tree and full-history scans on the exact candidate commit.
-5. Only then make a separate, explicit owner decision about repository
+1. Review and commit this evidence and scoping update.
+2. Re-run current-tree and full-history scans on the exact candidate commit.
+3. Only then make a separate, explicit owner decision about repository
    visibility. Do not deploy the Flask development server as part of that step.
-6. If the repository becomes public, enable GitHub private vulnerability
+4. If the repository becomes public, enable GitHub private vulnerability
    reporting and verify its reporting and notification path immediately.
