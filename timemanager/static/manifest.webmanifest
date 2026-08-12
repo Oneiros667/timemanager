@@ -1,7 +1,7 @@
 {
   "name": "Timemanager",
   "short_name": "Timemanager",
-  "description": "A calm, ADHD-friendly day companion.",
+  "description": "A calm local-first day-planning companion.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

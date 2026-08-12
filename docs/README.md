@@ -96,6 +96,13 @@ someone function and a treatment that reduces core ADHD symptoms. A planning
 tool can support the former; it should not claim the latter without clinical
 evidence and appropriate regulation.
 
+## Repository publication
+
+- [Publication-readiness audit](publication-readiness.md) records the current
+  privacy, security, licensing, ownership, screenshot, CI, and manual-review
+  gates. It is an engineering audit, not publication authorization or legal
+  advice.
+
 ## Separate child product
 
 The proposed application for ages 8–17 is specified under

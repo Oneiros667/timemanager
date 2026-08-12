@@ -1,8 +1,9 @@
 [project]
 name = "timemanager"
 version = "0.1.0"
-description = "An ADHD-friendly day companion"
+description = "A calm local-first day-planning companion"
 readme = "README.md"
+license = "Apache-2.0"
 requires-python = ">=3.11"
 dependencies = [
     "alembic>=1.18,<2",
@@ -21,7 +22,7 @@ dev = [
 timemanager = "timemanager.cli:main"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling==1.32.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]

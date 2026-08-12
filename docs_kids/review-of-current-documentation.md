@@ -49,7 +49,7 @@ still exists.
 | Repository `README.md` | Preserve its precise implemented adult-pilot baseline and link to this separate specification. The adult quick-start and runtime do not start a child application. |
 | `docs/README.md` | Reuse its evidence/status vocabulary. Do not treat its adult research index as child validation. |
 | `docs/AGENTS.md` | Reuse evidence discipline, current-source verification, non-clinical language, and implemented/proposed separation. |
-| `docs/assets/*.png` | The two screenshots document the adult Today/Later interface. They are not child designs or evidence of child usability. |
+| `docs/assets/*.png` | The synthetic screenshots document adult application views. They are not child designs or evidence of child usability. |
 | `adhd-time-management-domain-research.md` | Adapt immediate capture, concrete next action, visible time, small plans, low-capacity recovery, and non-shaming language. Evidence review is adult-centered; child efficacy remains unverified. |
 | `reference-systems-analysis.md` | Treat daily focus, progressive disclosure, recovery, and simplicity as hypotheses. Marketplace repetition is not child evidence. |
 | `reddit-app-experience-analysis.md` | Reuse counterexamples about notification fatigue, autonomy, novelty, phone distraction, and complex app stacks. The sampled adult discussions do not establish child preferences. |

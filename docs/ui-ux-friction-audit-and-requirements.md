@@ -63,11 +63,17 @@ The isolated browser session did not read or change the user's application
 database. The audit did not include a production deployment, real calendar
 data, a real mobile device, or an attended screen-reader session.
 
-### 2.2 Supplied screens
+### 2.2 Publication-safe synthetic screens
 
-![Today view showing Quick Capture, Remember, the highlight, one optional action, and the start-smaller card](assets/Screenshot_today_20260728_115239.png)
+The original supplied screens were removed from the current tree during the
+2026-08-11 publication audit because they contained identifying and
+personal-looking content. The following temporary-installation recreations use
+fictional data. They demonstrate the current interface but do not replace the
+historical audit evidence or establish participant acceptance.
 
-![Later view showing an empty Captured section and two ready or blocked tasks](assets/Screenshot_later_20260728_113123.png)
+![Synthetic Today view showing Quick Capture, Remember, a highlight, optional actions, overflow, and the start-smaller card](assets/synthetic-today.png)
+
+![Synthetic Later view showing captured, ready, waiting, project, and recovery navigation](assets/synthetic-later.png)
 
 ### 2.3 Verification run
 
@@ -1263,7 +1269,7 @@ decision.
 TODAY                                      Low capacity
 
 Tuesday, 28 July
-Good to see you, Peter.
+Good to see you, Sam.
 
 REMEMBER — 1 of 3
 ○ Go for walk                                  [Add cue]

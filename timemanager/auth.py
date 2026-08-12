@@ -20,6 +20,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from .db import get_db, local_installation_id, new_public_id
 from .models import users
+from .security import local_return_path
 
 blueprint = Blueprint("auth", __name__)
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -143,9 +144,10 @@ def login():
         else:
             session.clear()
             session["user_id"] = user["id"]
-            destination = request.args.get("next", "")
-            if not destination.startswith("/") or destination.startswith("//"):
-                destination = url_for("tasks.today")
+            destination = local_return_path(
+                request.args.get("next"),
+                url_for("tasks.today"),
+            )
             return redirect(destination)
 
     return render_template("auth/login.html", email=email)

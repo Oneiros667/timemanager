@@ -11,8 +11,21 @@ wheels/
 
 # Local Timemanager data and secrets
 instance/
+.env
+.env.*
+*.sqlite
+*.sqlite3
+*.db
+*.pre-migration-*.bak
+*-timemanager.json
+timemanager-export-*.json
 
 # Test and coverage output
 .pytest_cache/
 .coverage
 htmlcov/
+coverage.xml
+test-results/
+playwright-report/
+blob-report/
+*.log

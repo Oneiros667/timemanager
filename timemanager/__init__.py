@@ -35,6 +35,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             str(Path(app.instance_path) / "timemanager.sqlite3"),
         ),
         DATABASE_URL=os.environ.get("TIMEMANAGER_DATABASE_URL"),
+        SESSION_COOKIE_NAME="timemanager_session",
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
         SESSION_COOKIE_SECURE=False,
@@ -89,6 +90,10 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault(
+            "Permissions-Policy",
+            "camera=(), geolocation=(), microphone=()",
+        )
+        response.headers.setdefault(
             "Content-Security-Policy",
             "default-src 'self'; "
             "img-src 'self' data:; "
@@ -98,8 +103,11 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
             "manifest-src 'self'; "
             "frame-ancestors 'none'; "
             "base-uri 'self'; "
+            "object-src 'none'; "
             "form-action 'self'",
         )
+        if response.mimetype == "text/html" and request.endpoint != "offline":
+            response.headers["Cache-Control"] = "no-store"
         return response
 
     @app.get("/")

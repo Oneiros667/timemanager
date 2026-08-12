@@ -106,6 +106,32 @@ def test_login_and_logout(client):
     assert b"Sign in" in response.data
 
 
+def test_login_redirects_only_to_origin_local_paths(client):
+    register(client, password="a secure local password")
+    token = csrf_token(client, "/today")
+    client.post("/logout", data={"_csrf_token": token})
+
+    for destination in (
+        "https://example.net/collect",
+        "//example.net/collect",
+        "/\\example.net/collect",
+    ):
+        token = csrf_token(client, f"/login?next={destination}")
+        response = client.post(
+            f"/login?next={destination}",
+            data={
+                "_csrf_token": token,
+                "email": "alex@example.com",
+                "password": "a secure local password",
+            },
+        )
+        assert response.status_code == 302
+        assert response.headers["Location"] == "/today"
+
+        token = csrf_token(client, "/today")
+        client.post("/logout", data={"_csrf_token": token})
+
+
 def test_post_requests_require_a_valid_csrf_token(client):
     response = client.post(
         "/register",

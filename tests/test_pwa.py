@@ -48,6 +48,11 @@ def test_pages_link_manifest_and_include_security_headers(client):
     assert response.headers["X-Content-Type-Options"] == "nosniff"
     assert response.headers["X-Frame-Options"] == "DENY"
     assert "default-src 'self'" in response.headers["Content-Security-Policy"]
+    assert "object-src 'none'" in response.headers["Content-Security-Policy"]
+    assert response.headers["Permissions-Policy"] == (
+        "camera=(), geolocation=(), microphone=()"
+    )
+    assert response.headers["Cache-Control"] == "no-store"
 
     response = register(client)
     assert b"/static/styles.css?v=14" in response.data
@@ -56,6 +61,9 @@ def test_pages_link_manifest_and_include_security_headers(client):
     assert response.data.count(b"Quick capture") == 1
     assert b'data-draft-account="' in response.data
     assert b"data-clear-drafts" in response.data
+
+    offline = client.get("/offline")
+    assert offline.headers.get("Cache-Control") != "no-store"
 
 
 def test_complex_work_prototype_is_disabled_by_default(client):

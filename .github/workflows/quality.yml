@@ -1,0 +1,59 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      TIMEMANAGER_DATABASE: ${{ runner.temp }}/timemanager-ci.sqlite3
+      UV_NO_PROGRESS: "1"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: false
+          version: "0.12.3"
+
+      - name: Install locked dependencies
+        run: uv sync --locked
+
+      - name: Install the locked Playwright browser
+        run: uv run playwright install --with-deps chromium
+
+      - name: Check repository hygiene and documentation links
+        run: uv run python scripts/check_repository.py
+
+      - name: Run tests with coverage
+        run: uv run pytest --cov=timemanager --cov-report=term-missing
+
+      - name: Compile Python sources
+        run: uv run python -m compileall -q main.py timemanager tests migrations scripts
+
+      - name: Check migrations and operator commands
+        run: |
+          uv run flask --app timemanager schema-version
+          uv run flask --app timemanager export-account --help
+          uv run flask --app timemanager import-account --help
+
+      - name: Check lock file and whitespace
+        run: |
+          uv lock --check
+          git diff --check

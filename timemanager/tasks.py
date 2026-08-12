@@ -26,6 +26,7 @@ from .models import (
     tasks as task_table,
 )
 from .planning import TODAY_OPTION_LIMIT
+from .security import local_return_path
 
 blueprint = Blueprint("tasks", __name__)
 
@@ -171,9 +172,7 @@ def _later_view_clause():
 
 
 def _safe_return_path(value: str | None, fallback: str) -> str:
-    if value and value.startswith("/") and not value.startswith("//"):
-        return value
-    return fallback
+    return local_return_path(value, fallback)
 
 
 def _project_detail_path(project_id: int, return_to: str | None = None) -> str:
