@@ -29,19 +29,19 @@ self-service restore system.
   public visibility would expose the previously identified screenshots,
   documentation wireframe name, and Git author identity/email preserved in the
   repository history.
+- **Ownership and redistribution:** the owner attests that they own or have
+  authority to publish the application source, original assets, screenshots,
+  documentation, and adapted research under Apache-2.0.
+- **Project contact:** the owner designated the address published in
+  `SECURITY.md` for private security contact and other repository email-contact
+  requirements.
 
-## Publication blockers requiring owner or external review
+## Remaining publication blockers requiring external evidence or scoping
 
-1. **Ownership and redistribution:** the owner must attest that the application
-   source, original SVG/PNG icons, screenshot design/output, documentation, and
-   adapted research text may be published under Apache-2.0. References
-   are linked rather than bundled, and no external font or icon library was
-   found, but source inspection cannot establish legal ownership.
-2. **Private disclosure route:** `SECURITY.md` defines safe handling, but the
-   owner must configure and verify an actual private vulnerability-reporting
-   channel before visibility changes.
-3. **Independent/manual gates:** hosted CI for the committed workflow,
-   independent security review, manual keyboard and screen-reader review,
+1. **Hosted CI:** the committed GitHub Actions workflow has not run on the
+   publication candidate in GitHub.
+2. **Independent/manual gates:** independent security review, manual keyboard
+   and screen-reader review,
    200%/400% zoom, forced-colors, real-device checks, and participant usability
    testing have not been completed. Automated checks must not be described as
    WCAG conformance or product validation.
@@ -231,14 +231,18 @@ as described above.
 
 ## Exact pre-publication steps
 
-1. Review this local diff and all six synthetic images.
-2. Confirm ownership and Apache-2.0 redistribution rights for code, assets,
-   screenshots, documentation, and adapted research.
-3. Configure and test private vulnerability reporting.
-4. Commit the reviewed changes, push without force, and obtain a passing run of
-   the exact committed workflow.
-5. Complete or explicitly scope the independent security and manual
+Completed owner-controlled steps are recorded above: Apache-2.0 was selected,
+reachable history was retained, ownership and redistribution authority were
+attested, a specific private security contact was designated, and the reviewed
+publication-preparation changes were committed as `880f6b23d24f`.
+
+1. Review and commit the designated security-contact and attestation update.
+2. Push without force while the repository remains private and obtain a passing
+   run of the exact committed workflow.
+3. Complete or explicitly scope the independent security and manual
    accessibility/usability gates; keep uncompleted gates public and precise.
-6. Re-run current-tree and full-history scans on the exact candidate commit.
-7. Only then make a separate, explicit owner decision about repository
+4. Re-run current-tree and full-history scans on the exact candidate commit.
+5. Only then make a separate, explicit owner decision about repository
    visibility. Do not deploy the Flask development server as part of that step.
+6. If the repository becomes public, enable GitHub private vulnerability
+   reporting and verify its reporting and notification path immediately.

@@ -13,6 +13,7 @@ from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_EXPORT_FIXTURES = {"tests/fixtures/account_export_v1.json"}
+ALLOWED_PUBLIC_EMAIL_PATHS = {"SECURITY.md"}
 SELF_PATH = "scripts/check_repository.py"
 FORBIDDEN_PARTS = {
     ".env",
@@ -133,7 +134,10 @@ def check_text(paths: list[Path]) -> list[str]:
                 "example.org",
                 "example.test",
             }
-            if match.group(1).casefold() not in allowed_domains:
+            if (
+                match.group(1).casefold() not in allowed_domains
+                and relative not in ALLOWED_PUBLIC_EMAIL_PATHS
+            ):
                 failures.append(f"non-example email address: {relative}")
                 break
     return failures

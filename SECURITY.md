@@ -17,10 +17,12 @@ screenshots, logs, or task content to a public issue.
 ## Reporting a vulnerability
 
 Do not disclose a suspected vulnerability or personal data in a public issue.
-Use the repository's private vulnerability-reporting channel when one is
-enabled, or contact the repository owner privately and ask for a secure channel
-before sharing reproduction details. The owner must configure and verify a
-specific private reporting route before changing repository visibility.
+Email the repository owner at
+[pieter.devilliers@gmail.com](mailto:pieter.devilliers@gmail.com) before
+sharing reproduction details. Send only a short, non-sensitive summary first;
+the owner will arrange a suitable private channel for any sensitive details.
+When GitHub private vulnerability reporting is enabled, that channel may be
+used instead.
 
 Include only the minimum information needed to understand the affected version,
 impact, and a synthetic reproduction. Remove secrets, real account details,
