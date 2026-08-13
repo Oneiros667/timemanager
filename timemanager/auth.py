@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from functools import wraps
 from typing import Any, Callable, TypeVar, cast
 
@@ -20,10 +19,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from .db import get_db, local_installation_id, new_public_id
 from .models import users
-from .security import local_return_path
+from .security import redirect_to_local_path
 
 blueprint = Blueprint("auth", __name__)
-EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 View = TypeVar("View", bound=Callable[..., Any])
 
 
@@ -114,13 +112,26 @@ def _registration_error(
 ) -> str | None:
     if len(display_name) < 2 or len(display_name) > 40:
         return "Use a name between 2 and 40 characters."
-    if len(email) > 254 or not EMAIL_PATTERN.match(email):
+    if not _valid_email_address(email):
         return "Enter a valid email address."
     if len(password) < 10:
         return "Use at least 10 characters for your password."
     if password != confirm_password:
         return "The passwords do not match."
     return None
+
+
+def _valid_email_address(value: str) -> bool:
+    has_whitespace = any(character.isspace() for character in value)
+    if not value or len(value) > 254 or has_whitespace:
+        return False
+
+    local_part, separator, domain = value.partition("@")
+    if not separator or not local_part or "@" in domain:
+        return False
+
+    domain_name, dot, suffix = domain.rpartition(".")
+    return bool(domain_name and dot and suffix)
 
 
 @blueprint.route("/login", methods=("GET", "POST"))
@@ -144,11 +155,10 @@ def login():
         else:
             session.clear()
             session["user_id"] = user["id"]
-            destination = local_return_path(
+            return redirect_to_local_path(
                 request.args.get("next"),
                 url_for("tasks.today"),
             )
-            return redirect(destination)
 
     return render_template("auth/login.html", email=email)
 

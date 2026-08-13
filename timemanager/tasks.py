@@ -26,7 +26,7 @@ from .models import (
     tasks as task_table,
 )
 from .planning import TODAY_OPTION_LIMIT
-from .security import local_return_path
+from .security import local_return_path, redirect_to_local_path
 
 blueprint = Blueprint("tasks", __name__)
 
@@ -1816,16 +1816,17 @@ def move_project_task(project_id: int, task_id: int):
 def set_project_state(project_id: int):
     project = _owned_project(project_id)
     _require_current_revision(project)
-    destination = _safe_return_path(
-        request.form.get("redirect_to"),
-        _project_detail_path(project_id, request.form.get("return_to")),
+    redirect_target = request.form.get("redirect_to")
+    redirect_fallback = _project_detail_path(
+        project_id,
+        request.form.get("return_to"),
     )
     state = request.form.get("state")
     if state not in ("active", "completed", "dropped"):
         abort(400)
     if state == project["state"]:
         flash("Project unchanged.", "success")
-        return redirect(destination)
+        return redirect_to_local_path(redirect_target, redirect_fallback)
     if state == "completed":
         remaining = get_db().execute(
             sa.select(sa.func.count())
@@ -1838,7 +1839,7 @@ def set_project_state(project_id: int):
         ).scalar_one()
         if remaining:
             flash("The project still has open tasks.", "error")
-            return redirect(destination)
+            return redirect_to_local_path(redirect_target, redirect_fallback)
         if request.form.get("confirm") != "1":
             abort(400)
     database = get_db()
@@ -1864,4 +1865,4 @@ def set_project_state(project_id: int):
         flash("Project restored.", "success")
     else:
         flash("Project updated.", "success")
-    return redirect(destination)
+    return redirect_to_local_path(redirect_target, redirect_fallback)
