@@ -203,6 +203,28 @@ resolved, and branch deletion and non-fast-forward pushes are blocked. Private
 vulnerability reporting, secret scanning, and secret-scanning push protection
 were also enabled.
 
+The ruleset was subsequently hardened for the solo-maintainer workflow. It
+retains zero required approvals and no bypass actors, while strict `test` and
+`dependency-review` checks are bound to the GitHub Actions application. CodeQL
+merge protection blocks errors and security alerts at medium severity or
+higher. Repository Actions default to read-only permissions, cannot approve
+pull requests, require immutable full-SHA references, and allow only
+GitHub-owned actions plus `astral-sh/setup-uv`. Every external contributor's
+fork workflow requires approval before running, and merged branches are deleted
+automatically.
+
+CodeQL default setup runs weekly and on applicable pushes and pull requests for
+GitHub Actions, JavaScript/TypeScript, and Python. Initial run `31696247639`
+completed successfully on exact public `main` commit
+`17b6e8ed61526e893c6c72f2577fe23ea19542e4`, but correctly reported five open
+Python findings: four potentially untrusted redirects and one polynomial email
+validation regular expression. The pull-request fix validates origin-local
+redirects at the response boundary and replaces the regular expression with
+bounded linear validation. CodeQL analysis of exact fix commit
+`868009bb569ef47b6bde0900cb78b104d62d10e5` then reported zero results in all
+three configured language categories. These automated results are not an
+independent security review or penetration test.
+
 The first hosted run on `313ae7dd98e7241174b1dbce1134e0d09eaa7866` failed
 before creating a job because the workflow used a runner-only context in
 job-level environment configuration. Commit
