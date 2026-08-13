@@ -1,25 +1,27 @@
 # Publication-readiness audit
 
-Status: **READY FOR SOURCE-ONLY PUBLICATION AFTER FINAL-CANDIDATE CI AND EXPLICIT OWNER VISIBILITY APPROVAL**
+Status: **PUBLIC SOURCE-ONLY PORTFOLIO REPOSITORY**
 
 Audit date: 2026-08-11; evidence updated 2026-08-13
 
 Audit lineage: the initial review started on branch `master` at
 `faed91edbc3a81e87becf1a5d95f15f0840b9f4d`. The final refresh started from a
 clean `main` at `9412082509a3810f035dc3eed66519719d6d802d`, even with
-`origin/main`. Publication must use the reviewed final candidate associated
-with a passing hosted Quality run, not one of these earlier snapshots by name
-alone.
+`origin/main`. Publication PR 1 preserved candidate commit
+`e3d9fe80cdf7aad4dbcf1d905aabf1bd200a3346` in merge commit
+`0e11d2792dfa9d750f2c90b30ec6d2d59fad9943`; the exact merged-main Quality run
+passed before the repository became public on 2026-08-13.
 
 ## Scope and evidence boundary
 
 This audit covers the current tracked tree, reachable local Git history,
 application/security boundaries, documentation claims, committed assets,
 dependency metadata available in the locked local environment, and local
-verification, and the hosted GitHub Actions evidence recorded below. It does
-not authorize a visibility change, establish legal ownership, rewrite history,
-perform a penetration test, or complete manual accessibility/usability
-acceptance.
+verification, and the hosted GitHub Actions evidence recorded below. The audit
+did not itself authorize a visibility change; the owner separately gave that
+instruction on 2026-08-13. Public visibility does not independently establish
+legal ownership, perform a penetration test, or complete manual
+accessibility/usability acceptance.
 
 The repository remains an early local Flask/SQLite pilot. It is not a public
 multi-tenant service, clinical product, completed child application, AI
@@ -42,10 +44,10 @@ self-service restore system.
 
 ## Publication scope and open validation gates
 
-The proposed visibility change is **source-only publication** of the documented
-local development/pilot repository. It does not deploy the application, create
-a hosted service, establish production security, or validate accessibility,
-usability, or clinical outcomes.
+The repository is publicly visible as a **source-only publication** of the
+documented local development/pilot repository. This does not deploy the
+application, create a hosted service, establish production security, or
+validate accessibility, usability, or clinical outcomes.
 
 Independent security review and penetration testing remain required before an
 internet-facing deployment or production-security claim. Manual keyboard and
@@ -113,8 +115,8 @@ described as WCAG conformance or product validation.
   Playwright trace, or browser profile was found in the current tree.
 - Current-tree and revision-by-revision history scans found no private-key,
   common token-prefix, or credential-bearing database-URL pattern. Gitleaks
-  8.30.1 independently reported no leaks across 30 reachable commits or the
-  candidate directory.
+  8.30.1 independently reported no leaks across the reachable pre-publication
+  history or the candidate directory.
 - One historical `DATABASE_URL=` search marker was classified as the benign
   environment-variable configuration key, with no credential value.
 - Reserved example-domain email addresses and fictional test password strings
@@ -194,10 +196,12 @@ migration/CLI checks, and no service credentials or artifact uploads.
 
 On 2026-08-13, repository settings were configured to require SHA-pinned GitHub
 Actions, enable Dependabot vulnerability alerts and automated security fixes,
-and add a portfolio description and relevant repository topics. A branch
-ruleset cannot be configured for this private personal repository on the
-current GitHub plan; add the required-Quality/no-force-push ruleset immediately
-after public visibility makes that control available.
+and add a portfolio description and relevant repository topics. After public
+visibility was enabled, the active `Protect main` ruleset was added: changes
+require a pull request and current `test` status check, review threads must be
+resolved, and branch deletion and non-fast-forward pushes are blocked. Private
+vulnerability reporting, secret scanning, and secret-scanning push protection
+were also enabled.
 
 The first hosted run on `313ae7dd98e7241174b1dbce1134e0d09eaa7866` failed
 before creating a job because the workflow used a runner-only context in
@@ -216,6 +220,14 @@ commit `9412082509a3810f035dc3eed66519719d6d802d`. It retained the same result:
 migration/operator commands, lock verification, and whitespace checks all
 passed. The retained run is
 <https://github.com/Oneiros667/timemanager/actions/runs/31626178186>.
+
+Publication PR 1 passed both its push and pull-request Quality runs on exact
+head `e3d9fe80cdf7aad4dbcf1d905aabf1bd200a3346`. After the merge, GitHub Actions
+run `31693666267` completed successfully on exact public candidate
+`0e11d2792dfa9d750f2c90b30ec6d2d59fad9943`: **103 passed**, **87% total Python
+coverage**, and every configured repository, compilation, migration/operator,
+lock, and whitespace check passed. The retained run is
+<https://github.com/Oneiros667/timemanager/actions/runs/31693666267>.
 
 ## Local verification evidence
 
@@ -259,8 +271,8 @@ On 2026-08-12, after the owner selected Apache-2.0:
 
 On 2026-08-13, during the final-candidate refresh:
 
-- Gitleaks 8.30.1 reported no leaks in 30 reachable commits or the candidate
-  directory;
+- Gitleaks 8.30.1 reported no leaks in the reachable pre-publication history or
+  the candidate directory;
 - pip-audit identified `PYSEC-2026-1845` in the development-only pytest 8.4.2
   dependency; the lock was upgraded to pytest 9.1.1, above the fixed 9.0.3
   release, and the refreshed dependency set reported no known vulnerabilities;
@@ -275,7 +287,7 @@ format claim is made. External-link reachability, TruffleHog/detect-secrets,
 broader browsers, manual accessibility, real-device, penetration, and
 participant checks were not run and remain open under the scope defined above.
 
-## Exact pre-publication steps
+## Publication outcome and remaining gates
 
 Completed owner-controlled steps are recorded above: Apache-2.0 was selected,
 reachable history was retained, ownership and redistribution authority were
@@ -285,13 +297,16 @@ and attestation update was committed as `313ae7dd98e`; the corrected hosted
 workflow passed on `a51d3da26c2d`; and the later exact-main run passed on
 `9412082509a3`. The independent/manual gates are explicitly scoped above.
 
-1. Review and merge the final publication-readiness change only after its exact
-   head commit has a passing hosted Quality run and the final current-tree and
-   full-history scans remain clean.
-2. Confirm the resulting `main` commit remains clean and hosted-verified.
-3. Only then obtain a separate, explicit owner instruction to change repository
-   visibility. Do not deploy the Flask development server as part of that step.
-4. If the repository becomes public, add a required-Quality/no-force-push
-   ruleset and enable GitHub private vulnerability reporting, then verify the
-   reporting and notification paths immediately. Dependabot vulnerability
-   alerts and automated security fixes are already enabled.
+Publication PR 1 merged as `0e11d2792dfa9d750f2c90b30ec6d2d59fad9943`,
+preserving the reviewed candidate in its ancestry. The exact merged-main hosted
+Quality run passed, and the owner then explicitly authorized public visibility
+on 2026-08-13. A credential-free anonymous clone resolved to the exact public
+candidate and contained the README, Apache-2.0 license, and synthetic preview
+assets; anonymous raw README retrieval matched the clone.
+
+The post-public ruleset and security controls described above are active. No
+source-only publication gate remains open. Manual accessibility, broader-browser,
+real-device, participant-usability, and independent security/penetration work
+remain necessary before making the corresponding validation or production
+claims. Public source visibility does not authorize deployment of the Flask
+development server.
