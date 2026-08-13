@@ -1,12 +1,15 @@
 # Publication-readiness audit
 
-Status: **BLOCKED PENDING FINAL CANDIDATE SCANS AND OWNER VISIBILITY DECISION**
+Status: **READY FOR SOURCE-ONLY PUBLICATION AFTER FINAL-CANDIDATE CI AND EXPLICIT OWNER VISIBILITY APPROVAL**
 
-Audit date: 2026-08-11; evidence updated 2026-08-12
+Audit date: 2026-08-11; evidence updated 2026-08-13
 
-Audited checkout: branch `master`, starting HEAD
-`faed91edbc3a81e87becf1a5d95f15f0840b9f4d`, initially even with
-`origin/master` and clean
+Audit lineage: the initial review started on branch `master` at
+`faed91edbc3a81e87becf1a5d95f15f0840b9f4d`. The final refresh started from a
+clean `main` at `9412082509a3810f035dc3eed66519719d6d802d`, even with
+`origin/main`. Publication must use the reviewed final candidate associated
+with a passing hosted Quality run, not one of these earlier snapshots by name
+alone.
 
 ## Scope and evidence boundary
 
@@ -109,7 +112,9 @@ described as WCAG conformance or product validation.
   export, environment file, certificate/private key, log, coverage report,
   Playwright trace, or browser profile was found in the current tree.
 - Current-tree and revision-by-revision history scans found no private-key,
-  common token-prefix, or credential-bearing database-URL pattern.
+  common token-prefix, or credential-bearing database-URL pattern. Gitleaks
+  8.30.1 independently reported no leaks across 30 reachable commits or the
+  candidate directory.
 - One historical `DATABASE_URL=` search marker was classified as the benign
   environment-variable configuration key, with no credential value.
 - Reserved example-domain email addresses and fictional test password strings
@@ -117,10 +122,10 @@ described as WCAG conformance or product validation.
 - The largest reachable blobs are the historical screenshots and lock file;
   no unexpectedly large generated archive was found.
 
-The scans used existing local utilities and repository-specific checks. Tools
-such as Gitleaks, TruffleHog, detect-secrets, Bandit, pip-audit, and ExifTool
-were not installed and were not downloaded. Pattern scanning reduces risk but
-does not prove absence of all sensitive data.
+The Gitleaks release checksum was verified against its upstream release
+checksum before execution. TruffleHog, detect-secrets, and ExifTool were not
+run. Pattern scanning reduces risk but does not prove absence of all sensitive
+data.
 
 ## Licensing and third-party material
 
@@ -147,7 +152,7 @@ the pinned build backend's cached package metadata, reports:
 | pluggy | 1.6.0 | MIT |
 | pyee | 13.0.1 | MIT |
 | Pygments | 2.20.0 | BSD-2-Clause |
-| pytest | 8.4.2 | MIT |
+| pytest | 9.1.1 | MIT |
 | pytest-cov | 6.3.0 | MIT |
 | typing_extensions | 4.16.0 | PSF-2.0 |
 | Werkzeug | 3.1.8 | BSD-3-Clause |
@@ -187,6 +192,13 @@ comments, Python 3.11, uv 0.12.3, `uv sync --locked`, the locked Playwright
 browser, temporary SQLite, repository/link checks, coverage, compilation,
 migration/CLI checks, and no service credentials or artifact uploads.
 
+On 2026-08-13, repository settings were configured to require SHA-pinned GitHub
+Actions, enable Dependabot vulnerability alerts and automated security fixes,
+and add a portfolio description and relevant repository topics. A branch
+ruleset cannot be configured for this private personal repository on the
+current GitHub plan; add the required-Quality/no-force-push ruleset immediately
+after public visibility makes that control available.
+
 The first hosted run on `313ae7dd98e7241174b1dbce1134e0d09eaa7866` failed
 before creating a job because the workflow used a runner-only context in
 job-level environment configuration. Commit
@@ -197,6 +209,13 @@ successfully on that exact commit. The retained run is
 Repository hygiene, locked installation, Playwright browser installation, the
 coverage test suite, compilation, migration/operator commands, lock
 verification, and whitespace checks all passed.
+
+GitHub Actions run `31626178186` subsequently completed successfully on exact
+commit `9412082509a3810f035dc3eed66519719d6d802d`. It retained the same result:
+**103 passed**, **87% total Python coverage**, repository hygiene, compilation,
+migration/operator commands, lock verification, and whitespace checks all
+passed. The retained run is
+<https://github.com/Oneiros667/timemanager/actions/runs/31626178186>.
 
 ## Local verification evidence
 
@@ -238,11 +257,23 @@ On 2026-08-12, after the owner selected Apache-2.0:
 - a temporary wheel included `dist-info/licenses/LICENSE`; and
 - locked sync, repository hygiene, lock, and whitespace checks passed again.
 
+On 2026-08-13, during the final-candidate refresh:
+
+- Gitleaks 8.30.1 reported no leaks in 30 reachable commits or the candidate
+  directory;
+- pip-audit identified `PYSEC-2026-1845` in the development-only pytest 8.4.2
+  dependency; the lock was upgraded to pytest 9.1.1, above the fixed 9.0.3
+  release, and the refreshed dependency set reported no known vulnerabilities;
+- Bandit 1.9.4 reported zero medium/high findings and five reviewed low findings:
+  two deliberately fictional screenshot credentials and three fixed-argument
+  `git ls-files` subprocess/import warnings in the repository checker; and
+- the full browser-inclusive suite passed on pytest 9.1.1: **103 passed** with
+  **87% total Python coverage**.
+
 No Ruff configuration or supported standalone formatter exists, so no Ruff or
-format claim is made. External-link reachability, Gitleaks/TruffleHog,
-Bandit/pip-audit, broader browsers, manual accessibility, real-device,
-penetration, and participant checks were not run and remain open under the
-scope defined above.
+format claim is made. External-link reachability, TruffleHog/detect-secrets,
+broader browsers, manual accessibility, real-device, penetration, and
+participant checks were not run and remain open under the scope defined above.
 
 ## Exact pre-publication steps
 
@@ -250,13 +281,17 @@ Completed owner-controlled steps are recorded above: Apache-2.0 was selected,
 reachable history was retained, ownership and redistribution authority were
 attested, a specific private security contact was designated, and the reviewed
 publication-preparation changes were committed as `880f6b23d24f`. The contact
-and attestation update was committed as `313ae7dd98e`, and the corrected hosted
-workflow passed on `a51d3da26c2d`. The independent/manual gates are explicitly
-scoped above.
+and attestation update was committed as `313ae7dd98e`; the corrected hosted
+workflow passed on `a51d3da26c2d`; and the later exact-main run passed on
+`9412082509a3`. The independent/manual gates are explicitly scoped above.
 
-1. Review and commit this evidence and scoping update.
-2. Re-run current-tree and full-history scans on the exact candidate commit.
-3. Only then make a separate, explicit owner decision about repository
+1. Review and merge the final publication-readiness change only after its exact
+   head commit has a passing hosted Quality run and the final current-tree and
+   full-history scans remain clean.
+2. Confirm the resulting `main` commit remains clean and hosted-verified.
+3. Only then obtain a separate, explicit owner instruction to change repository
    visibility. Do not deploy the Flask development server as part of that step.
-4. If the repository becomes public, enable GitHub private vulnerability
-   reporting and verify its reporting and notification path immediately.
+4. If the repository becomes public, add a required-Quality/no-force-push
+   ruleset and enable GitHub private vulnerability reporting, then verify the
+   reporting and notification paths immediately. Dependabot vulnerability
+   alerts and automated security fixes are already enabled.

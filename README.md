@@ -77,7 +77,7 @@ Requirements: Python 3.11 or newer and [`uv`](https://docs.astral.sh/uv/).
 From a clean clone:
 
 ```bash
-git clone <repository-url> timemanager
+git clone https://github.com/Oneiros667/timemanager.git
 cd timemanager
 uv sync --locked
 uv run timemanager
@@ -152,8 +152,8 @@ machine:
 uv run playwright install chromium
 ```
 
-The committed GitHub Actions workflow is configuration only until it runs on
-GitHub. Current local evidence and remaining gates are recorded in
+The same quality path runs in GitHub Actions. Current local and hosted evidence,
+along with the remaining manual and publication gates, is recorded in
 [`docs/publication-readiness.md`](docs/publication-readiness.md).
 
 ## Documentation and contribution
