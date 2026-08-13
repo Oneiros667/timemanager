@@ -68,6 +68,31 @@ def test_registration_validates_fields_and_duplicate_email(client):
     assert b"An account with that email already exists." in response.data
 
 
+def test_registration_rejects_malformed_or_oversized_email_addresses(client):
+    for email in (
+        "missing-at.example.com",
+        "missing-domain@",
+        "missing-suffix@example",
+        "two@@example.com",
+        "space @example.com",
+        f"{'a' * 243}@example.com",
+    ):
+        token = csrf_token(client, "/register")
+        response = client.post(
+            "/register",
+            data={
+                "_csrf_token": token,
+                "display_name": "Alex",
+                "email": email,
+                "password": "a secure local password",
+                "confirm_password": "a secure local password",
+            },
+            follow_redirects=True,
+        )
+
+        assert b"Enter a valid email address." in response.data
+
+
 def test_login_and_logout(client):
     register(client, password="a secure local password")
     token = csrf_token(client, "/today")
