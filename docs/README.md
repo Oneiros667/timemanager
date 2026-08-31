@@ -18,6 +18,15 @@ guidance, not medical advice or a substitute for ADHD assessment or treatment.
   records screenshot- and implementation-backed usability findings, prioritized
   safety and accessibility issues, proposed interaction requirements, validation
   scenarios, and a staged optimization plan.
+- [Day-transition and achievement-closing inspiration](day-transition-and-closing-inspiration.md)
+  preserves experiential input about small ritual boundaries, acknowledging
+  progress and effort, and carrying one concrete next action into the following
+  day without turning Close into a score, streak, or second task manager.
+- [Japanese work and cultural practices: product inspiration](japanese-work-and-cultural-practices-inspiration.md)
+  evaluates Kanban/pull, *genchi genbutsu*, pointing and calling, 5S,
+  Kaizen/Improvement Kata, jidoka/poka-yoke, and *ma* against Timemanager's
+  low-friction product and evidence boundaries, with first-party and academic
+  references.
 - [Task detail and complex-work requirements](task-detail-and-complex-work-requirements.md)
   defines the Phase 1 task-detail, component, lightweight-project, ordering,
   dependency, external-waiting, readiness, and Today-placement contracts.
