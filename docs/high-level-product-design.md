@@ -2,7 +2,7 @@
 
 Status: proposed product direction
 
-Updated: 2026-07-28
+Updated: 2026-08-31
 
 ## Implementation status
 
@@ -382,6 +382,12 @@ It asks:
 - what the first fixed commitment tomorrow is.
 
 The close does not require journaling, complete time logs, or inbox zero.
+
+[Day-transition and achievement-closing inspiration](day-transition-and-closing-inspiration.md)
+records additional experiential input about balancing the visible work ahead
+with a brief acknowledgement of progress and effort, carrying one concrete next
+action forward, and using small user-chosen rituals to mark day boundaries. It
+is product-discovery input, not implemented or participant-validated behavior.
 
 ### 9. Learn: "Help plans become more realistic"
 
